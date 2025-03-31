@@ -10,7 +10,9 @@ export const rendezVous: RendezVous[] = [
     dossier: dossiers[0],
     date: new Date("2023-01-25T10:00:00"),
     honore: true,
-    notes: "Client très intéressé par nos services SEO"
+    notes: "Client très intéressé par nos services SEO",
+    meetingLink: "https://meet.google.com/abc-defg-hij",
+    location: "Visioconférence (Google Meet)"
   },
   {
     id: "rdv2",
@@ -18,7 +20,9 @@ export const rendezVous: RendezVous[] = [
     dossier: dossiers[1],
     date: new Date("2023-03-05T14:00:00"),
     honore: false,
-    notes: "Client absent, essayer de reprogrammer"
+    notes: "Client absent, essayer de reprogrammer",
+    meetingLink: "https://meet.google.com/jkl-mnop-qrs",
+    location: "Visioconférence (Google Meet)"
   },
   {
     id: "rdv3",
@@ -26,6 +30,8 @@ export const rendezVous: RendezVous[] = [
     dossier: dossiers[2],
     date: new Date("2023-03-20T11:30:00"),
     honore: true,
-    notes: "Besoin d'une stratégie marketing complète"
+    notes: "Besoin d'une stratégie marketing complète",
+    meetingLink: "https://zoom.us/j/123456789",
+    location: "Visioconférence (Zoom)"
   }
 ];

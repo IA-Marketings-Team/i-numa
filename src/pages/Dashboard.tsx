@@ -1,179 +1,188 @@
 
 import { useAuth } from "@/contexts/AuthContext";
-import StatistiquesDashboard from "@/components/stats/StatistiquesDashboard";
 import { useDossier } from "@/contexts/DossierContext";
-import DossierList from "@/components/dossier/DossierList";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  LineChart, BarChart, Line, Bar, XAxis, YAxis, CartesianGrid, 
+  Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell
+} from "recharts";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { FileText, Plus, Inbox, Calendar, BarChart2, Filter } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import DossierList from "@/components/dossier/DossierList";
+import StatistiquesDashboard from "@/components/stats/StatistiquesDashboard";
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { filteredDossiers } = useDossier();
+  const { filteredDossiers, dossiers } = useDossier();
   const navigate = useNavigate();
-  
+
+  // Calcul des statistiques de dossiers
+  const dossierStats = {
+    prospects: dossiers.filter(d => d.status === "prospect").length,
+    rdv: dossiers.filter(d => d.status === "rdv_en_cours").length,
+    valides: dossiers.filter(d => d.status === "valide").length,
+    signes: dossiers.filter(d => d.status === "signe").length,
+    archives: dossiers.filter(d => d.status === "archive").length,
+  };
+
+  // Données pour le graphique en donut
+  const donutData = [
+    { name: "Prospects", value: dossierStats.prospects, color: "#6366F1" },
+    { name: "RDV en cours", value: dossierStats.rdv, color: "#3B82F6" },
+    { name: "Validés", value: dossierStats.valides, color: "#10B981" },
+    { name: "Signés", value: dossierStats.signes, color: "#059669" },
+    { name: "Archivés", value: dossierStats.archives, color: "#6B7280" },
+  ];
+
+  // Données pour le graphique à barres
+  const barData = [
+    { name: "Jan", dossiers: 10, revenus: 5500 },
+    { name: "Fév", dossiers: 15, revenus: 8200 },
+    { name: "Mar", dossiers: 12, revenus: 6800 },
+    { name: "Avr", dossiers: 18, revenus: 9500 },
+    { name: "Mai", dossiers: 20, revenus: 12000 },
+    { name: "Juin", dossiers: 22, revenus: 13500 },
+  ];
+
   // Récupérer les 5 derniers dossiers
   const recentDossiers = [...filteredDossiers]
-    .sort((a, b) => new Date(b.dateMiseAJour).getTime() - new Date(a.dateMiseAJour).getTime())
+    .sort((a, b) => new Date(b.dateCreation).getTime() - new Date(a.dateCreation).getTime())
     .slice(0, 5);
-
-  // Calculer les statistiques pour les quick cards
-  const totalDossiersEnCours = filteredDossiers.filter(d => 
-    d.statut === 'prospect' || d.statut === 'rdv_en_cours' || d.statut === 'valide'
-  ).length;
-  
-  const totalDossiersSignes = filteredDossiers.filter(d => d.statut === 'signe').length;
-  
-  const totalDossiersArchives = filteredDossiers.filter(d => d.statut === 'archive').length;
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Bienvenue, {user?.prenom}</h1>
-          <p className="text-muted-foreground">
-            {user?.role === 'client' 
-              ? "Voici un aperçu de vos dossiers et activités récentes" 
-              : "Voici un récapitulatif de vos dossiers et statistiques"}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="h-9"
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            Filtres
-          </Button>
-          <Button 
-            onClick={() => navigate("/dossiers/nouveau")} 
-            size="sm"
-            className="h-9"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nouveau dossier
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="card-shadow card-hover">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Dossiers en cours</p>
-                <h2 className="text-2xl font-bold mt-1">{totalDossiersEnCours}</h2>
-              </div>
-              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                <Inbox className="h-5 w-5 text-blue-600" />
-              </div>
+      <h1 className="text-3xl font-bold mb-6">Tableau de bord</h1>
+      
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Dossiers actifs</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {dossiers.filter(d => d.status !== "archive").length}
             </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              +{dossierStats.prospects} nouveaux prospects
+            </p>
           </CardContent>
         </Card>
         
-        <Card className="card-shadow card-hover">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Dossiers signés</p>
-                <h2 className="text-2xl font-bold mt-1">{totalDossiersSignes}</h2>
-              </div>
-              <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                <FileText className="h-5 w-5 text-green-600" />
-              </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Taux de conversion</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {dossiers.length > 0 
+                ? Math.round((dossierStats.signes / dossiers.length) * 100) 
+                : 0}%
             </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {dossierStats.signes} dossiers signés
+            </p>
           </CardContent>
         </Card>
         
-        <Card className="card-shadow card-hover">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Rendez-vous ce mois</p>
-                <h2 className="text-2xl font-bold mt-1">12</h2>
-              </div>
-              <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-                <Calendar className="h-5 w-5 text-purple-600" />
-              </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">RDV planifiés</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {dossierStats.rdv}
             </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Rendez-vous en attente
+            </p>
           </CardContent>
         </Card>
         
-        <Card className="card-shadow card-hover">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Dossiers archivés</p>
-                <h2 className="text-2xl font-bold mt-1">{totalDossiersArchives}</h2>
-              </div>
-              <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                <BarChart2 className="h-5 w-5 text-gray-600" />
-              </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Taux de validation</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {dossierStats.rdv > 0 
+                ? Math.round(((dossierStats.valides + dossierStats.signes) / (dossierStats.rdv + dossierStats.valides + dossierStats.signes)) * 100) 
+                : 0}%
             </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {dossierStats.valides + dossierStats.signes} dossiers validés/signés
+            </p>
           </CardContent>
         </Card>
       </div>
-
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-          <TabsTrigger value="statistics">Statistiques</TabsTrigger>
-        </TabsList>
+      
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+        <Card className="col-span-1">
+          <CardHeader>
+            <CardTitle>Distribution des dossiers</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={donutData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={80}
+                    outerRadius={120}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {donutData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => [`${value} dossiers`, 'Quantité']} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
         
-        <TabsContent value="overview" className="space-y-6">
-          <Card className="card-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle>Dossiers récents</CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => navigate("/dossiers")} className="text-sm">
-                  Voir tous
-                </Button>
-              </div>
-              <CardDescription>
-                Vos dossiers les plus récents et leur statut
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {recentDossiers.length > 0 ? (
-                <DossierList dossiers={recentDossiers} />
-              ) : (
-                <div className="text-center p-8 border rounded-lg">
-                  <h3 className="text-lg font-medium text-foreground mb-2">Aucun dossier récent</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Vous n'avez pas encore de dossiers dans votre espace.
-                  </p>
-                  <Button onClick={() => navigate("/dossiers/nouveau")} className="flex items-center gap-2">
-                    <Plus className="w-4 h-4" />
-                    Créer un dossier
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+        <Card className="col-span-1">
+          <CardHeader>
+            <CardTitle>Performance mensuelle</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={barData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis yAxisId="left" orientation="left" />
+                  <YAxis yAxisId="right" orientation="right" />
+                  <Tooltip />
+                  <Legend />
+                  <Bar yAxisId="left" dataKey="dossiers" name="Dossiers" fill="#3B82F6" />
+                  <Bar yAxisId="right" dataKey="revenus" name="Revenus (€)" fill="#10B981" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold">Dossiers récents</h2>
+          <Button variant="outline" onClick={() => navigate("/dossiers")}>
+            Voir tous les dossiers
+          </Button>
+        </div>
         
-        <TabsContent value="statistics">
-          <Card className="card-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle>Statistiques</CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => navigate("/statistiques")} className="text-sm">
-                  Détails
-                </Button>
-              </div>
-              <CardDescription>
-                Analyse des performances et évolution des dossiers
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <StatistiquesDashboard />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        <DossierList dossiers={recentDossiers} />
+      </div>
+      
+      {(user?.role === 'superviseur' || user?.role === 'responsable') && (
+        <StatistiquesDashboard />
+      )}
     </div>
   );
 };

@@ -1,234 +1,308 @@
 
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, AreaChart, Area } from "recharts";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
+import { useStatistique } from "@/contexts/StatistiqueContext";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  BarChart, 
+  Bar, 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer, 
+  AreaChart, 
+  Area
+} from "recharts";
+import { useAuth } from "@/contexts/AuthContext";
 
-// Données pour le graphique de burndown
+// Simulated data for various statistics charts
+const lineChartData = [
+  { name: "Jan", appels: 65, rdv: 28, dossiers: 15 },
+  { name: "Fév", appels: 59, rdv: 24, dossiers: 13 },
+  { name: "Mar", appels: 80, rdv: 35, dossiers: 20 },
+  { name: "Avr", appels: 81, rdv: 45, dossiers: 28 },
+  { name: "Mai", appels: 56, rdv: 22, dossiers: 18 },
+  { name: "Juin", appels: 75, rdv: 40, dossiers: 30 },
+];
+
+const conversionData = [
+  { name: "Jan", taux: 22.5 },
+  { name: "Fév", taux: 24.8 },
+  { name: "Mar", taux: 25.0 },
+  { name: "Avr", taux: 35.5 },
+  { name: "Mai", taux: 32.1 },
+  { name: "Juin", taux: 40.0 },
+];
+
+const revenusData = [
+  { name: "Jan", montant: 5500 },
+  { name: "Fév", montant: 6200 },
+  { name: "Mar", montant: 8100 },
+  { name: "Avr", montant: 9500 },
+  { name: "Mai", montant: 7800 },
+  { name: "Juin", montant: 12500 },
+];
+
+// Burndown chart data
 const burndownData = [
-  { day: '1', prospect: 35, rdv: 30, valide: 25, signe: 20 },
-  { day: '5', prospect: 33, rdv: 28, valide: 22, signe: 18 },
-  { day: '10', prospect: 30, rdv: 25, valide: 20, signe: 16 },
-  { day: '15', prospect: 28, rdv: 23, valide: 18, signe: 15 },
-  { day: '20', prospect: 25, rdv: 20, valide: 15, signe: 14 },
-  { day: '25', prospect: 20, rdv: 18, valide: 12, signe: 12 },
-  { day: '30', prospect: 15, rdv: 12, valide: 10, signe: 10 },
+  { jour: 1, prevision: 100, realisation: 95 },
+  { jour: 2, prevision: 90, realisation: 89 },
+  { jour: 3, prevision: 80, realisation: 82 },
+  { jour: 4, prevision: 70, realisation: 68 },
+  { jour: 5, prevision: 60, realisation: 55 },
+  { jour: 6, prevision: 50, realisation: 51 },
+  { jour: 7, prevision: 40, realisation: 42 },
+  { jour: 8, prevision: 30, realisation: 31 },
+  { jour: 9, prevision: 20, realisation: 18 },
+  { jour: 10, prevision: 10, realisation: 12 },
+  { jour: 11, prevision: 0, realisation: 0 },
 ];
 
-// Données pour le graphique de progression mensuelle
-const progressionData = [
-  { mois: 'Jan', nouveaux: 20, signés: 13, convertis: 65 },
-  { mois: 'Fév', nouveaux: 25, signés: 18, convertis: 72 },
-  { mois: 'Mar', nouveaux: 30, signés: 20, convertis: 67 },
-  { mois: 'Avr', nouveaux: 22, signés: 16, convertis: 73 },
-  { mois: 'Mai', nouveaux: 28, signés: 19, convertis: 68 },
-  { mois: 'Juin', nouveaux: 35, signés: 25, convertis: 71 },
-];
-
-// Données pour le graphique de répartition par statut
-const statusData = [
-  { statut: 'Prospect', nombre: 24, couleur: '#3b82f6' },
-  { statut: 'RDV', nombre: 18, couleur: '#6366f1' },
-  { statut: 'Validé', nombre: 12, couleur: '#14b8a6' },
-  { statut: 'Signé', nombre: 9, couleur: '#22c55e' },
-  { statut: 'Archivé', nombre: 7, couleur: '#94a3b8' },
+// Performance comparison data
+const performanceData = [
+  { name: "Obj. Appels", agent1: 100, agent2: 120, agent3: 150, agent4: 130 },
+  { name: "Appels émis", agent1: 95, agent2: 110, agent3: 155, agent4: 120 },
+  { name: "Obj. RDV", agent1: 30, agent2: 35, agent3: 40, agent4: 35 },
+  { name: "RDV fixés", agent1: 28, agent2: 32, agent3: 42, agent4: 30 },
+  { name: "Obj. Dossiers", agent1: 15, agent2: 18, agent3: 22, agent4: 18 },
+  { name: "Dossiers signés", agent1: 13, agent2: 17, agent3: 24, agent4: 16 },
 ];
 
 const Statistics = () => {
-  const [period, setPeriod] = useState("month");
-  const [chartType, setChartType] = useState("bar");
+  const [periode, setPeriode] = useState<"jour" | "semaine" | "mois">("mois");
+  const { statistiques } = useStatistique();
+  const { hasPermission } = useAuth();
   
+  const showFinancialData = hasPermission(['superviseur', 'responsable']);
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Statistiques</h1>
-          <p className="text-muted-foreground">
-            Suivez vos performances et l'évolution de vos dossiers en temps réel
-          </p>
-        </div>
-        
-        <div className="flex gap-2">
-          <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Période" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="week">Cette semaine</SelectItem>
-              <SelectItem value="month">Ce mois</SelectItem>
-              <SelectItem value="quarter">Ce trimestre</SelectItem>
-              <SelectItem value="year">Cette année</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={chartType} onValueChange={setChartType}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Type de graphique" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="bar">Barres</SelectItem>
-              <SelectItem value="line">Lignes</SelectItem>
-              <SelectItem value="area">Aires</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+    <div className="space-y-8">
+      <h1 className="text-3xl font-bold mb-6">Statistiques</h1>
+      
+      <div className="flex justify-between items-center">
+        <Tabs defaultValue="mois" onValueChange={(value) => setPeriode(value as "jour" | "semaine" | "mois")}>
+          <TabsList>
+            <TabsTrigger value="jour">Jour</TabsTrigger>
+            <TabsTrigger value="semaine">Semaine</TabsTrigger>
+            <TabsTrigger value="mois">Mois</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="card-shadow">
-          <CardContent className="p-6">
-            <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium text-muted-foreground">Total dossiers</p>
-              <h2 className="text-3xl font-bold">70</h2>
-              <p className="text-sm text-green-600 flex items-center">
-                <span className="mr-1">↑</span> +12% vs période précédente
-              </p>
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Appels émis</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {statistiques.length > 0 ? statistiques[0].appelsEmis : 0}
             </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Taux de décrochage: {statistiques.length > 0 ? Math.round((statistiques[0].appelsDecroches / statistiques[0].appelsEmis) * 100) : 0}%
+            </p>
           </CardContent>
         </Card>
         
-        <Card className="card-shadow">
-          <CardContent className="p-6">
-            <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium text-muted-foreground">Taux de conversion</p>
-              <h2 className="text-3xl font-bold">68%</h2>
-              <p className="text-sm text-green-600 flex items-center">
-                <span className="mr-1">↑</span> +5% vs période précédente
-              </p>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">RDV fixés</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {statistiques.length > 0 ? statistiques[0].rendezVousHonores + statistiques[0].rendezVousNonHonores : 0}
             </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Taux de présence: {
+                statistiques.length > 0 && (statistiques[0].rendezVousHonores + statistiques[0].rendezVousNonHonores) > 0 
+                  ? Math.round((statistiques[0].rendezVousHonores / (statistiques[0].rendezVousHonores + statistiques[0].rendezVousNonHonores)) * 100) 
+                  : 0
+              }%
+            </p>
           </CardContent>
         </Card>
         
-        <Card className="card-shadow">
-          <CardContent className="p-6">
-            <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium text-muted-foreground">Montant moyen</p>
-              <h2 className="text-3xl font-bold">1 568 €</h2>
-              <p className="text-sm text-red-600 flex items-center">
-                <span className="mr-1">↓</span> -3% vs période précédente
-              </p>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Dossiers validés</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {statistiques.length > 0 ? statistiques[0].dossiersValides : 0}
             </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {statistiques.length > 0 ? statistiques[0].dossiersSigne : 0} dossiers signés
+            </p>
           </CardContent>
         </Card>
-      </div>
-      
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-          <TabsTrigger value="status">Par statut</TabsTrigger>
-          <TabsTrigger value="burndown">Burndown chart</TabsTrigger>
-        </TabsList>
         
-        <TabsContent value="overview" className="space-y-6">
-          <Card className="card-shadow">
-            <CardHeader>
-              <CardTitle>Progression mensuelle</CardTitle>
-              <CardDescription>
-                Évolution du nombre de dossiers et du taux de conversion
-              </CardDescription>
+        {showFinancialData && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Chiffre d'affaires</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[350px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  {chartType === "bar" ? (
-                    <BarChart data={progressionData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="mois" />
-                      <YAxis yAxisId="left" />
-                      <YAxis yAxisId="right" orientation="right" domain={[0, 100]} />
-                      <Tooltip />
-                      <Legend />
-                      <Bar yAxisId="left" dataKey="nouveaux" name="Nouveaux dossiers" fill="#3b82f6" />
-                      <Bar yAxisId="left" dataKey="signés" name="Dossiers signés" fill="#22c55e" />
-                      <Line yAxisId="right" dataKey="convertis" name="Taux de conversion (%)" stroke="#f97316" type="monotone" />
-                    </BarChart>
-                  ) : chartType === "line" ? (
-                    <LineChart data={progressionData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="mois" />
-                      <YAxis yAxisId="left" />
-                      <YAxis yAxisId="right" orientation="right" domain={[0, 100]} />
-                      <Tooltip />
-                      <Legend />
-                      <Line yAxisId="left" dataKey="nouveaux" name="Nouveaux dossiers" stroke="#3b82f6" type="monotone" />
-                      <Line yAxisId="left" dataKey="signés" name="Dossiers signés" stroke="#22c55e" type="monotone" />
-                      <Line yAxisId="right" dataKey="convertis" name="Taux de conversion (%)" stroke="#f97316" type="monotone" />
-                    </LineChart>
-                  ) : (
-                    <AreaChart data={progressionData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="mois" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Area type="monotone" dataKey="nouveaux" name="Nouveaux dossiers" stroke="#3b82f6" fill="#3b82f630" />
-                      <Area type="monotone" dataKey="signés" name="Dossiers signés" stroke="#22c55e" fill="#22c55e30" />
-                    </AreaChart>
-                  )}
-                </ResponsiveContainer>
+              <div className="text-3xl font-bold">
+                {statistiques.length > 0 && statistiques[0].chiffreAffaires 
+                  ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(statistiques[0].chiffreAffaires) 
+                  : "0 €"}
               </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Ce mois
+              </p>
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
+      </div>
+      
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+        <Card className="col-span-1 lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Évolution des KPIs</CardTitle>
+            <CardDescription>
+              Tendance des appels, rendez-vous et dossiers
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={lineChartData}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="appels" stroke="#6366F1" strokeWidth={2} activeDot={{ r: 8 }} />
+                  <Line type="monotone" dataKey="rdv" stroke="#3B82F6" strokeWidth={2} />
+                  <Line type="monotone" dataKey="dossiers" stroke="#10B981" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
         
-        <TabsContent value="status" className="space-y-6">
-          <Card className="card-shadow">
+        <Card className="col-span-1">
+          <CardHeader>
+            <CardTitle>Taux de conversion</CardTitle>
+            <CardDescription>
+              Ratio de dossiers signés par rapport aux RDV
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={conversionData}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis unit="%" />
+                  <Tooltip />
+                  <Area type="monotone" dataKey="taux" stroke="#6366F1" fill="#818CF8" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {showFinancialData && (
+          <Card className="col-span-1 lg:col-span-2">
             <CardHeader>
-              <CardTitle>Répartition par statut</CardTitle>
+              <CardTitle>Revenus mensuels</CardTitle>
               <CardDescription>
-                Distribution des dossiers selon leur statut actuel
+                Évolution du chiffre d'affaires
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[350px]">
+              <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={statusData} layout="vertical">
+                  <BarChart
+                    data={revenusData}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="statut" type="category" />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="nombre" name="Nombre de dossiers">
-                      {statusData.map((entry, index) => (
-                        <Bar key={`cell-${index}`} fill={entry.couleur} />
-                      ))}
-                    </Bar>
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [`${value} €`, 'Montant']} />
+                    <Bar dataKey="montant" name="Revenus (€)" fill="#10B981" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
         
-        <TabsContent value="burndown" className="space-y-6">
-          <Card className="card-shadow">
-            <CardHeader>
-              <CardTitle>Burndown Chart</CardTitle>
-              <CardDescription>
-                Évolution des dossiers par statut sur les 30 derniers jours
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[350px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={burndownData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="day" label={{ value: 'Jour du mois', position: 'insideBottom', offset: -5 }} />
-                    <YAxis label={{ value: 'Nombre de dossiers', angle: -90, position: 'insideLeft' }} />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="prospect" name="Prospect" stroke="#3b82f6" strokeWidth={2} />
-                    <Line type="monotone" dataKey="rdv" name="Rendez-vous" stroke="#6366f1" strokeWidth={2} />
-                    <Line type="monotone" dataKey="valide" name="Validé" stroke="#14b8a6" strokeWidth={2} />
-                    <Line type="monotone" dataKey="signe" name="Signé" stroke="#22c55e" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        <Card className="col-span-1">
+          <CardHeader>
+            <CardTitle>Performance des agents</CardTitle>
+            <CardDescription>
+              Comparaison de la performance entre agents
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={performanceData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="agent1" name="Agent 1" fill="#6366F1" />
+                  <Bar dataKey="agent2" name="Agent 2" fill="#3B82F6" />
+                  <Bar dataKey="agent3" name="Agent 3" fill="#10B981" />
+                  <Bar dataKey="agent4" name="Agent 4" fill="#F59E0B" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="col-span-1">
+          <CardHeader>
+            <CardTitle>Burndown Chart</CardTitle>
+            <CardDescription>
+              Progression des objectifs hebdomadaires
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={burndownData}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="jour" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="prevision" name="Prévision" stroke="#6B7280" strokeWidth={2} />
+                  <Line type="monotone" dataKey="realisation" name="Réalisation" stroke="#3B82F6" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

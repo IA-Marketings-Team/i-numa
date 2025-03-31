@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import DossierListPage from "./pages/DossierList";
 import DossierPage from "./pages/DossierPage";
 import DossierEdit from "./pages/DossierEdit";
+import RendezVousEdit from "./pages/RendezVousEdit";
 import ClientListPage from "./pages/ClientList";
 import ClientPage from "./pages/ClientPage";
 import OfferList from "./pages/OfferList";
@@ -77,6 +78,15 @@ const App = () => (
                           element={
                             <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
                               <DossierEdit />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
+                          path="/dossiers/:dossierId/rendez-vous/:id" 
+                          element={
+                            <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
+                              <RendezVousEdit />
                             </ProtectedRoute>
                           } 
                         />

@@ -71,6 +71,8 @@ export interface RendezVous {
   date: Date;
   honore: boolean;
   notes?: string;
+  meetingLink?: string; // Lien vers la réunion (Google Meet, Zoom, etc.)
+  location?: string; // Emplacement physique ou virtuel
 }
 
 export interface Statistique {

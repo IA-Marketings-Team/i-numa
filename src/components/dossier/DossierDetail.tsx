@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
@@ -8,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DossierStatusBadge from "./DossierStatusBadge";
+import RendezVousCard from "@/components/rendezVous/RendezVousCard";
 import { 
   ChevronLeft, 
   FileEdit, 
@@ -26,9 +26,11 @@ interface DossierDetailProps {
 
 const DossierDetail: React.FC<DossierDetailProps> = ({ dossier }) => {
   const [activeTab, setActiveTab] = useState("informations");
-  const { updateDossierStatus } = useDossier();
+  const { updateDossierStatus, getRendezVousByDossierId } = useDossier();
   const { hasPermission } = useAuth();
   const navigate = useNavigate();
+
+  const rendezVousList = getRendezVousByDossierId(dossier.id);
 
   const handleStatusChange = (newStatus: DossierStatus) => {
     if (window.confirm(`Êtes-vous sûr de vouloir changer le statut en "${newStatus}" ?`)) {
@@ -145,9 +147,10 @@ const DossierDetail: React.FC<DossierDetailProps> = ({ dossier }) => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 mb-4">
+        <TabsList className="grid grid-cols-4 mb-4">
           <TabsTrigger value="informations">Informations</TabsTrigger>
           <TabsTrigger value="contacts">Contacts</TabsTrigger>
+          <TabsTrigger value="rendezVous">Rendez-vous</TabsTrigger>
           <TabsTrigger value="historique">Historique</TabsTrigger>
         </TabsList>
         
@@ -238,6 +241,36 @@ const DossierDetail: React.FC<DossierDetailProps> = ({ dossier }) => {
                     <Users className="w-4 h-4 text-green-500" />
                     <span>Agent Visio: {dossier.agentVisioId}</span>
                   </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="rendezVous" className="space-y-4">
+          {rendezVousList.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {rendezVousList.map((rdv) => (
+                <RendezVousCard 
+                  key={rdv.id} 
+                  rendezVous={rdv} 
+                />
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-8">
+                <p className="text-center text-muted-foreground mb-4">
+                  Aucun rendez-vous planifié pour ce dossier.
+                </p>
+                {hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable']) && (
+                  <Button 
+                    onClick={() => navigate(`/dossiers/${dossier.id}/rendez-vous/nouveau`)}
+                    className="flex items-center gap-2"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    Planifier un rendez-vous
+                  </Button>
                 )}
               </CardContent>
             </Card>
