@@ -1,4 +1,3 @@
-
 import { Agent, Client, Dossier, Offre, RendezVous, Statistique, User } from "@/types";
 
 // Utilisateurs
@@ -275,6 +274,210 @@ export const dossiers: Dossier[] = [
     dateSignature: new Date("2023-06-01"),
     dateArchivage: new Date("2023-06-15"),
     montant: 599
+  },
+  
+  {
+    id: "dossier6",
+    clientId: "client1",
+    client: clients[0],
+    status: "prospect",
+    offres: [],
+    dateCreation: new Date("2023-06-05"),
+    dateMiseAJour: new Date("2023-06-05")
+  },
+  {
+    id: "dossier7",
+    clientId: "client2",
+    client: clients[1],
+    status: "prospect",
+    offres: [offres[4]],
+    dateCreation: new Date("2023-06-10"),
+    dateMiseAJour: new Date("2023-06-10"),
+    notes: "Client intéressé par une étude personnalisée"
+  },
+  {
+    id: "dossier8",
+    clientId: "client3",
+    client: clients[2],
+    status: "prospect",
+    offres: [],
+    dateCreation: new Date("2023-06-15"),
+    dateMiseAJour: new Date("2023-06-15"),
+    notes: "Première prise de contact, à recontacter sous 1 semaine"
+  },
+  
+  {
+    id: "dossier9",
+    clientId: "client4",
+    client: clients[3],
+    agentPhonerId: "phoner1",
+    status: "rdv_en_cours",
+    offres: [offres[1], offres[3]],
+    dateCreation: new Date("2023-05-25"),
+    dateMiseAJour: new Date("2023-06-01"),
+    dateRdv: new Date("2023-06-20"),
+    notes: "Le client a demandé des informations complémentaires sur l'offre Google Ads"
+  },
+  {
+    id: "dossier10",
+    clientId: "client5",
+    client: clients[4],
+    agentPhonerId: "phoner1",
+    status: "rdv_en_cours",
+    offres: [offres[0], offres[2]],
+    dateCreation: new Date("2023-05-28"),
+    dateMiseAJour: new Date("2023-06-05"),
+    dateRdv: new Date("2023-06-22"),
+    notes: "Client très motivé, forte probabilité de conversion"
+  },
+  {
+    id: "dossier11",
+    clientId: "client1",
+    client: clients[0],
+    agentPhonerId: "phoner1",
+    status: "rdv_en_cours",
+    offres: [offres[0]],
+    dateCreation: new Date("2023-06-01"),
+    dateMiseAJour: new Date("2023-06-10"),
+    dateRdv: new Date("2023-06-25")
+  },
+  
+  {
+    id: "dossier12",
+    clientId: "client2",
+    client: clients[1],
+    agentPhonerId: "phoner1",
+    agentVisioId: "visio1",
+    status: "valide",
+    offres: [offres[1], offres[2]],
+    dateCreation: new Date("2023-04-15"),
+    dateMiseAJour: new Date("2023-05-10"),
+    dateRdv: new Date("2023-05-01"),
+    dateValidation: new Date("2023-05-10"),
+    montant: 1148
+  },
+  {
+    id: "dossier13",
+    clientId: "client3",
+    client: clients[2],
+    agentPhonerId: "phoner1",
+    agentVisioId: "visio1",
+    status: "valide",
+    offres: [offres[3]],
+    dateCreation: new Date("2023-04-20"),
+    dateMiseAJour: new Date("2023-05-15"),
+    dateRdv: new Date("2023-05-05"),
+    dateValidation: new Date("2023-05-15"),
+    montant: 599
+  },
+  {
+    id: "dossier14",
+    clientId: "client4",
+    client: clients[3],
+    agentPhonerId: "phoner1",
+    agentVisioId: "visio1",
+    status: "valide",
+    offres: [offres[0], offres[1], offres[3]],
+    dateCreation: new Date("2023-04-25"),
+    dateMiseAJour: new Date("2023-05-20"),
+    dateRdv: new Date("2023-05-10"),
+    dateValidation: new Date("2023-05-20"),
+    montant: 1897
+  },
+  
+  {
+    id: "dossier15",
+    clientId: "client5",
+    client: clients[4],
+    agentPhonerId: "phoner1",
+    agentVisioId: "visio1",
+    status: "signe",
+    offres: [offres[2], offres[3]],
+    dateCreation: new Date("2023-03-01"),
+    dateMiseAJour: new Date("2023-04-10"),
+    dateRdv: new Date("2023-03-15"),
+    dateValidation: new Date("2023-03-25"),
+    dateSignature: new Date("2023-04-10"),
+    montant: 948
+  },
+  {
+    id: "dossier16",
+    clientId: "client1",
+    client: clients[0],
+    agentPhonerId: "phoner1",
+    agentVisioId: "visio1",
+    status: "signe",
+    offres: [offres[1]],
+    dateCreation: new Date("2023-03-05"),
+    dateMiseAJour: new Date("2023-04-15"),
+    dateRdv: new Date("2023-03-20"),
+    dateValidation: new Date("2023-04-01"),
+    dateSignature: new Date("2023-04-15"),
+    montant: 799
+  },
+  {
+    id: "dossier17",
+    clientId: "client2",
+    client: clients[1],
+    agentPhonerId: "phoner1",
+    agentVisioId: "visio1",
+    status: "signe",
+    offres: [offres[0], offres[1], offres[2], offres[3]],
+    dateCreation: new Date("2023-03-10"),
+    dateMiseAJour: new Date("2023-04-20"),
+    dateRdv: new Date("2023-03-25"),
+    dateValidation: new Date("2023-04-05"),
+    dateSignature: new Date("2023-04-20"),
+    montant: 2246
+  },
+  
+  {
+    id: "dossier18",
+    clientId: "client3",
+    client: clients[2],
+    agentPhonerId: "phoner1",
+    agentVisioId: "visio1",
+    status: "archive",
+    offres: [offres[0], offres[1]],
+    dateCreation: new Date("2023-01-01"),
+    dateMiseAJour: new Date("2023-03-15"),
+    dateRdv: new Date("2023-01-15"),
+    dateValidation: new Date("2023-01-25"),
+    dateSignature: new Date("2023-02-10"),
+    dateArchivage: new Date("2023-03-15"),
+    montant: 1298
+  },
+  {
+    id: "dossier19",
+    clientId: "client4",
+    client: clients[3],
+    agentPhonerId: "phoner1",
+    agentVisioId: "visio1",
+    status: "archive",
+    offres: [offres[2], offres[3]],
+    dateCreation: new Date("2023-01-05"),
+    dateMiseAJour: new Date("2023-03-20"),
+    dateRdv: new Date("2023-01-20"),
+    dateValidation: new Date("2023-02-01"),
+    dateSignature: new Date("2023-02-15"),
+    dateArchivage: new Date("2023-03-20"),
+    montant: 948
+  },
+  {
+    id: "dossier20",
+    clientId: "client5",
+    client: clients[4],
+    agentPhonerId: "phoner1",
+    agentVisioId: "visio1",
+    status: "archive",
+    offres: [offres[1], offres[3]],
+    dateCreation: new Date("2023-01-10"),
+    dateMiseAJour: new Date("2023-03-25"),
+    dateRdv: new Date("2023-01-25"),
+    dateValidation: new Date("2023-02-05"),
+    dateSignature: new Date("2023-02-20"),
+    dateArchivage: new Date("2023-03-25"),
+    montant: 1398
   }
 ];
 
