@@ -30,7 +30,7 @@ const VisioLimitedInfo: React.FC<VisioLimitedInfoProps> = ({ dossier }) => {
             <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
             <div>
               <p className="text-sm font-medium text-muted-foreground">Besoins</p>
-              <p className="font-medium">{dossier.besoins || "Non spécifiés"}</p>
+              <p className="font-medium">{dossier.notes || "Non spécifiés"}</p>
             </div>
           </div>
           
