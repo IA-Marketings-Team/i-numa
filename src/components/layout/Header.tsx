@@ -20,7 +20,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-background border-b sticky top-0 z-30 h-16">
+    <header className="bg-background border-b sticky top-0 z-40 h-16 flex-shrink-0">
       <div className="container mx-auto h-full px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-full">
           <div className="flex items-center">

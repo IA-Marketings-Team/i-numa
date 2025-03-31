@@ -14,17 +14,17 @@ const Layout = () => {
       <div className="min-h-screen flex flex-col bg-background">
         {isAuthenticated && <Header />}
         
-        <div className="flex flex-1 h-[calc(100vh-4rem)]">
+        <div className="flex flex-1 overflow-hidden">
           {isAuthenticated && <Sidebar />}
           
-          <main className="flex-1 overflow-auto">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <main className="flex-1 overflow-auto h-[calc(100vh-4rem)]">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-[calc(100vh-10rem)]">
               <Outlet />
             </div>
           </main>
         </div>
         
-        <footer className="py-4 bg-background border-t mt-auto">
+        <footer className="py-4 bg-background border-t">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <p className="text-center text-sm text-muted-foreground">
               © {new Date().getFullYear()} ConnectCRM. Tous droits réservés.
