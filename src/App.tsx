@@ -1,5 +1,4 @@
 
-import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,12 +23,13 @@ import { StatistiqueProvider } from "./contexts/StatistiqueContext";
 import { CartProvider } from "./contexts/CartContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { useState } from "react";
 
-// Create a new QueryClient instance outside of the component
-const queryClient = new QueryClient();
+const App = () => {
+  // Create a new QueryClient instance inside the component
+  const [queryClient] = useState(() => new QueryClient());
 
-const App = () => (
-  <React.StrictMode>
+  return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <ThemeProvider>
@@ -147,7 +147,7 @@ const App = () => (
         </ThemeProvider>
       </TooltipProvider>
     </QueryClientProvider>
-  </React.StrictMode>
-);
+  );
+};
 
 export default App;

@@ -31,7 +31,7 @@ const RendezVousCard: React.FC<RendezVousCardProps> = ({ rendezVous, onEdit }) =
           <CardTitle className="text-lg">
             Rendez-vous {formatDate(date)}
           </CardTitle>
-          <Badge variant={honore ? "success" : "destructive"}>
+          <Badge variant={honore ? "default" : "destructive"} className={honore ? "bg-green-500 hover:bg-green-600" : ""}>
             {honore ? "Honoré" : "Non honoré"}
           </Badge>
         </div>
