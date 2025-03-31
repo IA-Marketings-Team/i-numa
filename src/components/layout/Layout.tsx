@@ -4,22 +4,24 @@ import Header from "./Header";
 import Sidebar from "./Sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import { useAuth } from "@/contexts/AuthContext";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 const Layout = () => {
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      {isAuthenticated && <Header />}
-      
-      <div className="flex-grow flex w-full">
-        <SidebarProvider defaultOpen={true}>
+    <SidebarProvider defaultOpen={true}>
+      <div className="min-h-screen flex flex-col bg-background">
+        {isAuthenticated && <Header />}
+        
+        <div className="flex-grow flex w-full">
           {isAuthenticated && <Sidebar />}
-          <SidebarInset className="w-full">
-            <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          
+          <main className="flex-grow">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <Outlet />
-            </main>
+            </div>
+            
             <footer className="py-4 bg-background border-t">
               <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <p className="text-center text-sm text-muted-foreground">
@@ -27,12 +29,12 @@ const Layout = () => {
                 </p>
               </div>
             </footer>
-          </SidebarInset>
-        </SidebarProvider>
+          </main>
+        </div>
+        
+        <Toaster />
       </div>
-      
-      <Toaster />
-    </div>
+    </SidebarProvider>
   );
 };
 
