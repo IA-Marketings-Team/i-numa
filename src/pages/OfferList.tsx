@@ -6,10 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
 import CartDrawer from "@/components/cart/CartDrawer";
+import { useAuth } from "@/contexts/AuthContext";
 
 const OfferList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const { user } = useAuth();
+  const isClient = user?.role === 'client';
 
   // Filtrer les catégories par terme de recherche et filtre de catégorie
   const filteredCategories = offerCategories.filter((category) => {
@@ -36,13 +39,13 @@ const OfferList = () => {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-3xl font-bold">Mes offres</h1>
-        <CartDrawer />
+    <div className="container mx-auto px-4 md:px-6 py-6 space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+        <h1 className="text-3xl font-bold">Nos offres</h1>
+        {isClient && <CartDrawer />}
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           <Input

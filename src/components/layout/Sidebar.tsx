@@ -59,10 +59,10 @@ export default function Sidebar() {
         roles: ["agent_phoner", "agent_visio", "superviseur", "responsable"] as UserRole[]
       }, 
       {
-        name: "Mes offres",
+        name: "Nos offres",
         path: "/mes-offres",
         icon: <ShoppingBag className="size-4" />,
-        roles: ["client", "agent_phoner", "agent_visio", "superviseur", "responsable"] as UserRole[]
+        roles: ["client", "agent_phoner", "responsable"] as UserRole[]
       }, 
       {
         name: "Statistiques",

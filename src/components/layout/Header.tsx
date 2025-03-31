@@ -12,6 +12,7 @@ const Header = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const isClient = user?.role === 'client';
   
   // Obtenir le titre de la page en fonction de l'URL
   const getPageTitle = () => {
@@ -19,7 +20,7 @@ const Header = () => {
     if (path.includes('/tableau-de-bord')) return 'Tableau de bord';
     if (path.includes('/dossiers')) return 'Dossiers';
     if (path.includes('/clients')) return 'Clients';
-    if (path.includes('/mes-offres')) return 'Mes offres';
+    if (path.includes('/mes-offres')) return 'Nos offres';
     if (path.includes('/statistiques')) return 'Statistiques';
     if (path.includes('/parametres')) return 'Paramètres';
     return '';
@@ -140,7 +141,7 @@ const Header = () => {
             </span>
           </Button>
           
-          <CartDrawer />
+          {isClient && <CartDrawer />}
           
           <Button
             variant="ghost"

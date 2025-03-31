@@ -50,10 +50,10 @@ const Dashboard = () => {
     .slice(0, 5);
 
   return (
-    <div className="container mx-auto px-6 py-8 space-y-8">
-      <h1 className="text-3xl font-bold mb-6">Tableau de bord</h1>
+    <div className="container mx-auto px-4 md:px-6 py-6 space-y-6 md:space-y-8">
+      <h1 className="text-3xl font-bold mb-4 md:mb-6">Tableau de bord</h1>
       
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Dossiers actifs</CardTitle>
@@ -115,7 +115,7 @@ const Dashboard = () => {
         </Card>
       </div>
       
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+      <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-2">
         <Card className="col-span-1">
           <CardHeader>
             <CardTitle>Distribution des dossiers</CardTitle>
@@ -170,7 +170,7 @@ const Dashboard = () => {
       </div>
       
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-2">
           <h2 className="text-xl font-bold">Dossiers récents</h2>
           <Button variant="outline" onClick={() => navigate("/dossiers")}>
             Voir tous les dossiers

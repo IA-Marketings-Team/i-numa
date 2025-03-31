@@ -23,8 +23,8 @@ const Layout = () => {
             </div>
           </main>
           
-          <footer className="py-3 bg-card border-t">
-            <div className="w-full px-6">
+          <footer className="py-2 md:py-3 bg-card border-t">
+            <div className="w-full px-4 md:px-6">
               <p className="text-center text-xs text-muted-foreground">
                 © {new Date().getFullYear()} i-numa. Tous droits réservés.
               </p>
