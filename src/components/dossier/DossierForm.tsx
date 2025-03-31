@@ -176,7 +176,7 @@ const DossierForm: React.FC<DossierFormProps> = ({ dossier, isEditing = false })
                   <SelectValue placeholder="Sélectionner un agent phoner" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Aucun</SelectItem>
+                  <SelectItem value="none">Aucun</SelectItem>
                   {phonerAgents.map((agent) => (
                     <SelectItem key={agent.id} value={agent.id}>
                       {agent.prenom} {agent.nom}
@@ -196,7 +196,7 @@ const DossierForm: React.FC<DossierFormProps> = ({ dossier, isEditing = false })
                   <SelectValue placeholder="Sélectionner un agent visio" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Aucun</SelectItem>
+                  <SelectItem value="none">Aucun</SelectItem>
                   {visioAgents.map((agent) => (
                     <SelectItem key={agent.id} value={agent.id}>
                       {agent.prenom} {agent.nom}
