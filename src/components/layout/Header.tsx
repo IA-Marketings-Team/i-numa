@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { Menu, X, Home, Users, User, Settings, FileText, BarChart2, LogOut } from "lucide-react";
+import { UserRole } from "@/types";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -30,31 +31,31 @@ const Header = () => {
         name: "Tableau de bord",
         path: "/tableau-de-bord",
         icon: <Home className="w-5 h-5 mr-2" />,
-        roles: ["client", "agent_phoner", "agent_visio", "superviseur", "responsable"],
+        roles: ["client", "agent_phoner", "agent_visio", "superviseur", "responsable"] as UserRole[],
       },
       {
         name: "Dossiers",
         path: "/dossiers",
         icon: <FileText className="w-5 h-5 mr-2" />,
-        roles: ["client", "agent_phoner", "agent_visio", "superviseur", "responsable"],
+        roles: ["client", "agent_phoner", "agent_visio", "superviseur", "responsable"] as UserRole[],
       },
       {
         name: "Clients",
         path: "/clients",
         icon: <Users className="w-5 h-5 mr-2" />,
-        roles: ["agent_phoner", "agent_visio", "superviseur", "responsable"],
+        roles: ["agent_phoner", "agent_visio", "superviseur", "responsable"] as UserRole[],
       },
       {
         name: "Statistiques",
         path: "/statistiques",
         icon: <BarChart2 className="w-5 h-5 mr-2" />,
-        roles: ["agent_phoner", "agent_visio", "superviseur", "responsable"],
+        roles: ["agent_phoner", "agent_visio", "superviseur", "responsable"] as UserRole[],
       },
       {
         name: "Paramètres",
         path: "/parametres",
         icon: <Settings className="w-5 h-5 mr-2" />,
-        roles: ["client", "agent_phoner", "agent_visio", "superviseur", "responsable"],
+        roles: ["client", "agent_phoner", "agent_visio", "superviseur", "responsable"] as UserRole[],
       },
     ];
 
