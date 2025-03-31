@@ -159,29 +159,31 @@ const Header = () => {
           </div>
           <div className="pt-4 pb-3 border-t border-gray-200">
             {user && (
-              <div className="flex items-center px-4">
-                <div className="flex-shrink-0">
-                  <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center">
-                    {user.prenom.charAt(0)}{user.nom.charAt(0)}
+              <>
+                <div className="flex items-center px-4">
+                  <div className="flex-shrink-0">
+                    <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center">
+                      {user.prenom.charAt(0)}{user.nom.charAt(0)}
+                    </div>
+                  </div>
+                  <div className="ml-3">
+                    <div className="text-base font-medium text-gray-800">
+                      {user.prenom} {user.nom}
+                    </div>
+                    <div className="text-sm font-medium text-gray-500">{user.email}</div>
                   </div>
                 </div>
-                <div className="ml-3">
-                  <div className="text-base font-medium text-gray-800">
-                    {user.prenom} {user.nom}
-                  </div>
-                  <div className="text-sm font-medium text-gray-500">{user.email}</div>
+                <div className="mt-3 space-y-1 px-2">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Déconnexion
+                  </Button>
                 </div>
-              </div>
-              <div className="mt-3 space-y-1 px-2">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Déconnexion
-                </Button>
-              </div>
+              </>
             )}
           </div>
         </div>
