@@ -1,10 +1,13 @@
+
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
-import { Menu, X, Home, Users, User, Settings, FileText, BarChart2, LogOut } from "lucide-react";
+import { Menu, X, Home, Users, User, Settings, FileText, BarChart2, LogOut, ShoppingBag } from "lucide-react";
 import { UserRole } from "@/types";
+import CartDrawer from "@/components/cart/CartDrawer";
+
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const {
@@ -14,10 +17,12 @@ const Header = () => {
   } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  
   const handleLogout = () => {
     logout();
     navigate("/connexion");
   };
+  
   const getNavItems = () => {
     const items = [{
       name: "Tableau de bord",
@@ -35,6 +40,11 @@ const Header = () => {
       icon: <Users className="w-5 h-5 mr-2" />,
       roles: ["agent_phoner", "agent_visio", "superviseur", "responsable"] as UserRole[]
     }, {
+      name: "Mes offres",
+      path: "/mes-offres",
+      icon: <ShoppingBag className="w-5 h-5 mr-2" />,
+      roles: ["client", "agent_phoner", "agent_visio", "superviseur", "responsable"] as UserRole[]
+    }, {
       name: "Statistiques",
       path: "/statistiques",
       icon: <BarChart2 className="w-5 h-5 mr-2" />,
@@ -45,8 +55,10 @@ const Header = () => {
       icon: <Settings className="w-5 h-5 mr-2" />,
       roles: ["client", "agent_phoner", "agent_visio", "superviseur", "responsable"] as UserRole[]
     }];
+    
     return items.filter(item => hasPermission(item.roles));
   };
+
   return <header className="bg-white border-b sticky top-0 z-30">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
@@ -64,7 +76,9 @@ const Header = () => {
               </Link>)}
           </nav>
 
-          <div className="hidden md:flex items-center">
+          <div className="hidden md:flex items-center gap-3">
+            <CartDrawer />
+            
             {user && <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
@@ -95,6 +109,7 @@ const Header = () => {
 
           {/* Bouton menu mobile */}
           <div className="flex items-center md:hidden">
+            <CartDrawer />
             <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
               <span className="sr-only">Ouvrir le menu</span>
               {mobileMenuOpen ? <X className="block h-6 w-6" /> : <Menu className="block h-6 w-6" />}
@@ -137,4 +152,5 @@ const Header = () => {
         </div>}
     </header>;
 };
+
 export default Header;

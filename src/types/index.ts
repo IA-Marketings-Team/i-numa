@@ -81,3 +81,27 @@ export interface Statistique {
   dossiersSigne: number;
   chiffreAffaires?: number; // Accessible uniquement aux superviseurs et responsables
 }
+
+export interface OfferCategory {
+  icon: React.ElementType;
+  label: string;
+  description: string;
+  offerings: {
+    title: string;
+    price: string;
+    setupFee?: string;
+    features: {
+      title: string;
+      items: string[];
+    }[];
+  }[];
+}
+
+export interface CartItem {
+  id: string;
+  category: string;
+  title: string;
+  price: string;
+  setupFee?: string;
+  quantity: number;
+}
