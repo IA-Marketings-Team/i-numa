@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,11 +9,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { FileDown } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 const Settings = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("profil");
+  const [searchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(tabFromUrl || "profil");
+  const [contracts, setContracts] = useState([]);
   
   // Profil
   const [email, setEmail] = useState(user?.email || "");
@@ -31,6 +35,12 @@ const Settings = () => {
   const [iban, setIban] = useState(user?.iban || "");
   const [bic, setBic] = useState(user?.bic || "");
   const [nomBanque, setNomBanque] = useState(user?.nomBanque || "");
+
+  // Charger les contrats depuis le localStorage
+  useEffect(() => {
+    const storedContracts = JSON.parse(localStorage.getItem("contracts") || "[]");
+    setContracts(storedContracts);
+  }, []);
   
   const handleSaveProfile = () => {
     toast({
@@ -66,13 +76,23 @@ const Settings = () => {
     });
   };
   
-  const handleDownloadContract = () => {
+  const handleDownloadContract = (contractId) => {
     toast({
       title: "Téléchargement du contrat",
       description: "Le téléchargement de votre contrat va commencer."
     });
     
     // Dans une application réelle, nous ajouterions ici le code pour télécharger un fichier PDF
+  };
+
+  // Formater la date pour l'affichage
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
 
   return (
@@ -253,18 +273,34 @@ const Settings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="border rounded-md p-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-medium">Contrat de service</h3>
-                    <p className="text-sm text-muted-foreground">Signé le {new Date().toLocaleDateString()}</p>
+              {contracts.length > 0 ? (
+                contracts.map((contract) => (
+                  <div key={contract.id} className="border rounded-md p-4">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="font-medium">Contrat de service</h3>
+                        <p className="text-sm text-muted-foreground">Signé le {formatDate(contract.date)}</p>
+                        <div className="mt-2">
+                          <p className="text-sm font-medium">Articles:</p>
+                          <ul className="text-sm list-disc pl-5 mt-1">
+                            {contract.items.map((item, index) => (
+                              <li key={index}>{item.title} ({item.quantity})</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                      <Button variant="outline" onClick={() => handleDownloadContract(contract.id)}>
+                        <FileDown className="mr-2 h-4 w-4" />
+                        Télécharger
+                      </Button>
+                    </div>
                   </div>
-                  <Button variant="outline" onClick={handleDownloadContract}>
-                    <FileDown className="mr-2 h-4 w-4" />
-                    Télécharger
-                  </Button>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Vous n'avez pas encore de contrat</p>
                 </div>
-              </div>
+              )}
               
               <div className="border rounded-md p-4">
                 <div className="flex justify-between items-center">
@@ -272,7 +308,7 @@ const Settings = () => {
                     <h3 className="font-medium">Conditions générales</h3>
                     <p className="text-sm text-muted-foreground">Version 2.1 - Mise à jour le 01/01/2023</p>
                   </div>
-                  <Button variant="outline" onClick={handleDownloadContract}>
+                  <Button variant="outline" onClick={() => handleDownloadContract('cgu')}>
                     <FileDown className="mr-2 h-4 w-4" />
                     Télécharger
                   </Button>
@@ -285,7 +321,7 @@ const Settings = () => {
                     <h3 className="font-medium">Politique de confidentialité</h3>
                     <p className="text-sm text-muted-foreground">Version 1.3 - Mise à jour le 01/06/2023</p>
                   </div>
-                  <Button variant="outline" onClick={handleDownloadContract}>
+                  <Button variant="outline" onClick={() => handleDownloadContract('privacy')}>
                     <FileDown className="mr-2 h-4 w-4" />
                     Télécharger
                   </Button>

@@ -17,13 +17,13 @@ import OfferList from "./pages/OfferList";
 import Statistics from "./pages/Statistics";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import ContractAcceptance from "./pages/ContractAcceptance";
 import { AuthProvider } from "./contexts/AuthContext";
 import { DossierProvider } from "./contexts/DossierContext";
 import { StatistiqueProvider } from "./contexts/StatistiqueContext";
 import { CartProvider } from "./contexts/CartContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-import { useState } from "react";
 
 // Create a QueryClient instance that will persist across renders
 const queryClient = new QueryClient();
@@ -114,6 +114,15 @@ const App = () => {
                           element={
                             <ProtectedRoute>
                               <OfferList />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
+                          path="/contrat-acceptation" 
+                          element={
+                            <ProtectedRoute>
+                              <ContractAcceptance />
                             </ProtectedRoute>
                           } 
                         />

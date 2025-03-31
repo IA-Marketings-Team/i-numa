@@ -15,6 +15,7 @@ import { useCart } from "@/contexts/CartContext";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface CartDrawerProps {
   children?: React.ReactNode;
@@ -23,13 +24,10 @@ interface CartDrawerProps {
 const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
   const { cartItems, removeFromCart, clearCart, updateQuantity, getCartCount } = useCart();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleCheckout = () => {
-    toast({
-      title: "Commande envoyée",
-      description: "Votre commande a été envoyée avec succès. Nous vous contacterons prochainement.",
-    });
-    clearCart();
+    navigate("/contrat-acceptation");
   };
 
   return (
@@ -121,7 +119,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
                 Vider le panier
               </Button>
               <Button className="sm:w-auto w-full" onClick={handleCheckout}>
-                Demander un devis
+                Confirmer l'achat
               </Button>
             </SheetFooter>
           </>
