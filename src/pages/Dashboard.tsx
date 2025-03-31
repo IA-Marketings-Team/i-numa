@@ -18,7 +18,7 @@ const Dashboard = () => {
     .slice(0, 5);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 w-full">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold">Bonjour, {user?.prenom}</h1>
         <p className="text-gray-600">

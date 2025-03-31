@@ -11,27 +11,23 @@ const Layout = () => {
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="h-screen flex flex-col bg-background overflow-hidden">
-        <div className="flex flex-1 overflow-hidden w-full">
-          {isAuthenticated && <Sidebar />}
+      <div className="h-screen flex overflow-hidden">
+        {isAuthenticated && <Sidebar />}
+        
+        <div className="flex flex-col flex-1 w-full">
+          {isAuthenticated && <Header />}
           
-          <div className="flex flex-col flex-1 overflow-hidden w-full">
-            {isAuthenticated && <Header />}
-            
-            <main className="flex-1 overflow-auto w-full">
-              <div className="w-full h-full">
-                <Outlet />
-              </div>
-            </main>
-            
-            <footer className="py-3 bg-background border-t w-full">
-              <div className="w-full px-4">
-                <p className="text-center text-sm text-muted-foreground">
-                  © {new Date().getFullYear()} ConnectCRM. Tous droits réservés.
-                </p>
-              </div>
-            </footer>
-          </div>
+          <main className="flex-1 overflow-auto p-6">
+            <Outlet />
+          </main>
+          
+          <footer className="py-3 border-t">
+            <div className="px-6">
+              <p className="text-center text-sm text-muted-foreground">
+                © {new Date().getFullYear()} ConnectCRM. Tous droits réservés.
+              </p>
+            </div>
+          </footer>
         </div>
         
         <Toaster />
