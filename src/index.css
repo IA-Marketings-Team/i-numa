@@ -155,3 +155,8 @@
 .card-manager {
   @apply border-l-4 border-manager;
 }
+
+/* Fix sidebar active item styling */
+[data-sidebar="menu-button"][data-active="true"] {
+  @apply bg-primary/10 text-primary font-medium;
+}

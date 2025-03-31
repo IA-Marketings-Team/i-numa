@@ -78,7 +78,7 @@ export default function Sidebar() {
   };
 
   return (
-    <SidebarComponent className="border-r">
+    <SidebarComponent className="border-r h-screen">
       <SidebarHeader className="px-3 py-3 border-b">
         <div className="text-lg font-semibold">Navigation</div>
       </SidebarHeader>
@@ -102,7 +102,7 @@ export default function Sidebar() {
         </SidebarMenu>
       </SidebarContent>
       
-      <SidebarFooter className="px-3 py-3 border-t">
+      <SidebarFooter className="px-3 py-3 border-t mt-auto">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {theme === "light" ? (

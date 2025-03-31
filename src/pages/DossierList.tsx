@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DossierStatus } from "@/types";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -31,7 +31,7 @@ const DossierListPage = () => {
   };
 
   return (
-    <Card className="border shadow-sm">
+    <Card className="border shadow-sm h-full">
       <CardHeader className="pb-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <CardTitle className="text-xl">Dossiers</CardTitle>
@@ -77,7 +77,7 @@ const DossierListPage = () => {
           </div>
         </div>
         
-        <div className="bg-background rounded-md border p-1">
+        <div className="bg-background rounded-md border p-1 overflow-auto">
           <DossierList dossiers={searchFilteredDossiers} />
         </div>
       </CardContent>
