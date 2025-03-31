@@ -58,11 +58,6 @@ export default {
 				visio: '#2ECC40',
 				supervisor: '#9b87f5',
 				manager: '#FF4136',
-				prospect: '#f0f9ff',
-				rdv: '#e6f7ff',
-				valide: '#e6fffa',
-				signe: '#f0fff4',
-				archive: '#f9fafb',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -78,6 +73,9 @@ export default {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			fontFamily: {
+				sans: ['Inter', 'system-ui', 'sans-serif'],
 			},
 			keyframes: {
 				'accordion-down': {
@@ -111,6 +109,9 @@ export default {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.3s ease-out'
+			},
+			boxShadow: {
+				'custom': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
 			}
 		}
 	},

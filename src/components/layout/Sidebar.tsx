@@ -10,6 +10,9 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
 } from "@/components/ui/sidebar";
 import { 
   Home, 
@@ -19,14 +22,20 @@ import {
   BarChart2, 
   User,
   Sun,
-  Moon
+  Moon,
+  Settings,
+  HelpCircle,
+  LogOut,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { UserRole } from "@/types";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useNavigate } from "react-router-dom";
 
 export default function Sidebar() {
   const location = useLocation();
-  const { hasPermission } = useAuth();
+  const navigate = useNavigate();
+  const { user, hasPermission, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   
   const getNavItems = () => {
@@ -60,12 +69,6 @@ export default function Sidebar() {
         path: "/statistiques",
         icon: <BarChart2 className="size-4" />,
         roles: ["agent_phoner", "agent_visio", "superviseur", "responsable"] as UserRole[]
-      }, 
-      {
-        name: "Mon compte",
-        path: "/parametres",
-        icon: <User className="size-4" />,
-        roles: ["client", "agent_phoner", "agent_visio", "superviseur", "responsable"] as UserRole[]
       }
     ];
     
@@ -77,33 +80,79 @@ export default function Sidebar() {
            (path !== '/tableau-de-bord' && location.pathname.startsWith(path));
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate("/connexion");
+  };
+
   return (
-    <SidebarComponent className="border-r h-screen">
-      <SidebarHeader className="px-3 py-3 border-b">
-        <div className="text-lg font-semibold">Navigation</div>
+    <SidebarComponent className="border-r">
+      <SidebarHeader className="flex items-center justify-center py-4 border-b">
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-semibold">
+            C
+          </div>
+          <div className="text-lg font-semibold">ConnectCRM</div>
+        </div>
       </SidebarHeader>
       
       <SidebarContent className="overflow-y-auto flex-1">
-        <SidebarMenu>
-          {getNavItems().map((item) => (
-            <SidebarMenuItem key={item.path}>
-              <SidebarMenuButton 
-                asChild 
-                isActive={isActive(item.path)}
-                className="py-2"
-              >
-                <Link to={item.path} className="flex items-center gap-3">
-                  {item.icon}
-                  <span>{item.name}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+        <SidebarGroup className="pt-2">
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {getNavItems().map((item) => (
+                <SidebarMenuItem key={item.path}>
+                  <SidebarMenuButton 
+                    asChild 
+                    isActive={isActive(item.path)}
+                    className="py-2"
+                  >
+                    <Link to={item.path} className="flex items-center gap-3">
+                      {item.icon}
+                      <span>{item.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup className="mt-4">
+          <SidebarGroupLabel>Paramètres</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  asChild 
+                  isActive={isActive("/parametres")}
+                  className="py-2"
+                >
+                  <Link to="/parametres" className="flex items-center gap-3">
+                    <Settings className="size-4" />
+                    <span>Paramètres</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  asChild 
+                  className="py-2"
+                >
+                  <a href="#" className="flex items-center gap-3">
+                    <HelpCircle className="size-4" />
+                    <span>Aide</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
       
-      <SidebarFooter className="px-3 py-3 border-t mt-auto">
-        <div className="flex items-center justify-between">
+      <SidebarFooter className="border-t mt-auto">
+        <div className="p-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             {theme === "light" ? (
               <Sun className="size-4" />
@@ -117,6 +166,29 @@ export default function Sidebar() {
             onCheckedChange={toggleTheme}
           />
         </div>
+
+        {user && (
+          <div className="p-3 border-t">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-9 w-9 border">
+                <AvatarFallback className="bg-muted text-muted-foreground">
+                  {user.prenom.charAt(0)}{user.nom.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">
+                  {user.prenom} {user.nom}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {user.email}
+                </p>
+              </div>
+              <button onClick={handleLogout} className="text-muted-foreground hover:text-foreground">
+                <LogOut className="size-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </SidebarFooter>
     </SidebarComponent>
   );
