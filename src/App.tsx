@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -20,6 +21,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { DossierProvider } from "./contexts/DossierContext";
 import { StatistiqueProvider } from "./contexts/StatistiqueContext";
 import { CartProvider } from "./contexts/CartContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 // Create a new QueryClient instance outside of the component
@@ -29,108 +31,110 @@ const App = () => (
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthProvider>
-          <DossierProvider>
-            <StatistiqueProvider>
-              <CartProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
-                  <Routes>
-                    <Route path="/connexion" element={<Login />} />
-                    
-                    <Route element={<Layout />}>
-                      <Route path="/" element={<Navigate to="/tableau-de-bord" replace />} />
+        <ThemeProvider>
+          <AuthProvider>
+            <DossierProvider>
+              <StatistiqueProvider>
+                <CartProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <Routes>
+                      <Route path="/connexion" element={<Login />} />
                       
-                      <Route 
-                        path="/tableau-de-bord" 
-                        element={
-                          <ProtectedRoute>
-                            <Dashboard />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      
-                      <Route 
-                        path="/dossiers" 
-                        element={
-                          <ProtectedRoute>
-                            <DossierListPage />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      
-                      <Route 
-                        path="/dossiers/:id" 
-                        element={
-                          <ProtectedRoute>
-                            <DossierPage />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      
-                      <Route 
-                        path="/dossiers/:id/edit" 
-                        element={
-                          <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
-                            <DossierEdit />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      
-                      <Route 
-                        path="/clients" 
-                        element={
-                          <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
-                            <ClientListPage />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      
-                      <Route 
-                        path="/clients/:id" 
-                        element={
-                          <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
-                            <ClientPage />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      
-                      <Route 
-                        path="/mes-offres" 
-                        element={
-                          <ProtectedRoute>
-                            <OfferList />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      
-                      <Route 
-                        path="/statistiques" 
-                        element={
-                          <ProtectedRoute>
-                            <Statistics />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      
-                      <Route 
-                        path="/parametres" 
-                        element={
-                          <ProtectedRoute>
-                            <Settings />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      
-                      <Route path="*" element={<NotFound />} />
-                    </Route>
-                  </Routes>
-                </BrowserRouter>
-              </CartProvider>
-            </StatistiqueProvider>
-          </DossierProvider>
-        </AuthProvider>
+                      <Route element={<Layout />}>
+                        <Route path="/" element={<Navigate to="/tableau-de-bord" replace />} />
+                        
+                        <Route 
+                          path="/tableau-de-bord" 
+                          element={
+                            <ProtectedRoute>
+                              <Dashboard />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
+                          path="/dossiers" 
+                          element={
+                            <ProtectedRoute>
+                              <DossierListPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
+                          path="/dossiers/:id" 
+                          element={
+                            <ProtectedRoute>
+                              <DossierPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
+                          path="/dossiers/:id/edit" 
+                          element={
+                            <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
+                              <DossierEdit />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
+                          path="/clients" 
+                          element={
+                            <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
+                              <ClientListPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
+                          path="/clients/:id" 
+                          element={
+                            <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
+                              <ClientPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
+                          path="/mes-offres" 
+                          element={
+                            <ProtectedRoute>
+                              <OfferList />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
+                          path="/statistiques" 
+                          element={
+                            <ProtectedRoute>
+                              <Statistics />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
+                          path="/parametres" 
+                          element={
+                            <ProtectedRoute>
+                              <Settings />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route path="*" element={<NotFound />} />
+                      </Route>
+                    </Routes>
+                  </BrowserRouter>
+                </CartProvider>
+              </StatistiqueProvider>
+            </DossierProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </React.StrictMode>
