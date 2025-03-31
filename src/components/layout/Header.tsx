@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -21,9 +20,9 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-background border-b sticky top-0 z-30">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+    <header className="bg-background border-b sticky top-0 z-30 h-16">
+      <div className="container mx-auto h-full px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-full">
           <div className="flex items-center">
             <SidebarTrigger className="md:hidden mr-2" />
             <Link to="/" className="flex-shrink-0 flex items-center">

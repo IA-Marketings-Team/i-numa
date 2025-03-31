@@ -78,7 +78,7 @@ export default function Sidebar() {
         <div className="text-lg font-semibold">Navigation</div>
       </SidebarHeader>
       
-      <SidebarContent>
+      <SidebarContent className="overflow-y-auto">
         <SidebarMenu>
           {getNavItems().map((item) => (
             <SidebarMenuItem key={item.path}>
@@ -96,7 +96,7 @@ export default function Sidebar() {
         </SidebarMenu>
       </SidebarContent>
       
-      <SidebarFooter className="px-3 py-2">
+      <SidebarFooter className="px-3 py-2 mt-auto">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {theme === "light" ? (

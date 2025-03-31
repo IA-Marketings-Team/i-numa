@@ -14,23 +14,23 @@ const Layout = () => {
       <div className="min-h-screen flex flex-col bg-background">
         {isAuthenticated && <Header />}
         
-        <div className="flex-grow flex w-full">
+        <div className="flex flex-1 h-[calc(100vh-4rem)]">
           {isAuthenticated && <Sidebar />}
           
-          <main className="flex-grow">
+          <main className="flex-1 overflow-auto">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <Outlet />
             </div>
-            
-            <footer className="py-4 bg-background border-t">
-              <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <p className="text-center text-sm text-muted-foreground">
-                  © {new Date().getFullYear()} ConnectCRM. Tous droits réservés.
-                </p>
-              </div>
-            </footer>
           </main>
         </div>
+        
+        <footer className="py-4 bg-background border-t mt-auto">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <p className="text-center text-sm text-muted-foreground">
+              © {new Date().getFullYear()} ConnectCRM. Tous droits réservés.
+            </p>
+          </div>
+        </footer>
         
         <Toaster />
       </div>
