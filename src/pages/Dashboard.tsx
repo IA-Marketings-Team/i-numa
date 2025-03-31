@@ -10,11 +10,21 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import DossierList from "@/components/dossier/DossierList";
 import StatistiquesDashboard from "@/components/stats/StatistiquesDashboard";
+import AgentVisioStats from "@/components/stats/AgentVisioStats";
 
 const Dashboard = () => {
   const { user } = useAuth();
   const { filteredDossiers, dossiers } = useDossier();
   const navigate = useNavigate();
+
+  // Afficher le tableau de bord spécifique pour les agents visio
+  if (user?.role === 'agent_visio') {
+    return (
+      <div className="container mx-auto px-4 md:px-6 py-6 space-y-6 md:space-y-8">
+        <AgentVisioStats />
+      </div>
+    );
+  }
 
   // Calcul des statistiques de dossiers
   const dossierStats = {
