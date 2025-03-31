@@ -18,7 +18,7 @@ const Layout = () => {
           {isAuthenticated && <Header />}
           
           <main className="flex-1 overflow-auto bg-background">
-            <div className="w-full px-0">
+            <div className="w-full">
               <Outlet />
             </div>
           </main>
