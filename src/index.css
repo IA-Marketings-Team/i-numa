@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,7 +14,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 221 83% 53%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -35,19 +36,12 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -98,4 +92,48 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.status-badge {
+  @apply px-3 py-1 rounded-full text-sm font-medium;
+}
+
+.status-prospect {
+  @apply status-badge bg-prospect text-blue-800;
+}
+
+.status-rdv {
+  @apply status-badge bg-rdv text-blue-800;
+}
+
+.status-valide {
+  @apply status-badge bg-valide text-teal-800;
+}
+
+.status-signe {
+  @apply status-badge bg-signe text-green-800;
+}
+
+.status-archive {
+  @apply status-badge bg-archive text-gray-800;
+}
+
+.card-client {
+  @apply border-l-4 border-client;
+}
+
+.card-phoner {
+  @apply border-l-4 border-phoner;
+}
+
+.card-visio {
+  @apply border-l-4 border-visio;
+}
+
+.card-supervisor {
+  @apply border-l-4 border-supervisor;
+}
+
+.card-manager {
+  @apply border-l-4 border-manager;
 }
