@@ -4,23 +4,33 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
+import { FileDown } from "lucide-react";
 
 const Settings = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("profil");
   
+  // Profil
   const [email, setEmail] = useState(user?.email || "");
   const [telephone, setTelephone] = useState(user?.telephone || "");
-  const [notifications, setNotifications] = useState({
-    email: true,
-    sms: false,
-    app: true
-  });
+  const [adresse, setAdresse] = useState(user?.adresse || "");
+  const [ville, setVille] = useState(user?.ville || "");
+  const [codePostal, setCodePostal] = useState(user?.codePostal || "");
+  
+  // Mot de passe
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  
+  // IBAN
+  const [iban, setIban] = useState(user?.iban || "");
+  const [bic, setBic] = useState(user?.bic || "");
+  const [nomBanque, setNomBanque] = useState(user?.nomBanque || "");
   
   const handleSaveProfile = () => {
     toast({
@@ -29,22 +39,51 @@ const Settings = () => {
     });
   };
   
-  const handleSaveNotifications = () => {
+  const handleSavePassword = () => {
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Erreur de mot de passe",
+        description: "Les mots de passe ne correspondent pas.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     toast({
-      title: "Préférences de notification mises à jour",
-      description: "Vos préférences ont été enregistrées avec succès."
+      title: "Mot de passe mis à jour",
+      description: "Votre mot de passe a été modifié avec succès."
     });
+    
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+  };
+  
+  const handleSaveBankInfo = () => {
+    toast({
+      title: "Informations bancaires mises à jour",
+      description: "Vos coordonnées bancaires ont été enregistrées avec succès."
+    });
+  };
+  
+  const handleDownloadContract = () => {
+    toast({
+      title: "Téléchargement du contrat",
+      description: "Le téléchargement de votre contrat va commencer."
+    });
+    
+    // Dans une application réelle, nous ajouterions ici le code pour télécharger un fichier PDF
   };
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Paramètres</h1>
+      <h1 className="text-3xl font-bold">Mon compte</h1>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
+        <TabsList className="grid grid-cols-3 md:w-[400px]">
           <TabsTrigger value="profil">Profil</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="securite">Sécurité</TabsTrigger>
+          <TabsTrigger value="bancaire">Informations bancaires</TabsTrigger>
+          <TabsTrigger value="contrat">Contrat</TabsTrigger>
         </TabsList>
         
         <TabsContent value="profil" className="space-y-4">
@@ -86,88 +125,173 @@ const Settings = () => {
                   onChange={(e) => setTelephone(e.target.value)} 
                 />
               </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="adresse">Adresse</Label>
+                <Textarea 
+                  id="adresse" 
+                  value={adresse} 
+                  onChange={(e) => setAdresse(e.target.value)} 
+                />
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="ville">Ville</Label>
+                  <Input 
+                    id="ville" 
+                    value={ville} 
+                    onChange={(e) => setVille(e.target.value)} 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="codePostal">Code postal</Label>
+                  <Input 
+                    id="codePostal" 
+                    value={codePostal} 
+                    onChange={(e) => setCodePostal(e.target.value)} 
+                  />
+                </div>
+              </div>
             </CardContent>
-            <CardFooter>
-              <Button onClick={handleSaveProfile}>Enregistrer les modifications</Button>
+            <CardFooter className="flex flex-col space-y-4">
+              <Button onClick={handleSaveProfile} className="w-full sm:w-auto">Enregistrer les modifications</Button>
+              
+              <Card className="w-full">
+                <CardHeader>
+                  <CardTitle>Modification du mot de passe</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="current-password">Mot de passe actuel</Label>
+                    <Input 
+                      id="current-password" 
+                      type="password" 
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="new-password">Nouveau mot de passe</Label>
+                    <Input 
+                      id="new-password" 
+                      type="password" 
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password">Confirmer le mot de passe</Label>
+                    <Input 
+                      id="confirm-password" 
+                      type="password" 
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button onClick={handleSavePassword}>Changer le mot de passe</Button>
+                </CardFooter>
+              </Card>
             </CardFooter>
           </Card>
         </TabsContent>
         
-        <TabsContent value="notifications" className="space-y-4">
+        <TabsContent value="bancaire" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Préférences de notification</CardTitle>
+              <CardTitle>Informations bancaires</CardTitle>
               <CardDescription>
-                Configurez comment vous souhaitez être notifié
+                Gérez vos coordonnées bancaires pour les paiements
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Notifications par email</p>
-                  <p className="text-sm text-gray-500">Recevez des notifications par email</p>
-                </div>
-                <Switch 
-                  checked={notifications.email} 
-                  onCheckedChange={(checked) => setNotifications({...notifications, email: checked})} 
+              <div className="space-y-2">
+                <Label htmlFor="iban">IBAN</Label>
+                <Input 
+                  id="iban" 
+                  value={iban} 
+                  onChange={(e) => setIban(e.target.value)} 
+                  placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
                 />
               </div>
               
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Notifications par SMS</p>
-                  <p className="text-sm text-gray-500">Recevez des notifications par SMS</p>
-                </div>
-                <Switch 
-                  checked={notifications.sms} 
-                  onCheckedChange={(checked) => setNotifications({...notifications, sms: checked})} 
+              <div className="space-y-2">
+                <Label htmlFor="bic">BIC / SWIFT</Label>
+                <Input 
+                  id="bic" 
+                  value={bic} 
+                  onChange={(e) => setBic(e.target.value)} 
+                  placeholder="XXXXXXXXXXXX"
                 />
               </div>
               
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Notifications dans l'application</p>
-                  <p className="text-sm text-gray-500">Recevez des notifications dans l'application</p>
-                </div>
-                <Switch 
-                  checked={notifications.app} 
-                  onCheckedChange={(checked) => setNotifications({...notifications, app: checked})} 
+              <div className="space-y-2">
+                <Label htmlFor="nomBanque">Nom de la banque</Label>
+                <Input 
+                  id="nomBanque" 
+                  value={nomBanque} 
+                  onChange={(e) => setNomBanque(e.target.value)} 
                 />
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={handleSaveNotifications}>Enregistrer les préférences</Button>
+              <Button onClick={handleSaveBankInfo}>Enregistrer les informations bancaires</Button>
             </CardFooter>
           </Card>
         </TabsContent>
         
-        <TabsContent value="securite" className="space-y-4">
+        <TabsContent value="contrat" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Sécurité du compte</CardTitle>
+              <CardTitle>Documents contractuels</CardTitle>
               <CardDescription>
-                Gérez votre mot de passe et la sécurité de votre compte
+                Consultez et téléchargez vos documents contractuels
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="current-password">Mot de passe actuel</Label>
-                <Input id="current-password" type="password" />
+              <div className="border rounded-md p-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-medium">Contrat de service</h3>
+                    <p className="text-sm text-muted-foreground">Signé le {new Date().toLocaleDateString()}</p>
+                  </div>
+                  <Button variant="outline" onClick={handleDownloadContract}>
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Télécharger
+                  </Button>
+                </div>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="new-password">Nouveau mot de passe</Label>
-                <Input id="new-password" type="password" />
+              <div className="border rounded-md p-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-medium">Conditions générales</h3>
+                    <p className="text-sm text-muted-foreground">Version 2.1 - Mise à jour le 01/01/2023</p>
+                  </div>
+                  <Button variant="outline" onClick={handleDownloadContract}>
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Télécharger
+                  </Button>
+                </div>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirmer le mot de passe</Label>
-                <Input id="confirm-password" type="password" />
+              <div className="border rounded-md p-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-medium">Politique de confidentialité</h3>
+                    <p className="text-sm text-muted-foreground">Version 1.3 - Mise à jour le 01/06/2023</p>
+                  </div>
+                  <Button variant="outline" onClick={handleDownloadContract}>
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Télécharger
+                  </Button>
+                </div>
               </div>
             </CardContent>
-            <CardFooter>
-              <Button>Changer le mot de passe</Button>
-            </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>

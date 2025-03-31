@@ -17,7 +17,7 @@ import {
   Users, 
   ShoppingBag, 
   BarChart2, 
-  Settings,
+  User,
   Sun,
   Moon
 } from "lucide-react";
@@ -62,9 +62,9 @@ export default function Sidebar() {
         roles: ["agent_phoner", "agent_visio", "superviseur", "responsable"] as UserRole[]
       }, 
       {
-        name: "Paramètres",
+        name: "Mon compte",
         path: "/parametres",
-        icon: <Settings className="size-4" />,
+        icon: <User className="size-4" />,
         roles: ["client", "agent_phoner", "agent_visio", "superviseur", "responsable"] as UserRole[]
       }
     ];
