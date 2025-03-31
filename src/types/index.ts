@@ -1,4 +1,3 @@
-
 export type UserRole = 'client' | 'agent_phoner' | 'agent_visio' | 'superviseur' | 'responsable';
 
 export type DossierStatus = 'prospect' | 'rdv_en_cours' | 'valide' | 'signe' | 'archive';
@@ -11,6 +10,12 @@ export interface User {
   telephone: string;
   role: UserRole;
   dateCreation: Date;
+  adresse?: string;
+  ville?: string;
+  codePostal?: string;
+  iban?: string;
+  bic?: string;
+  nomBanque?: string;
 }
 
 export interface Client extends User {
