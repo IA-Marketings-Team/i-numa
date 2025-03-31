@@ -1,14 +1,43 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dossier } from '@/types';
-import { Calendar, Briefcase, FileText, Package } from 'lucide-react';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Dossier, DossierStatus } from '@/types';
+import { Calendar, Briefcase, FileText, Package, Edit, Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { useDossier } from '@/contexts/DossierContext';
 
 interface VisioLimitedInfoProps {
   dossier: Dossier;
 }
 
 const VisioLimitedInfo: React.FC<VisioLimitedInfoProps> = ({ dossier }) => {
+  const [isAddingNotes, setIsAddingNotes] = useState(false);
+  const [newNotes, setNewNotes] = useState(dossier.notes || '');
+  const [isValidating, setIsValidating] = useState(false);
+  const { updateDossier, updateDossierStatus } = useDossier();
+  const { toast } = useToast();
+
+  const handleNotesSubmit = () => {
+    updateDossier(dossier.id, { notes: newNotes });
+    setIsAddingNotes(false);
+    toast({
+      title: 'Notes mises à jour',
+      description: 'Les notes du dossier ont été mises à jour avec succès.'
+    });
+  };
+
+  const handleValidate = () => {
+    updateDossierStatus(dossier.id, 'valide');
+    setIsValidating(false);
+    toast({
+      title: 'Dossier validé',
+      description: 'Le statut du dossier a été mis à jour à "validé".'
+    });
+  };
+
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -72,6 +101,56 @@ const VisioLimitedInfo: React.FC<VisioLimitedInfoProps> = ({ dossier }) => {
           <p>Les informations personnelles du client ne sont pas accessibles depuis votre interface. Conformément à notre politique de confidentialité, vous avez uniquement accès aux informations nécessaires pour effectuer votre mission d'agent visio.</p>
         </div>
       </CardContent>
+      <CardFooter className="flex gap-2 justify-end">
+        {/* Dialog pour ajouter des notes */}
+        <Dialog open={isAddingNotes} onOpenChange={setIsAddingNotes}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="flex items-center gap-2">
+              <Edit className="w-4 h-4" />
+              Ajouter des notes
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Ajouter des notes au dossier</DialogTitle>
+            </DialogHeader>
+            <Textarea 
+              value={newNotes} 
+              onChange={(e) => setNewNotes(e.target.value)}
+              placeholder="Entrez vos notes concernant ce dossier..."
+              className="min-h-[150px]"
+            />
+            <DialogFooter className="mt-4">
+              <Button variant="outline" onClick={() => setIsAddingNotes(false)}>Annuler</Button>
+              <Button onClick={handleNotesSubmit}>Enregistrer</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog pour valider le dossier */}
+        {dossier.status === 'rdv_en_cours' && (
+          <Dialog open={isValidating} onOpenChange={setIsValidating}>
+            <DialogTrigger asChild>
+              <Button variant="default" className="flex items-center gap-2">
+                <Check className="w-4 h-4" />
+                Valider le dossier
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Confirmer la validation du dossier</DialogTitle>
+              </DialogHeader>
+              <p className="py-4">
+                Êtes-vous sûr de vouloir valider ce dossier ? Cette action changera son statut à "Validé".
+              </p>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsValidating(false)}>Annuler</Button>
+                <Button onClick={handleValidate}>Confirmer la validation</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+      </CardFooter>
     </Card>
   );
 };

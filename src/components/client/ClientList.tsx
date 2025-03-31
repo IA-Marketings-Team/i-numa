@@ -6,16 +6,26 @@ import { clients } from "@/data/mockData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Eye, FileEdit, Trash2, Search, UserPlus } from "lucide-react";
+import { Eye, FileEdit, Trash2, Search, UserPlus, Phone } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 
 const ClientList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
+  const { toast } = useToast();
+  
+  const [clientsList, setClientsList] = useState([...clients]);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isCalling, setIsCalling] = useState(false);
+  const [callNotes, setCallNotes] = useState("");
 
   // Filtrer les clients en fonction du terme de recherche
-  const filteredClients = clients.filter(
+  const filteredClients = clientsList.filter(
     (client) =>
       client.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -31,10 +41,28 @@ const ClientList = () => {
     navigate(`/clients/${clientId}/edit`);
   };
 
-  const handleDeleteClient = (clientId: string) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce client ?")) {
-      // Dans une application réelle, cette action serait gérée par un contexte ou un appel API
-      console.log(`Suppression du client ${clientId}`);
+  const handleDeleteClient = () => {
+    if (selectedClient) {
+      // Mock delete: filter the client out of our local state
+      setClientsList(prevClients => prevClients.filter(c => c.id !== selectedClient.id));
+      toast({
+        title: "Client supprimé",
+        description: `${selectedClient.prenom} ${selectedClient.nom} a été supprimé avec succès.`
+      });
+      setIsDeleting(false);
+      setSelectedClient(null);
+    }
+  };
+
+  const handleCallClient = () => {
+    if (selectedClient) {
+      toast({
+        title: "Appel terminé",
+        description: `Les notes de l'appel avec ${selectedClient.prenom} ${selectedClient.nom} ont été enregistrées.`
+      });
+      setIsCalling(false);
+      setSelectedClient(null);
+      setCallNotes("");
     }
   };
 
@@ -100,6 +128,21 @@ const ClientList = () => {
                       <span className="hidden sm:inline">Voir</span>
                     </Button>
                     
+                    {hasPermission(['agent_phoner', 'agent_visio']) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedClient(client);
+                          setIsCalling(true);
+                        }}
+                        className="flex items-center gap-1"
+                      >
+                        <Phone className="w-4 h-4" />
+                        <span className="hidden sm:inline">Appeler</span>
+                      </Button>
+                    )}
+                    
                     {hasPermission(['superviseur', 'responsable']) && (
                       <>
                         <Button
@@ -115,7 +158,10 @@ const ClientList = () => {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => handleDeleteClient(client.id)}
+                          onClick={() => {
+                            setSelectedClient(client);
+                            setIsDeleting(true);
+                          }}
                           className="flex items-center gap-1"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -134,6 +180,54 @@ const ClientList = () => {
           </div>
         )}
       </div>
+
+      {/* Dialog de confirmation de suppression */}
+      <Dialog open={isDeleting} onOpenChange={setIsDeleting}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmer la suppression</DialogTitle>
+          </DialogHeader>
+          <p className="py-4">
+            Êtes-vous sûr de vouloir supprimer le client {selectedClient?.prenom} {selectedClient?.nom} ? 
+            Cette action est irréversible et supprimera également tous les dossiers associés.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleting(false)}>Annuler</Button>
+            <Button variant="destructive" onClick={handleDeleteClient}>Supprimer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog pour l'appel téléphonique */}
+      <Dialog open={isCalling} onOpenChange={setIsCalling}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Appel à {selectedClient?.prenom} {selectedClient?.nom}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-gray-50 p-3 rounded-md">
+              <p className="font-medium text-sm">Numéro de téléphone</p>
+              <p className="text-lg">{selectedClient?.telephone}</p>
+            </div>
+            
+            <div className="space-y-2">
+              <p className="font-medium text-sm">Notes d'appel</p>
+              <Textarea 
+                placeholder="Entrez les détails de votre appel ici..."
+                value={callNotes}
+                onChange={(e) => setCallNotes(e.target.value)}
+                className="min-h-[150px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCalling(false)}>Annuler</Button>
+            <Button onClick={handleCallClient}>Terminer l'appel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -1,18 +1,22 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
 import { useAuth } from "@/contexts/AuthContext";
 import DossierForm from "@/components/dossier/DossierForm";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Trash2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 const DossierEdit = () => {
   const { id } = useParams<{ id: string }>();
-  const { getDossierById, setCurrentDossier, currentDossier } = useDossier();
+  const { getDossierById, setCurrentDossier, currentDossier, deleteDossier } = useDossier();
   const { user, hasPermission } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const isCreating = id === "nouveau";
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     // Si nous sommes en mode création, initialiser un dossier vide
@@ -25,20 +29,42 @@ const DossierEdit = () => {
         setCurrentDossier(dossier);
       } else {
         navigate("/dossiers");
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Le dossier demandé n'existe pas."
+        });
       }
     }
     
     return () => {
       setCurrentDossier(null);
     };
-  }, [id, isCreating, getDossierById, setCurrentDossier, navigate]);
+  }, [id, isCreating, getDossierById, setCurrentDossier, navigate, toast]);
 
   // Vérifier que l'utilisateur a les permissions nécessaires pour cette page
   useEffect(() => {
     if (!hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable'])) {
       navigate("/dossiers");
+      toast({
+        variant: "destructive",
+        title: "Accès refusé",
+        description: "Vous n'avez pas les permissions nécessaires pour accéder à cette page."
+      });
     }
-  }, [hasPermission, navigate]);
+  }, [hasPermission, navigate, toast]);
+
+  const handleDelete = () => {
+    if (id && id !== "nouveau" && currentDossier) {
+      deleteDossier(id);
+      navigate("/dossiers");
+      toast({
+        title: "Dossier supprimé",
+        description: "Le dossier a été supprimé avec succès."
+      });
+    }
+    setIsDeleting(false);
+  };
 
   if (!isCreating && !currentDossier) {
     return (
@@ -58,14 +84,26 @@ const DossierEdit = () => {
         <h1 className="text-3xl font-bold">
           {isCreating ? "Nouveau dossier" : "Modifier le dossier"}
         </h1>
-        <Button 
-          variant="outline" 
-          onClick={() => navigate("/dossiers")}
-          className="flex items-center gap-2"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          Annuler
-        </Button>
+        <div className="flex gap-2">
+          {!isCreating && hasPermission(['superviseur', 'responsable']) && (
+            <Button 
+              variant="destructive" 
+              onClick={() => setIsDeleting(true)}
+              className="flex items-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Supprimer
+            </Button>
+          )}
+          <Button 
+            variant="outline" 
+            onClick={() => navigate("/dossiers")}
+            className="flex items-center gap-2"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Annuler
+          </Button>
+        </div>
       </div>
       
       <DossierForm 
@@ -73,6 +111,20 @@ const DossierEdit = () => {
         isEditing={!isCreating} 
         userRole={user?.role}
       />
+
+      {/* Dialog de confirmation de suppression */}
+      <Dialog open={isDeleting} onOpenChange={setIsDeleting}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmer la suppression</DialogTitle>
+          </DialogHeader>
+          <p className="py-4">Êtes-vous sûr de vouloir supprimer ce dossier ? Cette action est irréversible et supprimera également tous les rendez-vous associés.</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleting(false)}>Annuler</Button>
+            <Button variant="destructive" onClick={handleDelete}>Supprimer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
