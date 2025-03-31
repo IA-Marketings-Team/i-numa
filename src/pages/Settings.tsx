@@ -18,6 +18,7 @@ const Settings = () => {
   const tabFromUrl = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(tabFromUrl || "profil");
   const [contracts, setContracts] = useState([]);
+  const isClient = user?.role === 'client';
   
   // Profil
   const [email, setEmail] = useState(user?.email || "");
@@ -95,15 +96,36 @@ const Settings = () => {
     });
   };
 
+  // Définir les onglets disponibles en fonction du rôle de l'utilisateur
+  const getAvailableTabs = () => {
+    const tabs = [{ id: "profil", label: "Profil" }];
+    
+    // Seul le client voit les onglets d'informations bancaires et de contrat
+    if (isClient) {
+      tabs.push({ id: "bancaire", label: "Informations bancaires" });
+      tabs.push({ id: "contrat", label: "Contrat" });
+    }
+    
+    return tabs;
+  };
+
+  // Vérifier si l'onglet actif est valide pour ce rôle d'utilisateur
+  useEffect(() => {
+    const availableTabs = getAvailableTabs().map(tab => tab.id);
+    if (!availableTabs.includes(activeTab)) {
+      setActiveTab("profil");
+    }
+  }, [activeTab]);
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Mon compte</h1>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid grid-cols-3 md:w-[400px]">
-          <TabsTrigger value="profil">Profil</TabsTrigger>
-          <TabsTrigger value="bancaire">Informations bancaires</TabsTrigger>
-          <TabsTrigger value="contrat">Contrat</TabsTrigger>
+        <TabsList className={`grid ${isClient ? 'grid-cols-3' : 'grid-cols-1'} md:w-[400px]`}>
+          {getAvailableTabs().map(tab => (
+            <TabsTrigger key={tab.id} value={tab.id}>{tab.label}</TabsTrigger>
+          ))}
         </TabsList>
         
         <TabsContent value="profil" className="space-y-4">
@@ -220,116 +242,120 @@ const Settings = () => {
           </Card>
         </TabsContent>
         
-        <TabsContent value="bancaire" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Informations bancaires</CardTitle>
-              <CardDescription>
-                Gérez vos coordonnées bancaires pour les paiements
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="iban">IBAN</Label>
-                <Input 
-                  id="iban" 
-                  value={iban} 
-                  onChange={(e) => setIban(e.target.value)} 
-                  placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="bic">BIC / SWIFT</Label>
-                <Input 
-                  id="bic" 
-                  value={bic} 
-                  onChange={(e) => setBic(e.target.value)} 
-                  placeholder="XXXXXXXXXXXX"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="nomBanque">Nom de la banque</Label>
-                <Input 
-                  id="nomBanque" 
-                  value={nomBanque} 
-                  onChange={(e) => setNomBanque(e.target.value)} 
-                />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button onClick={handleSaveBankInfo}>Enregistrer les informations bancaires</Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="contrat" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Documents contractuels</CardTitle>
-              <CardDescription>
-                Consultez et téléchargez vos documents contractuels
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {contracts.length > 0 ? (
-                contracts.map((contract) => (
-                  <div key={contract.id} className="border rounded-md p-4">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h3 className="font-medium">Contrat de service</h3>
-                        <p className="text-sm text-muted-foreground">Signé le {formatDate(contract.date)}</p>
-                        <div className="mt-2">
-                          <p className="text-sm font-medium">Articles:</p>
-                          <ul className="text-sm list-disc pl-5 mt-1">
-                            {contract.items.map((item, index) => (
-                              <li key={index}>{item.title} ({item.quantity})</li>
-                            ))}
-                          </ul>
+        {isClient && (
+          <>
+            <TabsContent value="bancaire" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Informations bancaires</CardTitle>
+                  <CardDescription>
+                    Gérez vos coordonnées bancaires pour les paiements
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="iban">IBAN</Label>
+                    <Input 
+                      id="iban" 
+                      value={iban} 
+                      onChange={(e) => setIban(e.target.value)} 
+                      placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="bic">BIC / SWIFT</Label>
+                    <Input 
+                      id="bic" 
+                      value={bic} 
+                      onChange={(e) => setBic(e.target.value)} 
+                      placeholder="XXXXXXXXXXXX"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="nomBanque">Nom de la banque</Label>
+                    <Input 
+                      id="nomBanque" 
+                      value={nomBanque} 
+                      onChange={(e) => setNomBanque(e.target.value)} 
+                    />
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button onClick={handleSaveBankInfo}>Enregistrer les informations bancaires</Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="contrat" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Documents contractuels</CardTitle>
+                  <CardDescription>
+                    Consultez et téléchargez vos documents contractuels
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {contracts.length > 0 ? (
+                    contracts.map((contract) => (
+                      <div key={contract.id} className="border rounded-md p-4">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="font-medium">Contrat de service</h3>
+                            <p className="text-sm text-muted-foreground">Signé le {formatDate(contract.date)}</p>
+                            <div className="mt-2">
+                              <p className="text-sm font-medium">Articles:</p>
+                              <ul className="text-sm list-disc pl-5 mt-1">
+                                {contract.items.map((item, index) => (
+                                  <li key={index}>{item.title} ({item.quantity})</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                          <Button variant="outline" onClick={() => handleDownloadContract(contract.id)}>
+                            <FileDown className="mr-2 h-4 w-4" />
+                            Télécharger
+                          </Button>
                         </div>
                       </div>
-                      <Button variant="outline" onClick={() => handleDownloadContract(contract.id)}>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">Vous n'avez pas encore de contrat</p>
+                    </div>
+                  )}
+                  
+                  <div className="border rounded-md p-4">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="font-medium">Conditions générales</h3>
+                        <p className="text-sm text-muted-foreground">Version 2.1 - Mise à jour le 01/01/2023</p>
+                      </div>
+                      <Button variant="outline" onClick={() => handleDownloadContract('cgu')}>
                         <FileDown className="mr-2 h-4 w-4" />
                         Télécharger
                       </Button>
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">Vous n'avez pas encore de contrat</p>
-                </div>
-              )}
-              
-              <div className="border rounded-md p-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-medium">Conditions générales</h3>
-                    <p className="text-sm text-muted-foreground">Version 2.1 - Mise à jour le 01/01/2023</p>
+                  
+                  <div className="border rounded-md p-4">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="font-medium">Politique de confidentialité</h3>
+                        <p className="text-sm text-muted-foreground">Version 1.3 - Mise à jour le 01/06/2023</p>
+                      </div>
+                      <Button variant="outline" onClick={() => handleDownloadContract('privacy')}>
+                        <FileDown className="mr-2 h-4 w-4" />
+                        Télécharger
+                      </Button>
+                    </div>
                   </div>
-                  <Button variant="outline" onClick={() => handleDownloadContract('cgu')}>
-                    <FileDown className="mr-2 h-4 w-4" />
-                    Télécharger
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="border rounded-md p-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-medium">Politique de confidentialité</h3>
-                    <p className="text-sm text-muted-foreground">Version 1.3 - Mise à jour le 01/06/2023</p>
-                  </div>
-                  <Button variant="outline" onClick={() => handleDownloadContract('privacy')}>
-                    <FileDown className="mr-2 h-4 w-4" />
-                    Télécharger
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </>
+        )}
       </Tabs>
     </div>
   );
