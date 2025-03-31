@@ -21,8 +21,8 @@ const Header = () => {
   };
 
   return (
-    <header className="border-b h-14 flex-shrink-0 sticky top-0 z-40 w-full bg-background">
-      <div className="h-full px-6 flex items-center justify-between">
+    <header className="border-b h-14 sticky top-0 z-40 w-full bg-background">
+      <div className="container mx-auto h-full px-6 flex items-center justify-between">
         <div className="flex items-center">
           <SidebarTrigger className="md:hidden mr-2" />
           <Link to="/" className="flex-shrink-0 flex items-center">
