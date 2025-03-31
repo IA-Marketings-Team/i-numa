@@ -90,9 +90,9 @@ export default function Sidebar() {
       <SidebarHeader className="flex items-center justify-center py-4 border-b">
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-semibold">
-            C
+            i
           </div>
-          <div className="text-lg font-semibold">ConnectCRM</div>
+          <div className="text-lg font-semibold">i-numa</div>
         </div>
       </SidebarHeader>
       

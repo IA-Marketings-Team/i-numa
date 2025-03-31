@@ -18,7 +18,7 @@ const Layout = () => {
           {isAuthenticated && <Header />}
           
           <main className="flex-1 overflow-auto bg-background">
-            <div className="container mx-auto py-6 px-4 md:px-6 max-w-[1200px]">
+            <div className="container mx-auto py-6 px-0">
               <Outlet />
             </div>
           </main>
@@ -26,7 +26,7 @@ const Layout = () => {
           <footer className="py-3 bg-card border-t">
             <div className="container mx-auto px-6">
               <p className="text-center text-xs text-muted-foreground">
-                © {new Date().getFullYear()} ConnectCRM. Tous droits réservés.
+                © {new Date().getFullYear()} i-numa. Tous droits réservés.
               </p>
             </div>
           </footer>

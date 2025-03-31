@@ -7,13 +7,6 @@ import { User, LogOut, Search, Plus, ChevronLeft, Bell, Settings } from "lucide-
 import CartDrawer from "@/components/cart/CartDrawer";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
-import { 
-  NavigationMenu,
-  NavigationMenuList,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  navigationMenuTriggerStyle
-} from "@/components/ui/navigation-menu";
 
 const Header = () => {
   const { user } = useAuth();
@@ -99,7 +92,7 @@ const Header = () => {
 
   return (
     <header className="border-b sticky top-0 z-40 w-full bg-card">
-      <div className="container mx-auto h-16 px-4 md:px-6 flex items-center justify-between">
+      <div className="flex h-16 px-4 items-center justify-between">
         <div className="flex items-center gap-3">
           <SidebarTrigger className="md:hidden mr-2" />
           {shouldShowBackButton() && (
@@ -118,34 +111,6 @@ const Header = () => {
             </h1>
             {getBreadcrumbs()}
           </div>
-        </div>
-
-        <div className="hidden md:flex items-center gap-6">
-          <NavigationMenu>
-            <NavigationMenuList>
-              <NavigationMenuItem>
-                <Link to="/tableau-de-bord">
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                    Tableau de bord
-                  </NavigationMenuLink>
-                </Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link to="/dossiers">
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                    Dossiers
-                  </NavigationMenuLink>
-                </Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link to="/statistiques">
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                    Statistiques
-                  </NavigationMenuLink>
-                </Link>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
         </div>
         
         <div className="flex items-center gap-3">
