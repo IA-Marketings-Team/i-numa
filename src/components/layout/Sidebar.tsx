@@ -72,9 +72,14 @@ export default function Sidebar() {
     return items.filter(item => hasPermission(item.roles));
   };
 
+  const isActive = (path: string) => {
+    return location.pathname === path || 
+           (path !== '/tableau-de-bord' && location.pathname.startsWith(path));
+  };
+
   return (
-    <SidebarComponent>
-      <SidebarHeader className="px-3 py-2">
+    <SidebarComponent className="border-r">
+      <SidebarHeader className="px-3 py-3 border-b">
         <div className="text-lg font-semibold">Navigation</div>
       </SidebarHeader>
       
@@ -84,9 +89,10 @@ export default function Sidebar() {
             <SidebarMenuItem key={item.path}>
               <SidebarMenuButton 
                 asChild 
-                isActive={location.pathname === item.path}
+                isActive={isActive(item.path)}
+                className="py-2"
               >
-                <Link to={item.path} className="flex items-center gap-2">
+                <Link to={item.path} className="flex items-center gap-3">
                   {item.icon}
                   <span>{item.name}</span>
                 </Link>
@@ -96,15 +102,15 @@ export default function Sidebar() {
         </SidebarMenu>
       </SidebarContent>
       
-      <SidebarFooter className="px-3 py-2 border-t">
+      <SidebarFooter className="px-3 py-3 border-t">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {theme === "light" ? (
-              <Sun className="size-5" />
+              <Sun className="size-4" />
             ) : (
-              <Moon className="size-5" />
+              <Moon className="size-4" />
             )}
-            <span>Mode {theme === "light" ? "clair" : "sombre"}</span>
+            <span className="text-sm">Mode {theme === "light" ? "clair" : "sombre"}</span>
           </div>
           <Switch 
             checked={theme === "dark"}
