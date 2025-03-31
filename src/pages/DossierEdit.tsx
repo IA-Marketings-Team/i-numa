@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
+import { useAuth } from "@/contexts/AuthContext";
 import DossierForm from "@/components/dossier/DossierForm";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
@@ -9,25 +10,35 @@ import { ChevronLeft } from "lucide-react";
 const DossierEdit = () => {
   const { id } = useParams<{ id: string }>();
   const { getDossierById, setCurrentDossier, currentDossier } = useDossier();
+  const { user, hasPermission } = useAuth();
   const navigate = useNavigate();
   const isCreating = id === "nouveau";
 
   useEffect(() => {
-    if (!isCreating && id) {
+    // Si nous sommes en mode création, initialiser un dossier vide
+    if (isCreating) {
+      setCurrentDossier(null);
+    } else if (id) {
+      // Sinon charger le dossier existant
       const dossier = getDossierById(id);
       if (dossier) {
         setCurrentDossier(dossier);
       } else {
         navigate("/dossiers");
       }
-    } else {
-      setCurrentDossier(null);
     }
     
     return () => {
       setCurrentDossier(null);
     };
   }, [id, isCreating, getDossierById, setCurrentDossier, navigate]);
+
+  // Vérifier que l'utilisateur a les permissions nécessaires pour cette page
+  useEffect(() => {
+    if (!hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable'])) {
+      navigate("/dossiers");
+    }
+  }, [hasPermission, navigate]);
 
   if (!isCreating && !currentDossier) {
     return (
@@ -60,6 +71,7 @@ const DossierEdit = () => {
       <DossierForm 
         dossier={currentDossier} 
         isEditing={!isCreating} 
+        userRole={user?.role}
       />
     </div>
   );

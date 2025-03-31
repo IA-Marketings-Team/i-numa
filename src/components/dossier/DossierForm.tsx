@@ -9,16 +9,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useDossier } from "@/contexts/DossierContext";
-import { Client, Dossier, DossierStatus, Offre } from "@/types";
+import { Client, Dossier, DossierStatus, UserRole } from "@/types";
 import { clients, agents, offres as mockOffres } from "@/data/mockData";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface DossierFormProps {
   dossier?: Dossier;
   isEditing?: boolean;
+  userRole?: UserRole;
 }
 
-const DossierForm: React.FC<DossierFormProps> = ({ dossier, isEditing = false }) => {
+const DossierForm: React.FC<DossierFormProps> = ({ dossier, isEditing = false, userRole }) => {
   const navigate = useNavigate();
   const { addDossier, updateDossier } = useDossier();
   const { hasPermission } = useAuth();
@@ -38,6 +39,16 @@ const DossierForm: React.FC<DossierFormProps> = ({ dossier, isEditing = false })
   const phonerAgents = agents.filter(a => a.role === "agent_phoner");
   const visioAgents = agents.filter(a => a.role === "agent_visio");
 
+  // Auto-assigner l'agent phoner si l'utilisateur est un agent_phoner et qu'on crée un nouveau dossier
+  useEffect(() => {
+    if (!isEditing && userRole === 'agent_phoner' && !selectedAgentPhoner) {
+      const currentAgent = agents.find(a => a.role === 'agent_phoner');
+      if (currentAgent) {
+        setSelectedAgentPhoner(currentAgent.id);
+      }
+    }
+  }, [isEditing, userRole, selectedAgentPhoner]);
+
   // Formater la date pour l'input
   useEffect(() => {
     if (dossier?.dateRdv) {
@@ -49,6 +60,12 @@ const DossierForm: React.FC<DossierFormProps> = ({ dossier, isEditing = false })
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Vérifier qu'un client est sélectionné
+    if (!selectedClient) {
+      alert("Veuillez sélectionner un client");
+      return;
+    }
+
     // Trouver le client sélectionné
     const client = clients.find(c => c.id === selectedClient);
     if (!client) return;
@@ -56,32 +73,25 @@ const DossierForm: React.FC<DossierFormProps> = ({ dossier, isEditing = false })
     // Trouver les offres sélectionnées
     const offresToAdd = mockOffres.filter(o => selectedOffres.includes(o.id));
     
+    // Préparer les données du dossier
+    const dossierData = {
+      clientId: selectedClient,
+      client: client as Client,
+      agentPhonerId: selectedAgentPhoner || undefined,
+      agentVisioId: selectedAgentVisio || undefined,
+      status,
+      offres: offresToAdd,
+      dateRdv: dateRdv ? new Date(dateRdv) : undefined,
+      notes,
+      montant
+    };
+    
     if (isEditing && dossier) {
       // Mise à jour d'un dossier existant
-      updateDossier(dossier.id, {
-        clientId: selectedClient,
-        client: client as Client,
-        agentPhonerId: selectedAgentPhoner || undefined,
-        agentVisioId: selectedAgentVisio || undefined,
-        status,
-        offres: offresToAdd,
-        dateRdv: dateRdv ? new Date(dateRdv) : undefined,
-        notes,
-        montant
-      });
+      updateDossier(dossier.id, dossierData);
     } else {
       // Création d'un nouveau dossier
-      addDossier({
-        clientId: selectedClient,
-        client: client as Client,
-        agentPhonerId: selectedAgentPhoner || undefined,
-        agentVisioId: selectedAgentVisio || undefined,
-        status,
-        offres: offresToAdd,
-        dateRdv: dateRdv ? new Date(dateRdv) : undefined,
-        notes,
-        montant
-      });
+      addDossier(dossierData);
     }
 
     navigate("/dossiers");
@@ -171,12 +181,13 @@ const DossierForm: React.FC<DossierFormProps> = ({ dossier, isEditing = false })
               <Select
                 value={selectedAgentPhoner}
                 onValueChange={setSelectedAgentPhoner}
+                disabled={userRole === 'agent_phoner'}
               >
                 <SelectTrigger id="agentPhoner">
                   <SelectValue placeholder="Sélectionner un agent phoner" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Aucun</SelectItem>
+                  <SelectItem value="">Aucun</SelectItem>
                   {phonerAgents.map((agent) => (
                     <SelectItem key={agent.id} value={agent.id}>
                       {agent.prenom} {agent.nom}
@@ -196,7 +207,7 @@ const DossierForm: React.FC<DossierFormProps> = ({ dossier, isEditing = false })
                   <SelectValue placeholder="Sélectionner un agent visio" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Aucun</SelectItem>
+                  <SelectItem value="">Aucun</SelectItem>
                   {visioAgents.map((agent) => (
                     <SelectItem key={agent.id} value={agent.id}>
                       {agent.prenom} {agent.nom}
