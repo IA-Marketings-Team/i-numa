@@ -1,3 +1,4 @@
+
 import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
@@ -18,15 +19,15 @@ const Layout = () => {
             {isAuthenticated && <Header />}
             
             <main className="flex-1 overflow-auto">
-              <div className="w-full h-full">
+              <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
                 <Outlet />
               </div>
             </main>
             
             <footer className="py-3 bg-background border-t">
-              <div className="w-full px-4 sm:px-6 lg:px-8">
+              <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <p className="text-center text-sm text-muted-foreground">
-                  © {new Date().getFullYear()} i-numa. Tous droits réservés.
+                  © {new Date().getFullYear()} ConnectCRM. Tous droits réservés.
                 </p>
               </div>
             </footer>
