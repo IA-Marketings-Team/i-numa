@@ -18,20 +18,25 @@ const Dashboard = () => {
     .slice(0, 5);
 
   return (
-    <div className="space-y-8 w-full">
+    <div className="space-y-8">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold">Bonjour, {user?.prenom}</h1>
-        <p className="text-gray-600">
+        <h1 className="text-3xl font-bold tracking-tight">Bonjour, {user?.prenom}</h1>
+        <p className="text-lg text-muted-foreground">
           {user?.role === 'client' 
-            ? "Bienvenue dans votre espace client" 
-            : "Bienvenue dans votre espace de travail"}
+            ? "Bienvenue dans votre espace client. Voici un aperçu de vos dossiers et activités récentes." 
+            : "Bienvenue dans votre espace de travail. Voici un récapitulatif de vos dossiers et statistiques."}
         </p>
       </div>
 
-      <StatistiquesDashboard />
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div className="p-6">
+          <h2 className="text-xl font-semibold mb-6">Vue d'ensemble</h2>
+          <StatistiquesDashboard />
+        </div>
+      </div>
       
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Dossiers récents</h2>
+        <h2 className="text-xl font-semibold">Dossiers récents</h2>
         <Button onClick={() => navigate("/dossiers")} variant="outline" className="flex items-center gap-2">
           <FileText className="w-4 h-4" />
           Voir tous les dossiers
@@ -39,11 +44,13 @@ const Dashboard = () => {
       </div>
       
       {recentDossiers.length > 0 ? (
-        <DossierList dossiers={recentDossiers} />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+          <DossierList dossiers={recentDossiers} />
+        </div>
       ) : (
-        <div className="bg-white border rounded-lg p-8 text-center">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun dossier récent</h3>
-          <p className="text-gray-600 mb-4">
+        <div className="bg-white dark:bg-gray-800 border rounded-lg p-8 text-center shadow">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Aucun dossier récent</h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             Vous n'avez pas encore de dossiers dans votre espace.
           </p>
           <Button onClick={() => navigate("/dossiers/nouveau")} className="flex items-center gap-2">

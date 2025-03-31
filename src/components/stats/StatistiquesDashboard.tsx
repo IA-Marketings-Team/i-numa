@@ -15,7 +15,9 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  LineChart,
+  Line
 } from "recharts";
 
 const StatistiquesDashboard = () => {
@@ -46,11 +48,11 @@ const StatistiquesDashboard = () => {
 
   // Données pour le graphique circulaire des statuts des dossiers
   const pieData = [
-    { name: 'Prospects', value: 35 },
-    { name: 'RDV en cours', value: 25 },
-    { name: 'Validés', value: 15 },
-    { name: 'Signés', value: 20 },
-    { name: 'Archivés', value: 5 }
+    { name: 'Prospects', value: 35, color: '#0088FE' },
+    { name: 'RDV en cours', value: 25, color: '#00C49F' },
+    { name: 'Validés', value: 15, color: '#FFBB28' },
+    { name: 'Signés', value: 20, color: '#FF8042' },
+    { name: 'Archivés', value: 5, color: '#8884d8' }
   ];
 
   // Données pour les appels
@@ -66,11 +68,20 @@ const StatistiquesDashboard = () => {
     { nom: 'RDV non honorés', Janvier: 7, Février: 10, Mars: 15 }
   ];
 
+  // Données pour le burndown chart
+  const burndownData = [
+    { jour: '1', Estimé: 100, Réel: 95 },
+    { jour: '5', Estimé: 85, Réel: 90 },
+    { jour: '10', Estimé: 70, Réel: 80 },
+    { jour: '15', Estimé: 55, Réel: 65 },
+    { jour: '20', Estimé: 40, Réel: 45 },
+    { jour: '25', Estimé: 25, Réel: 30 },
+    { jour: '30', Estimé: 10, Réel: 15 }
+  ];
+
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Tableau de bord</h1>
-      
-      <Tabs defaultValue="apercu">
+      <Tabs defaultValue="apercu" className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-4">
           <TabsTrigger value="apercu">Aperçu général</TabsTrigger>
           <TabsTrigger value="appels">Statistiques d'appels</TabsTrigger>
@@ -79,9 +90,9 @@ const StatistiquesDashboard = () => {
         
         <TabsContent value="apercu" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
+            <Card className="shadow-sm">
               <CardHeader className="pb-2">
-                <CardTitle>Dossiers actifs</CardTitle>
+                <CardTitle className="text-lg">Dossiers actifs</CardTitle>
                 <CardDescription>Total des dossiers en cours</CardDescription>
               </CardHeader>
               <CardContent>
@@ -89,9 +100,9 @@ const StatistiquesDashboard = () => {
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="shadow-sm">
               <CardHeader className="pb-2">
-                <CardTitle>Taux de conversion</CardTitle>
+                <CardTitle className="text-lg">Taux de conversion</CardTitle>
                 <CardDescription>Appels transformés en RDV</CardDescription>
               </CardHeader>
               <CardContent>
@@ -99,9 +110,9 @@ const StatistiquesDashboard = () => {
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="shadow-sm">
               <CardHeader className="pb-2">
-                <CardTitle>Taux de signature</CardTitle>
+                <CardTitle className="text-lg">Taux de signature</CardTitle>
                 <CardDescription>RDV transformés en contrats</CardDescription>
               </CardHeader>
               <CardContent>
@@ -111,9 +122,9 @@ const StatistiquesDashboard = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
+            <Card className="shadow-sm">
               <CardHeader>
-                <CardTitle>Répartition des dossiers</CardTitle>
+                <CardTitle className="text-lg">Répartition des dossiers</CardTitle>
                 <CardDescription>Par statut</CardDescription>
               </CardHeader>
               <CardContent className="h-80">
@@ -130,7 +141,7 @@ const StatistiquesDashboard = () => {
                       dataKey="value"
                     >
                       {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -141,36 +152,34 @@ const StatistiquesDashboard = () => {
             </Card>
             
             {user?.role === 'responsable' && (
-              <Card>
+              <Card className="shadow-sm">
                 <CardHeader>
-                  <CardTitle>Chiffre d'affaires</CardTitle>
-                  <CardDescription>3 derniers mois</CardDescription>
+                  <CardTitle className="text-lg">Progression des dossiers</CardTitle>
+                  <CardDescription>Estimation vs. Réalité</CardDescription>
                 </CardHeader>
                 <CardContent className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={[
-                        { mois: 'Janvier', ca: 25000 },
-                        { mois: 'Février', ca: 32000 },
-                        { mois: 'Mars', ca: 45000 }
-                      ]}
+                    <LineChart
+                      data={burndownData}
                       margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="mois" />
+                      <XAxis dataKey="jour" />
                       <YAxis />
-                      <Tooltip formatter={(value) => [`${value} €`, 'CA']} />
-                      <Bar dataKey="ca" fill="#8884d8" name="Chiffre d'affaires" />
-                    </BarChart>
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="Estimé" stroke="#8884d8" />
+                      <Line type="monotone" dataKey="Réel" stroke="#82ca9d" />
+                    </LineChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
             )}
             
             {(user?.role === 'agent_phoner' || user?.role === 'agent_visio') && agentStats && (
-              <Card>
+              <Card className="shadow-sm">
                 <CardHeader>
-                  <CardTitle>Mes performances</CardTitle>
+                  <CardTitle className="text-lg">Mes performances</CardTitle>
                   <CardDescription>Statistiques personnelles</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -215,9 +224,9 @@ const StatistiquesDashboard = () => {
         </TabsContent>
         
         <TabsContent value="appels">
-          <Card>
+          <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle>Statistiques d'appels</CardTitle>
+              <CardTitle className="text-lg">Statistiques d'appels</CardTitle>
               <CardDescription>Évolution sur 3 mois</CardDescription>
             </CardHeader>
             <CardContent className="h-96">
@@ -241,9 +250,9 @@ const StatistiquesDashboard = () => {
         </TabsContent>
         
         <TabsContent value="rdv">
-          <Card>
+          <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle>Rendez-vous clients</CardTitle>
+              <CardTitle className="text-lg">Rendez-vous clients</CardTitle>
               <CardDescription>Honorés vs non honorés</CardDescription>
             </CardHeader>
             <CardContent className="h-96">
