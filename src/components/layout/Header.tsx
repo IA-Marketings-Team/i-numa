@@ -22,7 +22,7 @@ const Header = () => {
 
   return (
     <header className="bg-background border-b h-14 flex-shrink-0 sticky top-0 z-40 w-full">
-      <div className="h-full px-4 sm:px-6 lg:px-8">
+      <div className="h-full px-4 w-full">
         <div className="flex justify-between items-center h-full">
           <div className="flex items-center">
             <SidebarTrigger className="md:hidden mr-2" />
