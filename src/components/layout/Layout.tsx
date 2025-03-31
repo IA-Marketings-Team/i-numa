@@ -18,13 +18,13 @@ const Layout = () => {
           {isAuthenticated && <Header />}
           
           <main className="flex-1 overflow-auto bg-background">
-            <div className="container mx-auto py-6 px-0">
+            <div className="w-full px-0">
               <Outlet />
             </div>
           </main>
           
           <footer className="py-3 bg-card border-t">
-            <div className="container mx-auto px-6">
+            <div className="w-full px-6">
               <p className="text-center text-xs text-muted-foreground">
                 © {new Date().getFullYear()} i-numa. Tous droits réservés.
               </p>
