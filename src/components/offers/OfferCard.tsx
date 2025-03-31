@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useCart } from "@/contexts/CartContext";
 import { CheckCircle2, ShoppingCart } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface OfferCardProps {
   category: string;
@@ -25,6 +26,8 @@ const OfferCard: React.FC<OfferCardProps> = ({
   features,
 }) => {
   const { addToCart } = useCart();
+  const { user } = useAuth();
+  const isClient = user?.role === 'client';
 
   const handleAddToCart = () => {
     addToCart({
@@ -70,14 +73,16 @@ const OfferCard: React.FC<OfferCardProps> = ({
         </Accordion>
       </CardContent>
       <CardFooter>
-        <Button 
-          className="w-full" 
-          onClick={handleAddToCart}
-          variant="default"
-        >
-          <ShoppingCart className="w-4 h-4 mr-2" />
-          Ajouter au panier
-        </Button>
+        {isClient && (
+          <Button 
+            className="w-full" 
+            onClick={handleAddToCart}
+            variant="default"
+          >
+            <ShoppingCart className="w-4 h-4 mr-2" />
+            Ajouter au panier
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
