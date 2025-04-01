@@ -31,40 +31,47 @@ serve(async (req) => {
 
     console.log("Attempting login for:", email);
 
-    // Check if the user exists in the database
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .single();
+    // Utiliser la fonction RPC auth_user pour vérifier les identifiants
+    const { data: authData, error: authError } = await supabase.rpc(
+      'auth_user',
+      { user_email: email, user_password: password }
+    );
 
-    if (userError || !userData) {
-      console.error("User not found:", email);
+    if (authError || !authData || authData.length === 0) {
+      console.error("Authentication failed for user:", email, authError);
       return new Response(
         JSON.stringify({ error: "Invalid credentials" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
       );
     }
 
-    // For demonstration / development, we'll authenticate without checking password
-    // In production, we would call the login RPC function to verify the password
-    try {
-      // Generate a simple token (in production use JWT)
-      const token = crypto.randomUUID();
-      
-      console.log("Login successful for:", email);
-      
+    const userData = authData[0];
+    console.log("User authenticated:", userData);
+
+    // Récupérer les informations complètes de l'utilisateur
+    const { data: userDetails, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userData.id)
+      .single();
+
+    if (userError) {
+      console.error("Error fetching user details:", userError);
       return new Response(
-        JSON.stringify(token),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-      );
-    } catch (rpcError) {
-      console.error("RPC error:", rpcError);
-      return new Response(
-        JSON.stringify({ error: "Authentication failed" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+        JSON.stringify({ error: "Error fetching user details" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
       );
     }
+
+    // Générer un token simple (dans un environnement de production, utiliser JWT)
+    const token = crypto.randomUUID();
+    
+    console.log("Login successful for:", email);
+    
+    return new Response(
+      JSON.stringify({ token, user: userDetails }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+    );
   } catch (error) {
     console.error("Unexpected error:", error);
     return new Response(

@@ -45,45 +45,36 @@ serve(async (req) => {
       );
     }
 
-    // For demonstration, we'll directly insert into the users table
-    // In production, we would call the register_user RPC function
-    try {
-      const { data: newUser, error: insertError } = await supabase
-        .from('users')
-        .insert([
-          { 
-            nom, 
-            prenom, 
-            email, 
-            telephone, 
-            role 
-            // password would be hashed in a real scenario
-          }
-        ])
-        .select()
-        .single();
+    // Insérer l'utilisateur avec le mot de passe
+    const { data: newUser, error: insertError } = await supabase
+      .from('users')
+      .insert([
+        { 
+          nom, 
+          prenom, 
+          email, 
+          telephone, 
+          role,
+          mot_de_passe: password // Stockage direct du mot de passe
+        }
+      ])
+      .select()
+      .single();
 
-      if (insertError) {
-        console.error("Error inserting user:", insertError);
-        return new Response(
-          JSON.stringify({ error: insertError.message }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-        );
-      }
-
-      console.log("User registered successfully:", newUser.id);
-      
+    if (insertError) {
+      console.error("Error inserting user:", insertError);
       return new Response(
-        JSON.stringify(newUser.id),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-      );
-    } catch (rpcError) {
-      console.error("Registration error:", rpcError);
-      return new Response(
-        JSON.stringify({ error: rpcError.message }),
+        JSON.stringify({ error: insertError.message }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
+
+    console.log("User registered successfully:", newUser.id);
+    
+    return new Response(
+      JSON.stringify(newUser),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+    );
   } catch (error) {
     console.error("Unexpected error:", error);
     return new Response(

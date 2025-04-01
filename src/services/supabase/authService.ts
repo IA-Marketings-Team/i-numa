@@ -24,45 +24,33 @@ export const customLogin = async (email: string, password: string): Promise<{ to
       throw new Error("Authentication failed - no data returned");
     }
 
-    const token = data as string;
-    console.log("Token reçu:", token ? "OUI" : "NON");
+    const { token, user } = data as { token: string; user: any };
+    console.log("Token et utilisateur reçus:", token ? "OUI" : "NON", user ? "OUI" : "NON");
 
-    // Retrieve user information
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .maybeSingle();
-
-    if (userError) {
-      console.error("Erreur lors de la récupération des données utilisateur:", userError);
-      throw userError;
-    }
-
-    if (!userData) {
+    if (!user) {
       console.log("Aucun utilisateur trouvé avec cet email:", email);
       return { token, user: null };
     }
 
     console.log("Données utilisateur récupérées avec succès");
     
-    const user: User = {
-      id: userData.id,
-      nom: userData.nom,
-      prenom: userData.prenom,
-      email: userData.email,
-      telephone: userData.telephone,
-      role: userData.role,
-      dateCreation: new Date(userData.date_creation),
-      adresse: userData.adresse || undefined,
-      ville: userData.ville || undefined,
-      codePostal: userData.code_postal || undefined,
-      iban: userData.iban || undefined,
-      bic: userData.bic || undefined,
-      nomBanque: userData.nom_banque || undefined,
+    const userProfile: User = {
+      id: user.id,
+      nom: user.nom,
+      prenom: user.prenom,
+      email: user.email,
+      telephone: user.telephone,
+      role: user.role,
+      dateCreation: new Date(user.date_creation),
+      adresse: user.adresse || undefined,
+      ville: user.ville || undefined,
+      codePostal: user.code_postal || undefined,
+      iban: user.iban || undefined,
+      bic: user.bic || undefined,
+      nomBanque: user.nom_banque || undefined,
     };
 
-    return { token, user };
+    return { token, user: userProfile };
   } catch (error) {
     console.error("Erreur inattendue lors de la connexion:", error);
     throw error;
@@ -102,20 +90,8 @@ export const customRegister = async (
       throw new Error("Registration failed - no data returned");
     }
 
-    const userId = data as string;
-    console.log("ID utilisateur reçu:", userId);
-
-    // Retrieve the created user information
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
-
-    if (userError) {
-      console.error("Erreur lors de la récupération des données utilisateur:", userError);
-      throw userError;
-    }
+    const userData = data as any;
+    console.log("Données utilisateur reçues:", userData.id);
 
     if (!userData) {
       console.log("Utilisateur créé mais impossible de récupérer ses informations");

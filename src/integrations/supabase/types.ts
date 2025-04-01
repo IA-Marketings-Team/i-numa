@@ -403,6 +403,7 @@ export type Database = {
           email: string
           iban: string | null
           id: string
+          mot_de_passe: string | null
           nom: string
           nom_banque: string | null
           prenom: string
@@ -420,6 +421,7 @@ export type Database = {
           email: string
           iban?: string | null
           id?: string
+          mot_de_passe?: string | null
           nom: string
           nom_banque?: string | null
           prenom: string
@@ -437,6 +439,7 @@ export type Database = {
           email?: string
           iban?: string | null
           id?: string
+          mot_de_passe?: string | null
           nom?: string
           nom_banque?: string | null
           prenom?: string
@@ -492,6 +495,17 @@ export type Database = {
       }
     }
     Functions: {
+      auth_user: {
+        Args: {
+          user_email: string
+          user_password: string
+        }
+        Returns: {
+          id: string
+          email: string
+          role: string
+        }[]
+      }
       generate_jwt: {
         Args: {
           user_id: string
