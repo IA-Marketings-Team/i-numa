@@ -25,7 +25,7 @@ const LoginForm = () => {
       // Pour les besoins de démonstration, permettre toute connexion avec les comptes de démo
       if (["jean.dupont@example.com", "thomas.leroy@example.com", "claire.moreau@example.com", 
            "ahmed.tayin@example.com", "marie.andy@example.com"].includes(email)) {
-        // Autoriser n'importe quel mot de passe pour les comptes de démonstration
+        // Connexion spéciale pour les comptes de démonstration
         console.log("Compte de démonstration détecté, tentative de connexion...");
         const success = await login(email, password);
         if (!success) {

@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, UserRole } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { getUserByAuthId } from "@/services/supabase/usersService";
+import { getUserByAuthId, createUser } from "@/services/supabase/usersService";
 import { Session } from "@supabase/supabase-js";
 
 interface AuthContextType {
@@ -25,32 +25,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Configurer le listener pour les changements d'état d'authentification
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
+      async (event, currentSession) => {
         console.log("Auth state changed:", event);
         setSession(currentSession);
         
         // Si l'utilisateur est connecté, récupérer ses informations complètes
         if (currentSession?.user) {
-          setTimeout(async () => {
-            try {
-              // Utilisons auth_id pour chercher l'utilisateur
-              const userData = await getUserByAuthId(currentSession.user.id);
-              if (userData) {
-                setUser(userData);
-                setIsAuthenticated(true);
+          try {
+            // Utilisons auth_id pour chercher l'utilisateur
+            const userData = await getUserByAuthId(currentSession.user.id);
+            
+            if (userData) {
+              setUser(userData);
+              setIsAuthenticated(true);
+            } else {
+              console.log("Utilisateur authentifié mais non trouvé dans la table users - Cas comptes de démo");
+              
+              // Pour les comptes de démonstration, créer un profil si nécessaire
+              if (['jean.dupont@example.com', 'thomas.leroy@example.com', 'claire.moreau@example.com', 
+                  'ahmed.tayin@example.com', 'marie.andy@example.com'].includes(currentSession.user.email || '')) {
+                
+                // Déterminer le rôle en fonction de l'email
+                let role: UserRole = 'client';
+                if (currentSession.user.email === 'thomas.leroy@example.com') role = 'agent_phoner';
+                if (currentSession.user.email === 'claire.moreau@example.com') role = 'agent_visio';
+                if (currentSession.user.email === 'ahmed.tayin@example.com') role = 'superviseur';
+                if (currentSession.user.email === 'marie.andy@example.com') role = 'responsable';
+                
+                // Créer un profil utilisateur pour le compte de démo
+                const names = currentSession.user.email?.split('@')[0].split('.') || [];
+                const firstName = names[0] ? names[0].charAt(0).toUpperCase() + names[0].slice(1) : '';
+                const lastName = names[1] ? names[1].charAt(0).toUpperCase() + names[1].slice(1) : '';
+                
+                try {
+                  const newUser = await createUser({
+                    nom: lastName,
+                    prenom: firstName,
+                    email: currentSession.user.email || '',
+                    telephone: "0123456789", // Valeur par défaut pour les démos
+                    role,
+                    auth_id: currentSession.user.id
+                  });
+                  
+                  if (newUser) {
+                    setUser(newUser);
+                    setIsAuthenticated(true);
+                    console.log("Profil utilisateur de démo créé avec succès");
+                  }
+                } catch (profileError) {
+                  console.error("Erreur lors de la création du profil utilisateur de démo:", profileError);
+                }
               } else {
                 console.error("Utilisateur authentifié mais non trouvé dans la table users");
-                // Gérer le cas où l'authentification est réussie mais l'utilisateur n'existe pas dans la table users
                 toast({
                   title: "Erreur",
                   description: "Votre profil utilisateur est incomplet. Contactez l'administrateur.",
                   variant: "destructive",
                 });
               }
-            } catch (error) {
-              console.error("Erreur lors de la récupération des données utilisateur:", error);
             }
-          }, 0);
+          } catch (error) {
+            console.error("Erreur lors de la récupération des données utilisateur:", error);
+          }
         } else {
           setUser(null);
           setIsAuthenticated(false);
@@ -70,7 +106,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setUser(userData);
               setIsAuthenticated(true);
             } else {
-              console.error("Session trouvée mais utilisateur non trouvé dans la table users");
+              console.log("Session trouvée mais utilisateur non trouvé dans la table users - tentative de création pour démo");
+              
+              // Pour les comptes de démonstration, créer un profil si nécessaire
+              if (['jean.dupont@example.com', 'thomas.leroy@example.com', 'claire.moreau@example.com', 
+                  'ahmed.tayin@example.com', 'marie.andy@example.com'].includes(currentSession.user.email || '')) {
+                
+                // Déterminer le rôle en fonction de l'email
+                let role: UserRole = 'client';
+                if (currentSession.user.email === 'thomas.leroy@example.com') role = 'agent_phoner';
+                if (currentSession.user.email === 'claire.moreau@example.com') role = 'agent_visio';
+                if (currentSession.user.email === 'ahmed.tayin@example.com') role = 'superviseur';
+                if (currentSession.user.email === 'marie.andy@example.com') role = 'responsable';
+                
+                // Créer un profil utilisateur pour le compte de démo
+                const names = currentSession.user.email?.split('@')[0].split('.') || [];
+                const firstName = names[0] ? names[0].charAt(0).toUpperCase() + names[0].slice(1) : '';
+                const lastName = names[1] ? names[1].charAt(0).toUpperCase() + names[1].slice(1) : '';
+                
+                createUser({
+                  nom: lastName,
+                  prenom: firstName,
+                  email: currentSession.user.email || '',
+                  telephone: "0123456789", // Valeur par défaut pour les démos
+                  role,
+                  auth_id: currentSession.user.id
+                })
+                  .then(newUser => {
+                    if (newUser) {
+                      setUser(newUser);
+                      setIsAuthenticated(true);
+                      console.log("Profil utilisateur de démo créé avec succès");
+                    }
+                  })
+                  .catch(profileError => {
+                    console.error("Erreur lors de la création du profil utilisateur de démo:", profileError);
+                  });
+              } else {
+                console.error("Session trouvée mais utilisateur non trouvé dans la table users");
+              }
             }
           })
           .catch(error => {
