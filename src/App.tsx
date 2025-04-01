@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -41,14 +40,12 @@ function App() {
       <TooltipProvider>
         <ThemeProvider>
           <AuthProvider>
-            {/* Déplacer les routes de connexion et inscription à l'intérieur du AuthProvider mais en dehors des autres providers */}
             <BrowserRouter>
               <Routes>
                 <Route path="/connexion" element={<Login />} />
                 <Route path="/inscription" element={<Register />} />
                 <Route path="/" element={<Index />} />
                 
-                {/* Envelopper le reste des routes avec les autres providers */}
                 <Route element={
                   <DossierProvider>
                     <StatistiqueProvider>
