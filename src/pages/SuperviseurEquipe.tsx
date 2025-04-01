@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -92,14 +91,12 @@ const SuperviseurEquipe = () => {
   const [agentToManage, setAgentToManage] = useState<Agent | null>(null);
   const [teamForAgent, setTeamForAgent] = useState<Team | null>(null);
 
-  // Check permissions
   React.useEffect(() => {
     if (!hasPermission(['superviseur', 'responsable'])) {
       navigate("/tableau-de-bord");
     }
   }, [hasPermission, navigate]);
 
-  // Get agent role icon
   const getAgentRoleIcon = (role: string) => {
     switch (role) {
       case "agent_phoner":
@@ -115,7 +112,6 @@ const SuperviseurEquipe = () => {
     }
   };
 
-  // Get agent role label
   const getAgentRoleLabel = (role: string) => {
     switch (role) {
       case "agent_phoner":
@@ -131,14 +127,12 @@ const SuperviseurEquipe = () => {
     }
   };
 
-  // Get agent team name
   const getAgentTeamName = (agent: Agent) => {
     if (!agent.equipeId) return "Non assigné";
     const team = teams.find(t => t.id === agent.equipeId);
     return team ? team.nom : "Non assigné";
   };
 
-  // Prepare chart data for the selected agent
   const getAgentChartData = (agent: Agent) => {
     return [
       { name: "Appels émis", value: agent.statistiques.appelsEmis, fill: "#3B82F6" },
@@ -149,24 +143,41 @@ const SuperviseurEquipe = () => {
     ];
   };
 
-  // Get agent tasks
   const getAgentTasks = (agentId: string) => {
     return tasks.filter(task => task.agentId === agentId);
   };
 
-  // Handle agent click
+  const handleTaskStatusChange = (taskId: string, newStatus: Task["status"]) => {
+    const updatedTasks = tasks.map(task => 
+      task.id === taskId
+        ? { ...task, status: newStatus }
+        : task
+    );
+
+    setTasks(updatedTasks);
+    
+    const changedTask = tasks.find(task => task.id === taskId);
+    if (changedTask) {
+      toast({
+        title: "Statut mis à jour",
+        description: `La tâche "${changedTask.title}" a été déplacée vers ${
+          newStatus === "to_do" ? "À faire" :
+          newStatus === "in_progress" ? "En cours" : "Terminé"
+        }`,
+      });
+    }
+  };
+
   const handleAgentClick = (agent: Agent) => {
     setSelectedAgent(agent);
     setIsStatsOpen(true);
   };
 
-  // Handle team click
   const handleTeamClick = (team: Team) => {
     setSelectedTeam(team);
     setIsTeamDetailsOpen(true);
   };
 
-  // Handle add team
   const handleAddTeam = (data: any) => {
     const newTeam: Team = {
       id: `team${teams.length + 1}`,
@@ -185,7 +196,6 @@ const SuperviseurEquipe = () => {
     });
   };
 
-  // Handle add agent
   const handleAddAgent = (data: any) => {
     const newAgent: Agent = {
       id: `agent${agents.length + 1}`,
@@ -216,7 +226,6 @@ const SuperviseurEquipe = () => {
     });
   };
 
-  // Handle add task
   const handleAddTask = (data: any) => {
     const newTask: Task = {
       id: `task${tasks.length + 1}`,
@@ -238,7 +247,6 @@ const SuperviseurEquipe = () => {
     });
   };
 
-  // Handle edit task
   const handleEditTask = (data: any) => {
     if (!selectedTask) return;
 
@@ -265,13 +273,11 @@ const SuperviseurEquipe = () => {
     });
   };
 
-  // Handle task click
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
     setIsTaskFormOpen(true);
   };
 
-  // Agent card component
   const AgentCard = ({ agent }: { agent: Agent }) => (
     <Card 
       className="cursor-pointer hover:shadow-md transition-shadow" 
@@ -322,7 +328,6 @@ const SuperviseurEquipe = () => {
     </Card>
   );
 
-  // Team card component
   const TeamCard = ({ team }: { team: Team }) => {
     const teamAgents = agents.filter(agent => agent.equipeId === team.id);
     
@@ -449,11 +454,11 @@ const SuperviseurEquipe = () => {
           <KanbanBoard 
             tasks={tasks}
             onTaskClick={handleTaskClick}
+            onTaskStatusChange={handleTaskStatusChange}
           />
         </TabsContent>
       </Tabs>
 
-      {/* Dialog for agent statistics */}
       <Dialog open={isStatsOpen} onOpenChange={setIsStatsOpen}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
@@ -485,7 +490,7 @@ const SuperviseurEquipe = () => {
                     <CardContent className="space-y-4">
                       <div className="flex items-center space-x-4">
                         <Avatar className="h-16 w-16 border">
-                          <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                          <AvatarFallback className="bg-primary/10 text-primary text-xl">
                             {selectedAgent.prenom.charAt(0)}{selectedAgent.nom.charAt(0)}
                           </AvatarFallback>
                         </Avatar>
@@ -590,6 +595,7 @@ const SuperviseurEquipe = () => {
                   <KanbanBoard 
                     tasks={getAgentTasks(selectedAgent.id)}
                     onTaskClick={handleTaskClick}
+                    onTaskStatusChange={handleTaskStatusChange}
                   />
                 </div>
               </TabsContent>
@@ -598,7 +604,6 @@ const SuperviseurEquipe = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog for team details */}
       <Dialog open={isTeamDetailsOpen} onOpenChange={setIsTeamDetailsOpen}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
@@ -806,6 +811,7 @@ const SuperviseurEquipe = () => {
                       return agent && agent.equipeId === selectedTeam.id;
                     })}
                     onTaskClick={handleTaskClick}
+                    onTaskStatusChange={handleTaskStatusChange}
                   />
                 </div>
               </TabsContent>
@@ -814,7 +820,6 @@ const SuperviseurEquipe = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog for add team */}
       <Dialog open={isAddTeamOpen} onOpenChange={setIsAddTeamOpen}>
         <DialogContent>
           <DialogHeader>
@@ -827,7 +832,6 @@ const SuperviseurEquipe = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog for add agent */}
       <Dialog open={isAddAgentOpen} onOpenChange={setIsAddAgentOpen}>
         <DialogContent>
           <DialogHeader>
@@ -841,7 +845,6 @@ const SuperviseurEquipe = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog for task form */}
       <TaskFormDialog
         open={isTaskFormOpen}
         onOpenChange={setIsTaskFormOpen}
