@@ -9,6 +9,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { X } from "lucide-react";
 import { isDemoAccount } from "@/contexts/auth/demoUserHandling";
+import { Progress } from "@/components/ui/progress"; 
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -53,9 +54,10 @@ const LoginForm = () => {
       
       if (success) {
         console.log("Login réussi, redirection vers le tableau de bord...");
-        // La redirection sera gérée par les redirections configurées dans les pages
         navigate("/tableau-de-bord");
       } else {
+        // Si login échoue, isLoading doit être remis à false
+        setIsLoading(false);
         // Si c'est un compte de démo mais que la connexion a échoué, donner un message spécifique
         if (isDemo) {
           setError("La connexion au compte de démonstration a échoué. Veuillez réessayer.");
@@ -66,7 +68,6 @@ const LoginForm = () => {
     } catch (error) {
       console.error("Erreur de connexion:", error);
       setError("Une erreur s'est produite lors de la connexion.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -120,6 +121,7 @@ const LoginForm = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="exemple@domain.com"
+              disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
@@ -139,6 +141,7 @@ const LoginForm = () => {
               onChange={(e) => setPassword(e.target.value)}
               required={!isDemoAccount(email)} // Le mot de passe est facultatif pour les comptes de démo
               placeholder="********"
+              disabled={isLoading}
             />
             {isDemoAccount(email) && (
               <p className="text-xs text-muted-foreground mt-1">
@@ -153,7 +156,12 @@ const LoginForm = () => {
             className="w-full" 
             disabled={isLoading}
           >
-            {isLoading ? "Connexion en cours..." : "Se connecter"}
+            {isLoading ? (
+              <div className="flex items-center space-x-2">
+                <span>Connexion en cours...</span>
+                <Progress value={70} className="w-20 h-2" />
+              </div>
+            ) : "Se connecter"}
           </Button>
           
           <div className="text-sm text-center">
@@ -175,6 +183,7 @@ const LoginForm = () => {
                 type="button"
                 onClick={() => selectDemoAccount(account.email)}
                 className="text-xs text-left hover:bg-muted-foreground/10 p-1 rounded flex justify-between"
+                disabled={isLoading}
               >
                 <span>{account.email}</span>
                 <span className="text-muted-foreground">{account.role}</span>

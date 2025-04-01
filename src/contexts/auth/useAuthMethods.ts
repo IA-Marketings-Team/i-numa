@@ -2,7 +2,7 @@ import { useToast } from "@/hooks/use-toast";
 import { User, UserRole } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { getUserByAuthId, createUser } from "@/services/supabase/usersService";
-import { isDemoAccount, getDemoUserRole } from "./demoUserHandling";
+import { isDemoAccount, createDemoUserProfile } from "./demoUserHandling";
 
 export const useAuthMethods = (
   user: User | null,
@@ -46,10 +46,18 @@ export const useAuthMethods = (
           
           try {
             // Récupérer l'utilisateur depuis la base de données
-            const userData = await getUserByAuthId(data.user.id);
+            let userData = await getUserByAuthId(data.user.id);
+            
+            // Si l'utilisateur démo n'existe pas encore dans la base de données, le créer
+            if (!userData) {
+              console.log("Profil utilisateur de démo non trouvé, création en cours");
+              userData = await createDemoUserProfile(data.user.id, cleanedEmail);
+            }
             
             if (userData) {
-              console.log("Profil utilisateur de démo trouvé:", userData);
+              console.log("Profil utilisateur de démo configuré:", userData);
+              
+              // Mettre à jour l'état de l'application
               setUser(userData);
               setIsAuthenticated(true);
               setSession(data.session);
@@ -61,60 +69,13 @@ export const useAuthMethods = (
               
               return true;
             } else {
-              console.log("Profil utilisateur de démo non trouvé dans la base, tentative de recherche par email");
-              
-              // Recherche alternative par email
-              const { data: userByEmail, error: userEmailError } = await supabase
-                .from('users')
-                .select('*')
-                .eq('email', cleanedEmail)
-                .single();
-              
-              if (userEmailError || !userByEmail) {
-                console.error("Utilisateur démo non trouvé par email:", userEmailError);
-                toast({
-                  title: "Échec de connexion",
-                  description: "Profil utilisateur introuvable. Veuillez contacter le support.",
-                  variant: "destructive",
-                });
-                return false;
-              }
-              
-              // Mettre à jour l'auth_id dans la table users
-              const { error: updateError } = await supabase
-                .from('users')
-                .update({ auth_id: data.user.id })
-                .eq('id', userByEmail.id);
-              
-              if (updateError) {
-                console.error("Erreur lors de la mise à jour de l'auth_id:", updateError);
-              }
-              
-              // Convertir les données utilisateur en objet User
-              const demoUser: User = {
-                id: userByEmail.id,
-                nom: userByEmail.nom,
-                prenom: userByEmail.prenom,
-                email: userByEmail.email,
-                telephone: userByEmail.telephone,
-                role: userByEmail.role as UserRole,
-                dateCreation: new Date(userByEmail.date_creation),
-                adresse: userByEmail.adresse || undefined,
-                ville: userByEmail.ville || undefined,
-                codePostal: userByEmail.code_postal || undefined,
-              };
-              
-              // Mettre à jour l'état de l'utilisateur
-              setUser(demoUser);
-              setIsAuthenticated(true);
-              setSession(data.session);
-              
+              console.error("Échec de création/récupération du profil utilisateur de démo");
               toast({
-                title: "Connexion réussie",
-                description: `Bienvenue, ${demoUser.prenom} ${demoUser.nom} (${demoUser.role})`,
+                title: "Échec de connexion",
+                description: "Erreur lors de la configuration du compte de démonstration",
+                variant: "destructive",
               });
-              
-              return true;
+              return false;
             }
           } catch (profileError) {
             console.error("Erreur lors de la récupération du profil démo:", profileError);
@@ -162,6 +123,18 @@ export const useAuthMethods = (
             });
             
             return true;
+          } else {
+            // Si l'utilisateur n'existe pas dans notre table users
+            console.error("Authentification réussie mais profil utilisateur non trouvé");
+            toast({
+              title: "Erreur",
+              description: "Profil utilisateur non trouvé. Veuillez contacter le support.",
+              variant: "destructive",
+            });
+            
+            // Déconnecter l'utilisateur car son profil n'existe pas
+            await supabase.auth.signOut();
+            return false;
           }
         }
         
