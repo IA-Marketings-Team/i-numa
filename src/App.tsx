@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/layout/Layout";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import DossierListPage from "./pages/DossierList";
 import DossierPage from "./pages/DossierPage";
@@ -30,6 +31,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import SuperviseurEquipes from "./pages/SuperviseurEquipes";
 import SuperviseurEquipe from "./pages/SuperviseurEquipe";
 import MigrationPage from "./pages/MigrationPage";
+import Index from "./pages/Index";
 
 const queryClient = new QueryClient();
 
@@ -47,10 +49,10 @@ function App() {
                   <BrowserRouter>
                     <Routes>
                       <Route path="/connexion" element={<Login />} />
+                      <Route path="/inscription" element={<Register />} />
+                      <Route path="/" element={<Index />} />
                       
                       <Route element={<Layout />}>
-                        <Route path="/" element={<Navigate to="/tableau-de-bord" replace />} />
-                        
                         <Route 
                           path="/tableau-de-bord" 
                           element={

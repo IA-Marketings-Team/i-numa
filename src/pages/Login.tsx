@@ -2,7 +2,7 @@
 import LoginForm from "@/components/auth/LoginForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const Login = () => {
   const { isAuthenticated } = useAuth();
@@ -24,9 +24,14 @@ const Login = () => {
           </p>
         </div>
         <LoginForm />
+        <div className="mt-6 text-center">
+          <Link to="/inscription" className="text-primary hover:underline">
+            Vous n'avez pas de compte ? Inscrivez-vous ici
+          </Link>
+        </div>
         <div className="mt-6 text-center text-sm">
           <p className="text-gray-600">
-            Pour les besoins de démonstration, utilisez n'importe quel email de la liste suivante:
+            Pour les besoins de démonstration, vous pouvez toujours utiliser un des comptes suivants:
           </p>
           <ul className="mt-2 space-y-1 font-mono text-xs bg-gray-50 p-3 rounded border">
             <li>jean.dupont@example.com (client)</li>
@@ -35,7 +40,7 @@ const Login = () => {
             <li>ahmed.tayin@example.com (superviseur)</li>
             <li>marie.andy@example.com (responsable)</li>
           </ul>
-          <p className="mt-2 text-gray-600">Le mot de passe peut être n'importe quoi.</p>
+          <p className="mt-2 text-gray-600">Le mot de passe peut être n'importe quoi pour ces comptes de démonstration.</p>
         </div>
       </div>
     </div>
