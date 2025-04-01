@@ -39,30 +39,30 @@ const OfferCard: React.FC<OfferCardProps> = ({
   };
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader>
-        <CardTitle className="text-xl">{title}</CardTitle>
+    <Card className="h-full flex flex-col border border-gray-200 shadow-sm hover:shadow transition-shadow duration-200">
+      <CardHeader className="pb-2 space-y-0">
+        <CardTitle className="text-lg">{title}</CardTitle>
         <CardDescription className="text-lg font-semibold text-primary">
           {price}
         </CardDescription>
         {setupFee && (
-          <CardDescription className="text-sm">
+          <CardDescription className="text-xs">
             {setupFee}
           </CardDescription>
         )}
       </CardHeader>
-      <CardContent className="flex-grow">
+      <CardContent className="flex-grow pt-2 pb-2">
         <Accordion type="single" collapsible className="w-full">
           {features.map((feature, index) => (
-            <AccordionItem key={index} value={`item-${index}`}>
-              <AccordionTrigger className="text-sm font-medium">
+            <AccordionItem key={index} value={`item-${index}`} className="border-b-0">
+              <AccordionTrigger className="text-xs font-medium py-1.5">
                 {feature.title}
               </AccordionTrigger>
-              <AccordionContent>
-                <ul className="space-y-1 mt-2 text-sm">
+              <AccordionContent className="pt-0">
+                <ul className="space-y-1 mt-1 text-xs">
                   {feature.items.map((item, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <li key={idx} className="flex items-start gap-1.5">
+                      <CheckCircle2 className="h-3 w-3 text-green-500 mt-0.5 flex-shrink-0" />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -72,14 +72,15 @@ const OfferCard: React.FC<OfferCardProps> = ({
           ))}
         </Accordion>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="pt-0">
         {isClient && (
           <Button 
-            className="w-full" 
+            className="w-full text-sm py-1.5" 
             onClick={handleAddToCart}
             variant="default"
+            size="sm"
           >
-            <ShoppingCart className="w-4 h-4 mr-2" />
+            <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
             Ajouter au panier
           </Button>
         )}

@@ -44,17 +44,22 @@ const OfferCategoryCard: React.FC<OfferCategoryCardProps> = ({ category }) => {
               </TabsTrigger>
             ))}
           </TabsList>
-          {category.offerings.map((offering) => (
-            <TabsContent key={offering.title} value={offering.title}>
-              <OfferCard
-                category={category.label}
-                title={offering.title}
-                price={offering.price}
-                setupFee={offering.setupFee}
-                features={offering.features}
-              />
-            </TabsContent>
-          ))}
+          <TabsContent key={activeTab} value={activeTab}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {category.offerings
+                .filter(offering => offering.title === activeTab)
+                .map((offering) => (
+                  <OfferCard
+                    key={offering.title}
+                    category={category.label}
+                    title={offering.title}
+                    price={offering.price}
+                    setupFee={offering.setupFee}
+                    features={offering.features}
+                  />
+              ))}
+            </div>
+          </TabsContent>
         </Tabs>
       </CardContent>
     </Card>
