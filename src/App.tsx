@@ -18,6 +18,7 @@ import Statistics from "./pages/Statistics";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import ContractAcceptance from "./pages/ContractAcceptance";
+import AllNotificationsPage from "./pages/AllNotifications";
 import { AuthProvider } from "./contexts/AuthContext";
 import { DossierProvider } from "./contexts/DossierContext";
 import { StatistiqueProvider } from "./contexts/StatistiqueContext";
@@ -151,6 +152,15 @@ const App = () => {
                           element={
                             <ProtectedRoute>
                               <Settings />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
+                          path="/notifications" 
+                          element={
+                            <ProtectedRoute>
+                              <AllNotificationsPage />
                             </ProtectedRoute>
                           } 
                         />

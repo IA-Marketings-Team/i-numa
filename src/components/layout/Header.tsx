@@ -1,4 +1,3 @@
-
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -20,7 +19,6 @@ const Header = () => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [helpDialogOpen, setHelpDialogOpen] = useState(false);
   
-  // Log component initialization
   useEffect(() => {
     console.log("[Header] Component initialized:", { 
       currentPath: location.pathname,
@@ -28,7 +26,6 @@ const Header = () => {
     });
   }, [location.pathname, user]);
 
-  // Obtenir le titre de la page en fonction de l'URL
   const getPageTitle = () => {
     const path = location.pathname;
     if (path.includes('/tableau-de-bord')) return 'Tableau de bord';
@@ -40,7 +37,6 @@ const Header = () => {
     return '';
   };
 
-  // Déterminer si on doit afficher un bouton de retour
   const shouldShowBackButton = () => {
     return location.pathname !== '/tableau-de-bord' && 
            location.pathname !== '/dossiers' && 
@@ -50,16 +46,13 @@ const Header = () => {
            location.pathname !== '/parametres';
   };
 
-  // Générer le fil d'Ariane (breadcrumb)
   const getBreadcrumbs = () => {
     const pathSegments = location.pathname.split('/').filter(segment => segment);
     
-    // Ne pas afficher de breadcrumb pour la page d'accueil
     if (pathSegments.length === 1 && pathSegments[0] === 'tableau-de-bord') {
       return null;
     }
     
-    // Traduire les segments de chemin en noms lisibles
     const segmentLabels: Record<string, string> = {
       'tableau-de-bord': 'Tableau de bord',
       'dossiers': 'Dossiers',
@@ -78,14 +71,11 @@ const Header = () => {
         </Link>
         
         {pathSegments.map((segment, index) => {
-          // Construire le chemin jusqu'à ce segment
           const path = `/${pathSegments.slice(0, index + 1).join('/')}`;
           const isLast = index === pathSegments.length - 1;
           
-          // Vérifier si le segment est un ID (non présent dans notre mapping)
           const isId = !segmentLabels[segment] && segment !== 'tableau-de-bord';
           
-          // Si c'est le dernier segment ou un ID, ne pas en faire un lien
           return (
             <span key={path}>
               <span className="mx-2">/</span>
