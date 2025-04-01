@@ -26,7 +26,10 @@ const Login = () => {
         <LoginForm />
         <div className="mt-6 text-center text-sm">
           <p className="text-gray-600">
-            Pour les besoins de démonstration, utilisez n'importe quel email de la liste suivante:
+            Pour vous inscrire, veuillez utiliser l'onglet <span className="font-semibold">Inscription</span>.
+          </p>
+          <p className="mt-2 text-gray-600">
+            Vous pouvez également utiliser ces comptes de démonstration:
           </p>
           <ul className="mt-2 space-y-1 font-mono text-xs bg-gray-50 p-3 rounded border">
             <li>jean.dupont@example.com (client)</li>
@@ -35,7 +38,7 @@ const Login = () => {
             <li>ahmed.tayin@example.com (superviseur)</li>
             <li>marie.andy@example.com (responsable)</li>
           </ul>
-          <p className="mt-2 text-gray-600">Le mot de passe peut être n'importe quoi.</p>
+          <p className="mt-2 text-gray-600">Le mot de passe peut être n'importe quoi pour ces comptes de démonstration.</p>
         </div>
       </div>
     </div>
