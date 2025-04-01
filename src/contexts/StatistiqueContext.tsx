@@ -1,12 +1,20 @@
 
 import React, { createContext, useContext, useState } from "react";
 import { Statistique, Agent, UserRole } from "@/types";
-import { statistiques as mockStatistiques, agents as mockAgents } from "@/data/mockData";
+import { 
+  statistiques as mockStatistiques, 
+  statistiquesJournalieres,
+  statistiquesHebdomadaires,
+  statistiquesMensuelles,
+  agents as mockAgents 
+} from "@/data/mock/statistiques";
+import { agents as mockAgents } from "@/data/mock/agents";
 import { useAuth } from "./AuthContext";
 
 interface StatistiqueContextType {
   statistiques: Statistique[];
   getStatistiquesForPeriod: (debut: Date, fin: Date) => Statistique[];
+  getStatistiquesByPeriodeType: (periode: "jour" | "semaine" | "mois") => Statistique[];
   getAgentStatistics: (agentId: string) => Agent | undefined;
   resetAgentStatistics: (agentId: string) => void;
   getAuthorizedStatistics: (userRole: UserRole) => Partial<Statistique>[];
@@ -21,8 +29,21 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const getStatistiquesForPeriod = (debut: Date, fin: Date): Statistique[] => {
     return statistiques.filter(stat => 
-      stat.dateDebut >= debut && stat.dateFin <= fin
+      new Date(stat.dateDebut) >= debut && new Date(stat.dateFin) <= fin
     );
+  };
+
+  const getStatistiquesByPeriodeType = (periode: "jour" | "semaine" | "mois"): Statistique[] => {
+    switch (periode) {
+      case "jour":
+        return statistiquesJournalieres;
+      case "semaine":
+        return statistiquesHebdomadaires;
+      case "mois":
+        return statistiquesMensuelles;
+      default:
+        return [];
+    }
   };
 
   const getAgentStatistics = (agentId: string): Agent | undefined => {
@@ -67,7 +88,7 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const threeMonthsAgo = new Date();
       threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
       
-      return authorizedStats.filter(stat => stat.dateDebut >= threeMonthsAgo);
+      return authorizedStats.filter(stat => new Date(stat.dateDebut) >= threeMonthsAgo);
     }
     
     return authorizedStats;
@@ -77,6 +98,7 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
     <StatistiqueContext.Provider value={{
       statistiques,
       getStatistiquesForPeriod,
+      getStatistiquesByPeriodeType,
       getAgentStatistics,
       resetAgentStatistics,
       getAuthorizedStatistics

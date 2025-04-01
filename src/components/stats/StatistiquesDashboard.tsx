@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStatistique } from "@/contexts/StatistiqueContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { Statistique } from "@/types";
 import {
   BarChart,
   Bar,
@@ -19,29 +20,29 @@ import {
   LineChart,
   Line
 } from "recharts";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 const StatistiquesDashboard = () => {
   const { user } = useAuth();
-  const { getAuthorizedStatistics, getAgentStatistics } = useStatistique();
+  const { getStatistiquesByPeriodeType, getAgentStatistics } = useStatistique();
   const [period, setPeriod] = useState<"jour" | "semaine" | "mois">("mois");
   const [agentStats, setAgentStats] = useState<any | null>(null);
-  const [statData, setStatData] = useState<any[]>([]);
+  const [statData, setStatData] = useState<Statistique[]>([]);
   
   useEffect(() => {
-    if (user) {
-      // Charger les statistiques selon le rôle
-      const stats = getAuthorizedStatistics(user.role);
-      setStatData(stats);
-      
-      // Si c'est un agent, charger ses statistiques personnelles
-      if (user.role === 'agent_phoner' || user.role === 'agent_visio') {
-        const agentData = getAgentStatistics(user.id);
-        if (agentData) {
-          setAgentStats(agentData.statistiques);
-        }
+    // Charger les statistiques selon la période
+    const stats = getStatistiquesByPeriodeType(period);
+    setStatData(stats);
+    
+    // Si c'est un agent, charger ses statistiques personnelles
+    if (user && (user.role === 'agent_phoner' || user.role === 'agent_visio')) {
+      const agentData = getAgentStatistics(user.id);
+      if (agentData) {
+        setAgentStats(agentData.statistiques);
       }
     }
-  }, [user, getAuthorizedStatistics, getAgentStatistics]);
+  }, [user, period, getStatistiquesByPeriodeType, getAgentStatistics]);
 
   // Couleurs pour les graphiques
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
@@ -55,29 +56,67 @@ const StatistiquesDashboard = () => {
     { name: 'Archivés', value: 5, color: '#8884d8' }
   ];
 
+  // Formater les dates selon la période
+  const formatPeriodDate = (date: Date): string => {
+    switch (period) {
+      case "jour":
+        return format(new Date(date), "dd/MM", { locale: fr });
+      case "semaine":
+        return `${format(new Date(date), "dd/MM", { locale: fr })}`;
+      case "mois":
+        return format(new Date(date), "MMM yyyy", { locale: fr });
+      default:
+        return "";
+    }
+  };
+
+  // Transformer les statistiques en données pour les graphiques
+  const prepareChartData = (key1: string, key2: string, key3: string) => {
+    return statData.map(stat => {
+      const periodName = formatPeriodDate(stat.dateDebut);
+      return {
+        nom: periodName,
+        [key1]: stat[key1 as keyof Statistique] as number,
+        [key2]: stat[key2 as keyof Statistique] as number,
+        [key3]: stat[key3 as keyof Statistique] as number
+      };
+    });
+  };
+
   // Données pour les appels
-  const callsData = [
-    { nom: 'Appels émis', Janvier: 120, Février: 150, Mars: 180 },
-    { nom: 'Appels décrochés', Janvier: 80, Février: 100, Mars: 130 },
-    { nom: 'Appels transformés', Janvier: 25, Février: 35, Mars: 45 }
-  ];
+  const callsData = prepareChartData('appelsEmis', 'appelsDecroches', 'appelsTransformes');
 
   // Données pour les rendez-vous
-  const rdvData = [
-    { nom: 'RDV honorés', Janvier: 18, Février: 25, Mars: 30 },
-    { nom: 'RDV non honorés', Janvier: 7, Février: 10, Mars: 15 }
-  ];
+  const rdvData = prepareChartData('rendezVousHonores', 'rendezVousNonHonores', 'dossiersValides');
 
-  // Données pour le burndown chart
-  const burndownData = [
-    { jour: '1', Estimé: 100, Réel: 95 },
-    { jour: '5', Estimé: 85, Réel: 90 },
-    { jour: '10', Estimé: 70, Réel: 80 },
-    { jour: '15', Estimé: 55, Réel: 65 },
-    { jour: '20', Estimé: 40, Réel: 45 },
-    { jour: '25', Estimé: 25, Réel: 30 },
-    { jour: '30', Estimé: 10, Réel: 15 }
-  ];
+  // Données pour le burndown chart (similaire à Statistics.tsx)
+  const generateBurndownData = () => {
+    const data = [];
+    const periodTarget = period === "jour" ? 30 : period === "semaine" ? 100 : 300;
+    const progressStep = periodTarget / (period === "jour" ? 24 : period === "semaine" ? 7 : 30);
+    
+    for (let i = 0; i <= (period === "jour" ? 24 : period === "semaine" ? 7 : 30); i++) {
+      data.push({
+        jour: i.toString(),
+        Estimé: Math.round(periodTarget - (progressStep * i)),
+        Réel: Math.round(periodTarget - (progressStep * i * 0.95) + (Math.random() * 5 - 2.5)) // Léger écart aléatoire
+      });
+    }
+    return data;
+  };
+
+  const burndownData = generateBurndownData();
+
+  // Calculer des statistiques globales
+  const latestStats = statData.length > 0 ? statData[statData.length - 1] : null;
+  
+  const tauxConversion = latestStats && latestStats.appelsEmis > 0 
+    ? Math.round((latestStats.appelsTransformes / latestStats.appelsEmis) * 100) 
+    : 0;
+    
+  const tauxSignature = latestStats && (latestStats.rendezVousHonores + latestStats.rendezVousNonHonores) > 0 
+    ? Math.round((latestStats.dossiersSigne / (latestStats.rendezVousHonores + latestStats.rendezVousNonHonores)) * 100) 
+    : 0;
 
   return (
     <div className="space-y-6">
@@ -96,7 +135,7 @@ const StatistiquesDashboard = () => {
                 <CardDescription>Total des dossiers en cours</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-4xl font-bold">75</div>
+                <div className="text-4xl font-bold">{latestStats?.dossiersValides || 0}</div>
               </CardContent>
             </Card>
             
@@ -106,7 +145,7 @@ const StatistiquesDashboard = () => {
                 <CardDescription>Appels transformés en RDV</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-4xl font-bold">28%</div>
+                <div className="text-4xl font-bold">{tauxConversion}%</div>
               </CardContent>
             </Card>
             
@@ -116,7 +155,7 @@ const StatistiquesDashboard = () => {
                 <CardDescription>RDV transformés en contrats</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-4xl font-bold">65%</div>
+                <div className="text-4xl font-bold">{tauxSignature}%</div>
               </CardContent>
             </Card>
           </div>
@@ -224,55 +263,82 @@ const StatistiquesDashboard = () => {
         </TabsContent>
         
         <TabsContent value="appels">
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg">Statistiques d'appels</CardTitle>
-              <CardDescription>Évolution sur 3 mois</CardDescription>
-            </CardHeader>
-            <CardContent className="h-96">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={callsData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="nom" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="Janvier" fill="#8884d8" />
-                  <Bar dataKey="Février" fill="#82ca9d" />
-                  <Bar dataKey="Mars" fill="#ffc658" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          <div className="space-y-4">
+            <div className="flex justify-end">
+              <Tabs value={period} onValueChange={(value) => setPeriod(value as "jour" | "semaine" | "mois")}>
+                <TabsList>
+                  <TabsTrigger value="jour">Jour</TabsTrigger>
+                  <TabsTrigger value="semaine">Semaine</TabsTrigger>
+                  <TabsTrigger value="mois">Mois</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+            
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg">Statistiques d'appels</CardTitle>
+                <CardDescription>
+                  Évolution 
+                  {period === "jour" ? " journalière" : period === "semaine" ? " hebdomadaire" : " mensuelle"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-96">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={callsData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="nom" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="appelsEmis" name="Appels émis" fill="#8884d8" />
+                    <Bar dataKey="appelsDecroches" name="Appels décrochés" fill="#82ca9d" />
+                    <Bar dataKey="appelsTransformes" name="Appels transformés" fill="#ffc658" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
         
         <TabsContent value="rdv">
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg">Rendez-vous clients</CardTitle>
-              <CardDescription>Honorés vs non honorés</CardDescription>
-            </CardHeader>
-            <CardContent className="h-96">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={rdvData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="nom" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="Janvier" fill="#8884d8" />
-                  <Bar dataKey="Février" fill="#82ca9d" />
-                  <Bar dataKey="Mars" fill="#ffc658" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          <div className="space-y-4">
+            <div className="flex justify-end">
+              <Tabs value={period} onValueChange={(value) => setPeriod(value as "jour" | "semaine" | "mois")}>
+                <TabsList>
+                  <TabsTrigger value="jour">Jour</TabsTrigger>
+                  <TabsTrigger value="semaine">Semaine</TabsTrigger>
+                  <TabsTrigger value="mois">Mois</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+            
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg">Rendez-vous clients</CardTitle>
+                <CardDescription>Honorés vs non honorés</CardDescription>
+              </CardHeader>
+              <CardContent className="h-96">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={rdvData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="nom" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="rendezVousHonores" name="RDV honorés" fill="#82ca9d" />
+                    <Bar dataKey="rendezVousNonHonores" name="RDV non honorés" fill="#ff8042" />
+                    <Bar dataKey="dossiersValides" name="Dossiers validés" fill="#8884d8" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
