@@ -39,7 +39,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .single();
 
             if (userData) {
-              setUser(userData as User);
+              // Map database fields to User type
+              const mappedUser: User = {
+                id: userData.id,
+                email: userData.email,
+                nom: userData.nom,
+                prenom: userData.prenom,
+                telephone: userData.telephone,
+                role: userData.role,
+                dateCreation: userData.date_creation,
+                derniereConnexion: userData.derniere_connexion,
+                authId: userData.auth_id,
+                adresse: userData.adresse || "",
+                ville: userData.ville || "",
+                codePostal: userData.code_postal || "",
+                iban: userData.iban || "",
+                bic: userData.bic || "",
+                nomBanque: userData.nom_banque || "",
+              };
+              setUser(mappedUser);
               setIsAuthenticated(true);
             } else {
               console.error("User not found in users table:", error);
@@ -71,7 +89,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .single();
 
             if (userData) {
-              setUser(userData as User);
+              // Map database fields to User type
+              const mappedUser: User = {
+                id: userData.id,
+                email: userData.email,
+                nom: userData.nom,
+                prenom: userData.prenom,
+                telephone: userData.telephone,
+                role: userData.role,
+                dateCreation: userData.date_creation,
+                derniereConnexion: userData.derniere_connexion,
+                authId: userData.auth_id,
+                adresse: userData.adresse || "",
+                ville: userData.ville || "",
+                codePostal: userData.code_postal || "",
+                iban: userData.iban || "",
+                bic: userData.bic || "",
+                nomBanque: userData.nom_banque || "",
+              };
+              setUser(mappedUser);
               setIsAuthenticated(true);
             } else {
               console.error("User not found in users table:", error);
