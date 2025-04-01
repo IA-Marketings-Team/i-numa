@@ -18,20 +18,21 @@ const DossierEdit = () => {
   const isCreating = id === "nouveau";
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Log component initialization
+  // Log component initialization with more details
   useEffect(() => {
     console.log("[DossierEdit] Component initialized:", { 
       id, 
       isCreating, 
       userRole: user?.role,
-      hasPermissions: hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable'])
+      hasPermissions: hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable']),
+      currentRoute: window.location.pathname
     });
   }, [id, isCreating, user, hasPermission]);
 
   useEffect(() => {
     // Si nous sommes en mode création, initialiser un dossier vide
     if (isCreating) {
-      console.log("[DossierEdit] Creating new dossier mode");
+      console.log("[DossierEdit] Creating new dossier mode - setting currentDossier to null");
       setCurrentDossier(null);
     } else if (id) {
       // Sinon charger le dossier existant
@@ -52,6 +53,7 @@ const DossierEdit = () => {
     }
     
     return () => {
+      console.log("[DossierEdit] Cleanup - setting currentDossier to null");
       setCurrentDossier(null);
     };
   }, [id, isCreating, getDossierById, setCurrentDossier, navigate, toast]);

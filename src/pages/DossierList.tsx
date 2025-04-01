@@ -43,7 +43,12 @@ const DossierListPage = () => {
 
   const handleNewDossierClick = () => {
     console.log("[DossierListPage] New dossier button clicked, navigating to /dossiers/nouveau");
-    navigate("/dossiers/nouveau");
+    // Ajouter une pause pour debug
+    setTimeout(() => {
+      console.log("[DossierListPage] Executing navigation to /dossiers/nouveau");
+      navigate("/dossiers/nouveau");
+      console.log("[DossierListPage] Navigation executed");
+    }, 100);
   };
 
   return (
@@ -57,6 +62,7 @@ const DossierListPage = () => {
               onClick={handleNewDossierClick}
               size="sm"
               className="flex items-center gap-2"
+              data-testid="nouveau-dossier-btn"
             >
               <Plus className="w-4 h-4" />
               Nouveau dossier

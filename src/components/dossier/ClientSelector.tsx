@@ -18,13 +18,14 @@ const ClientSelector: React.FC<ClientSelectorProps> = ({
   error
 }) => {
   
-  // Log component rendering
+  // Log component rendering with more details
   useEffect(() => {
     console.log("[ClientSelector] Component mounted:", { 
       hasSelectedClient: !!selectedClient,
       clientId: selectedClient,
       disabled,
-      hasError: !!error
+      hasError: !!error,
+      availableClients: clients.length
     });
   }, [selectedClient, disabled, error]);
 

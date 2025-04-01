@@ -83,6 +83,15 @@ const App = () => {
                         />
                         
                         <Route 
+                          path="/dossiers/nouveau" 
+                          element={
+                            <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
+                              <DossierEdit />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
                           path="/dossiers/:dossierId/rendez-vous/:id" 
                           element={
                             <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
