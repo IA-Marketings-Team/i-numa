@@ -1,115 +1,139 @@
 
-import { useState } from "react";
-import { offerCategories } from "@/data/offerData";
-import OfferCategoryCard from "@/components/offers/OfferCategoryCard";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Mail } from "lucide-react";
-import CartDrawer from "@/components/cart/CartDrawer";
-import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import EmailOfferDialog from "@/components/offers/EmailOfferDialog";
+import React from "react";
+import { 
+  Calendar, 
+  MessageCircle, 
+  Award, 
+  Globe, 
+  ThumbsUp, 
+  Check, 
+  Gift, 
+  Database, 
+  BarChart2, 
+  Gauge, 
+  TrendingDown,
+  AtSign,
+  Truck,
+  Facebook
+} from "lucide-react";
+import FeatureButton from "@/components/offers/FeatureButton";
+import PricingCard from "@/components/offers/PricingCard";
 
 const OfferList = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
-  const { user } = useAuth();
-  const isClient = user?.role === 'client';
-  const isPhoner = user?.role === 'agent_phoner';
-  const isResponsable = user?.role === 'responsable';
-
-  // Filtrer les catégories par terme de recherche et filtre de catégorie
-  const filteredCategories = offerCategories.filter((category) => {
-    // Filtre par catégorie
-    if (categoryFilter !== "all" && category.label !== categoryFilter) {
-      return false;
-    }
-    
-    // Filtre par recherche
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      return (
-        category.label.toLowerCase().includes(searchLower) ||
-        category.description.toLowerCase().includes(searchLower) ||
-        category.offerings.some(
-          (offering) =>
-            offering.title.toLowerCase().includes(searchLower) ||
-            offering.price.toLowerCase().includes(searchLower)
-        )
-      );
-    }
-    
-    return true;
-  });
-
   return (
-    <div className="container mx-auto px-4 md:px-6 py-6 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
-        <h1 className="text-3xl font-bold">Nos offres</h1>
-        <div className="flex items-center gap-3">
-          {(isPhoner || isResponsable) && (
-            <Button 
-              variant="outline" 
-              onClick={() => setIsEmailDialogOpen(true)}
-              className="flex items-center gap-2"
-            >
-              <Mail className="h-4 w-4" />
-              <span className="hidden md:inline">Envoyer par email</span>
-            </Button>
-          )}
-          {isClient && <CartDrawer />}
-        </div>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <Input
-            type="text"
-            placeholder="Rechercher une offre..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+    <div className="min-h-screen bg-gray-950 text-white">
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        {/* Top Feature Buttons - First Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <FeatureButton 
+            icon={<Calendar className="h-5 w-5" />} 
+            text="Générez des réservations"
+            highlight="réservations"
+          />
+          <FeatureButton 
+            icon={<MessageCircle className="h-5 w-5" />} 
+            text="Animez/créez votre communauté"
+            highlight="communauté"
+          />
+          <FeatureButton 
+            icon={<Award className="h-5 w-5" />} 
+            text="Valorisez votre expertise"
+            highlight="expertise"
+          />
+          <FeatureButton 
+            icon={<Globe className="h-5 w-5" />} 
+            text="Augmentez votre visibilité / notoriété"
+            highlight="visibilité / notoriété"
+          />
+          <FeatureButton 
+            icon={<ThumbsUp className="h-5 w-5" />} 
+            text="Générez des avis positifs"
+            highlight="avis positifs"
           />
         </div>
-        <div className="w-full sm:w-64">
-          <Select
-            value={categoryFilter}
-            onValueChange={(value) => setCategoryFilter(value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Filtrer par catégorie" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Toutes les catégories</SelectItem>
-              {offerCategories.map((category) => (
-                <SelectItem key={category.label} value={category.label}>
-                  {category.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+
+        {/* Top Feature Buttons - Second Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <FeatureButton 
+            icon={<Check className="h-5 w-5" />} 
+            text="Gagnez en efficacité"
+            highlight="efficacité"
+          />
+          <FeatureButton 
+            icon={<Gift className="h-5 w-5" />} 
+            text="Fidélisez vos clients"
+            highlight="Fidélisez"
+          />
+          <FeatureButton 
+            icon={<Database className="h-5 w-5" />} 
+            text="Exploitez vos données clients"
+            highlight="données clients"
+          />
+          <FeatureButton 
+            icon={<BarChart2 className="h-5 w-5" />} 
+            text="Développez votre activité"
+            highlight="Développez"
+          />
+          <FeatureButton 
+            icon={<Gauge className="h-5 w-5" />} 
+            text="Pilotez votre activité"
+            highlight="Pilotez"
+          />
+          <FeatureButton 
+            icon={<TrendingDown className="h-5 w-5" />} 
+            text="Diminuez vos coûts"
+            highlight="Diminuez"
+          />
+        </div>
+
+        {/* Pricing Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+          <PricingCard 
+            title="E-réputation"
+            icon={<AtSign className="h-6 w-6" />}
+            price="250"
+            period="HT/mois"
+            setupFee="300€ HT"
+            features={[
+              { text: "Community Management" }
+            ]}
+          />
+          
+          <PricingCard 
+            title="Deliver"
+            icon={<Truck className="h-6 w-6" />}
+            price="60"
+            period="HT/mois"
+            setupFee="200€ HT"
+            features={[
+              { text: "Réservation de tables" },
+              { text: "Click & Collect" },
+              { text: "QR Code" }
+            ]}
+          />
+          
+          <PricingCard 
+            title="Facebook / Instagram Ads"
+            icon={<Facebook className="h-6 w-6" />}
+            price="150"
+            period="HT/mois"
+            setupFee="200€ HT"
+            features={[
+              { text: "Facebook / Instagram Ads" },
+              { text: "Service et accompagnement" }
+            ]}
+          />
+        </div>
+
+        {/* Trust Message */}
+        <div className="text-center py-12">
+          <p className="text-xl text-gray-300 max-w-4xl mx-auto">
+            Partenaire de confiance de plus de 20 000 TPE/PME<br />
+            depuis plus de 20 ans, nous valorisons les relations sur<br />
+            le long terme.
+          </p>
         </div>
       </div>
-
-      <div className="space-y-8">
-        {filteredCategories.length > 0 ? (
-          filteredCategories.map((category) => (
-            <OfferCategoryCard key={category.label} category={category} />
-          ))
-        ) : (
-          <div className="text-center p-8 bg-gray-50 rounded-lg">
-            <p className="text-gray-600">Aucune offre trouvée</p>
-          </div>
-        )}
-      </div>
-      
-      <EmailOfferDialog 
-        open={isEmailDialogOpen} 
-        onOpenChange={setIsEmailDialogOpen}
-        categories={offerCategories}
-      />
     </div>
   );
 };
