@@ -6,13 +6,16 @@ import { CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { UserRole } from "@/types";
 
 interface RegisterTabProps {
   onRegister: (
     email: string, 
     password: string, 
     nom: string, 
-    prenom: string
+    prenom: string,
+    role: UserRole
   ) => Promise<void>;
   formError: string;
 }
@@ -23,6 +26,7 @@ const RegisterTab = ({ onRegister, formError }: RegisterTabProps) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [nom, setNom] = useState("");
   const [prenom, setPrenom] = useState("");
+  const [role, setRole] = useState<UserRole>("client");
   const [isLoading, setIsLoading] = useState(false);
   const [validationError, setValidationError] = useState("");
 
@@ -43,7 +47,7 @@ const RegisterTab = ({ onRegister, formError }: RegisterTabProps) => {
     setIsLoading(true);
     
     try {
-      await onRegister(email, password, nom, prenom);
+      await onRegister(email, password, nom, prenom, role);
     } finally {
       setIsLoading(false);
     }
@@ -93,6 +97,21 @@ const RegisterTab = ({ onRegister, formError }: RegisterTabProps) => {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="role">Rôle</Label>
+            <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionnez un rôle" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="client">Client</SelectItem>
+                <SelectItem value="agent_phoner">Agent Phoner</SelectItem>
+                <SelectItem value="agent_visio">Agent Visio</SelectItem>
+                <SelectItem value="superviseur">Superviseur</SelectItem>
+                <SelectItem value="responsable">Responsable</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="register-password">Mot de passe</Label>

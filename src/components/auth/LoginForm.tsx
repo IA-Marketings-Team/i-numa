@@ -1,93 +1,73 @@
-
-import { useState } from "react";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LoginTab } from "@/components/auth/LoginTab";
+import { RegisterTab } from "@/components/auth/RegisterTab";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
-import LoginTab from "./LoginTab";
-import RegisterTab from "./RegisterTab";
+import { useToast } from "@/hooks/use-toast";
+import { UserRole } from "@/types";
 
 const LoginForm = () => {
-  const [activeTab, setActiveTab] = useState("login");
+  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [formError, setFormError] = useState("");
-  
   const { login, register } = useAuth();
-  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleLogin = async (email: string, password: string) => {
     setFormError("");
-    
     try {
-      const success = await login(email, password);
-      if (success) {
-        navigate("/tableau-de-bord");
-      }
+      await login(email, password);
     } catch (error) {
-      console.error("Login error:", error);
-      setFormError("Une erreur est survenue lors de la connexion");
+      console.error("Erreur de connexion:", error);
+      setFormError(
+        (error as Error)?.message || "Une erreur est survenue lors de la connexion."
+      );
     }
   };
 
   const handleRegister = async (
-    email: string, 
-    password: string, 
-    nom: string, 
-    prenom: string
+    email: string,
+    password: string,
+    nom: string,
+    prenom: string,
+    role: UserRole
   ) => {
     setFormError("");
-    
     try {
-      const success = await register(email, password, {
-        nom,
-        prenom,
-        email,
-        role: 'client'
+      await register(email, password, { 
+        nom, 
+        prenom, 
+        role 
       });
-      
-      if (success) {
-        // Après l'inscription réussie, passer à l'onglet de connexion
-        setActiveTab("login");
-      }
+      toast({
+        title: "Inscription réussie",
+        description: "Vous pouvez maintenant vous connecter à votre compte.",
+      });
+      setActiveTab("login");
     } catch (error) {
-      console.error("Register error:", error);
-      setFormError("Une erreur est survenue lors de l'inscription");
+      console.error("Erreur d'inscription:", error);
+      setFormError(
+        (error as Error)?.message || "Une erreur est survenue lors de l'inscription."
+      );
     }
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="login">Connexion</TabsTrigger>
-          <TabsTrigger value="register">Inscription</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="login">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold">Connexion</CardTitle>
-            <CardDescription>
-              Entrez vos identifiants pour accéder à votre compte
-            </CardDescription>
-          </CardHeader>
-          <LoginTab 
-            onLogin={handleLogin}
-            formError={formError}
-          />
-        </TabsContent>
-        
-        <TabsContent value="register">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold">Inscription</CardTitle>
-            <CardDescription>
-              Créez un compte pour accéder à toutes les fonctionnalités
-            </CardDescription>
-          </CardHeader>
-          <RegisterTab 
-            onRegister={handleRegister}
-            formError={formError}
-          />
-        </TabsContent>
-      </Tabs>
+    <Card>
+      <CardHeader className="space-y-2">
+        <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="login">Se connecter</TabsTrigger>
+            <TabsTrigger value="register">S'inscrire</TabsTrigger>
+          </TabsList>
+          <TabsContent value="login">
+            <LoginTab onLogin={handleLogin} formError={formError} />
+          </TabsContent>
+          <TabsContent value="register">
+            <RegisterTab onRegister={handleRegister} formError={formError} />
+          </TabsContent>
+        </Tabs>
+      </CardHeader>
     </Card>
   );
 };
