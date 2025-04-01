@@ -99,13 +99,14 @@ export const createTeam = async (team: Omit<Team, 'id' | 'dateCreation'>): Promi
  */
 export const updateTeam = async (id: string, updates: Partial<Team>): Promise<boolean> => {
   try {
+    const updateData: any = {};
+    if (updates.nom !== undefined) updateData.nom = updates.nom;
+    if (updates.fonction !== undefined) updateData.fonction = updates.fonction;
+    if (updates.description !== undefined) updateData.description = updates.description;
+
     const { error } = await supabase
       .from('teams')
-      .update({
-        nom: updates.nom,
-        fonction: updates.fonction,
-        description: updates.description
-      })
+      .update(updateData)
       .eq('id', id);
 
     if (error) {

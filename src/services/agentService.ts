@@ -1,5 +1,5 @@
 
-import { Agent, User } from "@/types";
+import { Agent, UserRole } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -24,7 +24,7 @@ export const fetchAgents = async (): Promise<Agent[]> => {
       prenom: agent.prenom || '',
       email: agent.email,
       telephone: agent.telephone || '',
-      role: agent.role,
+      role: agent.role as UserRole,
       dateCreation: new Date(agent.date_creation || Date.now()),
       equipeId: agent.equipe_id,
       statistiques: {
@@ -65,7 +65,7 @@ export const fetchAgentsByType = async (type: 'agent_phoner' | 'agent_visio' | '
       prenom: agent.prenom || '',
       email: agent.email,
       telephone: agent.telephone || '',
-      role: agent.role,
+      role: agent.role as UserRole,
       dateCreation: new Date(agent.date_creation || Date.now()),
       equipeId: agent.equipe_id,
       statistiques: {
@@ -109,7 +109,7 @@ export const fetchAgentById = async (id: string): Promise<Agent | null> => {
       prenom: data.prenom || '',
       email: data.email,
       telephone: data.telephone || '',
-      role: data.role,
+      role: data.role as UserRole,
       dateCreation: new Date(data.date_creation || Date.now()),
       equipeId: data.equipe_id,
       statistiques: {

@@ -1,5 +1,5 @@
 
-import { RendezVous, Dossier } from "@/types";
+import { RendezVous } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchDossierById } from "./dossierService";
 
@@ -191,34 +191,32 @@ export const updateRendezVous = async (id: string, updates: Partial<RendezVous>)
     // Si le statut honore a été modifié, mettre à jour les statistiques de l'agent
     if (updates.honore !== undefined) {
       const rdv = await fetchRendezVousById(id);
-      if (rdv && rdv.dossier) {
-        if (rdv.dossier.agentPhonerId) {
-          const { data: agentData } = await supabase
-            .from('profiles')
-            .select('rendez_vous_honores, rendez_vous_non_honores')
-            .eq('id', rdv.dossier.agentPhonerId)
-            .single();
+      if (rdv && rdv.dossier && rdv.dossier.agentPhonerId) {
+        const { data: agentData } = await supabase
+          .from('profiles')
+          .select('rendez_vous_honores, rendez_vous_non_honores')
+          .eq('id', rdv.dossier.agentPhonerId)
+          .single();
 
-          if (agentData) {
-            let honores = agentData.rendez_vous_honores || 0;
-            let nonHonores = agentData.rendez_vous_non_honores || 0;
+        if (agentData) {
+          let honores = agentData.rendez_vous_honores || 0;
+          let nonHonores = agentData.rendez_vous_non_honores || 0;
 
-            if (updates.honore) {
-              honores++;
-              if (nonHonores > 0) nonHonores--;
-            } else {
-              nonHonores++;
-              if (honores > 0) honores--;
-            }
-
-            await supabase
-              .from('profiles')
-              .update({
-                rendez_vous_honores: honores,
-                rendez_vous_non_honores: nonHonores
-              })
-              .eq('id', rdv.dossier.agentPhonerId);
+          if (updates.honore) {
+            honores++;
+            if (nonHonores > 0) nonHonores--;
+          } else {
+            nonHonores++;
+            if (honores > 0) honores--;
           }
+
+          await supabase
+            .from('profiles')
+            .update({
+              rendez_vous_honores: honores,
+              rendez_vous_non_honores: nonHonores
+            })
+            .eq('id', rdv.dossier.agentPhonerId);
         }
       }
     }

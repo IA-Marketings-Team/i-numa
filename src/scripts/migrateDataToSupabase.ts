@@ -60,13 +60,15 @@ export const migrateData = async () => {
     for (const user of allUsers) {
       // D'abord créer l'utilisateur dans auth.users via l'API d'authentification
       // Note: Dans une vraie migration, il faudrait gérer les mots de passe correctement
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: user.email,
         password: "password123", // Mot de passe temporaire
-        user_metadata: {
-          nom: user.nom,
-          prenom: user.prenom,
-          role: user.role
+        options: {
+          data: {
+            nom: user.nom,
+            prenom: user.prenom,
+            role: user.role
+          }
         }
       });
       
@@ -79,7 +81,6 @@ export const migrateData = async () => {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          id: authData.user.id,
           nom: user.nom,
           prenom: user.prenom,
           email: user.email,
@@ -93,7 +94,7 @@ export const migrateData = async () => {
           nom_banque: user.nomBanque,
           date_creation: user.dateCreation.toISOString()
         })
-        .eq('id', authData.user.id);
+        .eq('id', authData?.user?.id || '');
       
       if (profileError) console.error(`Erreur lors de la mise à jour du profil ${user.id}:`, profileError);
       
@@ -107,7 +108,7 @@ export const migrateData = async () => {
             type_entreprise: client.typeEntreprise,
             besoins: client.besoins
           })
-          .eq('id', authData.user.id);
+          .eq('id', authData?.user?.id || '');
         
         if (clientError) console.error(`Erreur lors de la mise à jour du client ${client.id}:`, clientError);
       }
@@ -127,7 +128,7 @@ export const migrateData = async () => {
             dossiers_valides: agent.statistiques.dossiersValides,
             dossiers_signe: agent.statistiques.dossiersSigne
           })
-          .eq('id', authData.user.id);
+          .eq('id', authData?.user?.id || '');
         
         if (agentError) console.error(`Erreur lors de la mise à jour de l'agent ${agent.id}:`, agentError);
       }
@@ -135,9 +136,6 @@ export const migrateData = async () => {
     
     // 4. Migrer les dossiers
     console.log("Migration des dossiers...");
-    
-    // Créer un mapping des anciens IDs vers les nouveaux IDs
-    const userIdMap = new Map<string, string>();
     
     // Récupérer tous les utilisateurs dans Supabase pour créer le mapping
     const { data: profilesData, error: profilesError } = await supabase
@@ -150,6 +148,7 @@ export const migrateData = async () => {
     }
     
     // Créer le mapping en utilisant l'email comme clé commune
+    const userIdMap = new Map<string, string>();
     for (const user of [...users, ...clients, ...agents]) {
       const profile = profilesData.find(p => p.email === user.email);
       if (profile) {
@@ -160,8 +159,8 @@ export const migrateData = async () => {
     // Migrer les dossiers avec les nouveaux IDs
     for (const dossier of dossiers) {
       const clientId = userIdMap.get(dossier.clientId);
-      const agentPhonerId = dossier.agentPhonerId ? userIdMap.get(dossier.agentPhonerId) : undefined;
-      const agentVisioId = dossier.agentVisioId ? userIdMap.get(dossier.agentVisioId) : undefined;
+      const agentPhonerId = dossier.agentPhonerId ? userIdMap.get(dossier.agentPhonerId) : null;
+      const agentVisioId = dossier.agentVisioId ? userIdMap.get(dossier.agentVisioId) : null;
       
       if (!clientId) {
         console.error(`Client ID non trouvé pour le dossier ${dossier.id}`);

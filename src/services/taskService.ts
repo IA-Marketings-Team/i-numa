@@ -1,5 +1,5 @@
 
-import { Task } from "@/types";
+import { Task, TaskStatus } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -22,7 +22,7 @@ export const fetchTasks = async (): Promise<Task[]> => {
       title: task.title,
       description: task.description,
       agentId: task.agent_id,
-      status: task.status,
+      status: task.status as TaskStatus,
       dateCreation: new Date(task.date_creation),
       dateEcheance: task.date_echeance ? new Date(task.date_echeance) : undefined,
       priority: task.priority
@@ -54,7 +54,7 @@ export const fetchTasksByAgent = async (agentId: string): Promise<Task[]> => {
       title: task.title,
       description: task.description,
       agentId: task.agent_id,
-      status: task.status,
+      status: task.status as TaskStatus,
       dateCreation: new Date(task.date_creation),
       dateEcheance: task.date_echeance ? new Date(task.date_echeance) : undefined,
       priority: task.priority
@@ -88,7 +88,7 @@ export const fetchTaskById = async (id: string): Promise<Task | null> => {
       title: data.title,
       description: data.description,
       agentId: data.agent_id,
-      status: data.status,
+      status: data.status as TaskStatus,
       dateCreation: new Date(data.date_creation),
       dateEcheance: data.date_echeance ? new Date(data.date_echeance) : undefined,
       priority: data.priority
@@ -127,7 +127,7 @@ export const createTask = async (task: Omit<Task, 'id' | 'dateCreation'>): Promi
       title: data.title,
       description: data.description,
       agentId: data.agent_id,
-      status: data.status,
+      status: data.status as TaskStatus,
       dateCreation: new Date(data.date_creation),
       dateEcheance: data.date_echeance ? new Date(data.date_echeance) : undefined,
       priority: data.priority

@@ -159,11 +159,6 @@ export const createStatistique = async (statistique: Omit<Statistique, 'id'>): P
  */
 export const generateStatistiques = async (): Promise<boolean> => {
   try {
-    // Cette fonction devrait être implémentée côté serveur pour être plus efficace
-    // Elle pourrait agréger les données des agents, dossiers, rendez-vous, etc.
-    // Puis créer ou mettre à jour les entrées dans la table statistiques
-    
-    // Exemple simplifié
     // 1. Récupérer les données des agents (statistiques individuelles)
     const { data: agents } = await supabase
       .from('profiles')
