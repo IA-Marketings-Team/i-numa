@@ -23,80 +23,111 @@ export const useAuthMethods = (
       if (isDemoAccount(cleanedEmail)) {
         console.log("Compte de démonstration détecté, authentification en cours");
         
-        try {
-          // Récupérer l'utilisateur depuis la base de données
-          const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('email', cleanedEmail)
-            .single();
+        // Pour les comptes de démo, effectuer une connexion directe avec le mot de passe standard
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: cleanedEmail,
+          password: "demo12345"  // Mot de passe fixe pour tous les comptes de démo
+        });
 
-          if (userError || !userData) {
-            console.error("Utilisateur de démo non trouvé:", userError);
-            toast({
-              title: "Échec de connexion",
-              description: "Compte de démonstration introuvable. Veuillez contacter le support.",
-              variant: "destructive",
-            });
-            return false;
-          }
-
-          // Authentification avec Supabase Auth
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email: cleanedEmail,
-            password: "demo12345"
-          });
-
-          if (error) {
-            console.error("Erreur d'authentification pour le compte de démo:", error.message);
-            toast({
-              title: "Échec de connexion",
-              description: "Problème technique avec le compte de démonstration. Veuillez réessayer.",
-              variant: "destructive",
-            });
-            return false;
-          }
-
-          if (data.user) {
-            console.log("Authentification réussie pour le compte de démo:", cleanedEmail);
-            
-            // Convertir les données utilisateur en objet User
-            const user: User = {
-              id: userData.id,
-              nom: userData.nom,
-              prenom: userData.prenom,
-              email: userData.email,
-              telephone: userData.telephone,
-              role: userData.role as UserRole,
-              dateCreation: new Date(userData.date_creation),
-              adresse: userData.adresse || undefined,
-              ville: userData.ville || undefined,
-              codePostal: userData.code_postal || undefined,
-            };
-
-            // Mettre à jour l'état de l'utilisateur
-            setUser(user);
-            setIsAuthenticated(true);
-            setSession(data.session);
-
-            toast({
-              title: "Connexion réussie",
-              description: `Bienvenue, ${user.prenom} ${user.nom} (${user.role})`,
-            });
-
-            return true;
-          }
+        if (error) {
+          console.error("Erreur d'authentification pour le compte de démo:", error.message);
           
-          return false;
-        } catch (demoError) {
-          console.error("Erreur inattendue avec le compte de démo:", demoError);
+          // Message d'erreur plus détaillé pour déboguer
           toast({
-            title: "Erreur",
-            description: "Une erreur inattendue s'est produite. Veuillez réessayer.",
+            title: "Échec de connexion",
+            description: `Erreur: ${error.message}. Veuillez contacter le support.`,
             variant: "destructive",
           });
           return false;
         }
+
+        if (data.user) {
+          console.log("Authentification réussie pour le compte de démo:", data.user);
+          
+          try {
+            // Récupérer l'utilisateur depuis la base de données
+            const userData = await getUserByAuthId(data.user.id);
+            
+            if (userData) {
+              console.log("Profil utilisateur de démo trouvé:", userData);
+              setUser(userData);
+              setIsAuthenticated(true);
+              setSession(data.session);
+              
+              toast({
+                title: "Connexion réussie",
+                description: `Bienvenue, ${userData.prenom} ${userData.nom} (${userData.role})`,
+              });
+              
+              return true;
+            } else {
+              console.log("Profil utilisateur de démo non trouvé dans la base, tentative de recherche par email");
+              
+              // Recherche alternative par email
+              const { data: userByEmail, error: userEmailError } = await supabase
+                .from('users')
+                .select('*')
+                .eq('email', cleanedEmail)
+                .single();
+              
+              if (userEmailError || !userByEmail) {
+                console.error("Utilisateur démo non trouvé par email:", userEmailError);
+                toast({
+                  title: "Échec de connexion",
+                  description: "Profil utilisateur introuvable. Veuillez contacter le support.",
+                  variant: "destructive",
+                });
+                return false;
+              }
+              
+              // Mettre à jour l'auth_id dans la table users
+              const { error: updateError } = await supabase
+                .from('users')
+                .update({ auth_id: data.user.id })
+                .eq('id', userByEmail.id);
+              
+              if (updateError) {
+                console.error("Erreur lors de la mise à jour de l'auth_id:", updateError);
+              }
+              
+              // Convertir les données utilisateur en objet User
+              const demoUser: User = {
+                id: userByEmail.id,
+                nom: userByEmail.nom,
+                prenom: userByEmail.prenom,
+                email: userByEmail.email,
+                telephone: userByEmail.telephone,
+                role: userByEmail.role as UserRole,
+                dateCreation: new Date(userByEmail.date_creation),
+                adresse: userByEmail.adresse || undefined,
+                ville: userByEmail.ville || undefined,
+                codePostal: userByEmail.code_postal || undefined,
+              };
+              
+              // Mettre à jour l'état de l'utilisateur
+              setUser(demoUser);
+              setIsAuthenticated(true);
+              setSession(data.session);
+              
+              toast({
+                title: "Connexion réussie",
+                description: `Bienvenue, ${demoUser.prenom} ${demoUser.nom} (${demoUser.role})`,
+              });
+              
+              return true;
+            }
+          } catch (profileError) {
+            console.error("Erreur lors de la récupération du profil démo:", profileError);
+            toast({
+              title: "Erreur",
+              description: "Erreur lors de la récupération de votre profil. Veuillez réessayer.",
+              variant: "destructive",
+            });
+            return false;
+          }
+        }
+        
+        return false;
       } else {
         // Logique de connexion standard pour les comptes non-démo
         const { data, error } = await supabase.auth.signInWithPassword({

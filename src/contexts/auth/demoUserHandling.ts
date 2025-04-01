@@ -45,11 +45,16 @@ export const createDemoUserProfile = async (
     const lastName = parts[1] ? parts[1].charAt(0).toUpperCase() + parts[1].slice(1) : '';
     
     // Vérifier d'abord si le profil existe déjà
-    const { data: existingUsers } = await supabase
+    const { data: existingUsers, error: searchError } = await supabase
       .from('users')
       .select('*')
       .eq('email', email.toLowerCase().trim())
       .limit(1);
+      
+    if (searchError) {
+      console.error("Erreur lors de la recherche d'utilisateur démo:", searchError);
+      return null;
+    }
       
     if (existingUsers && existingUsers.length > 0) {
       console.log("Profil utilisateur démo existant trouvé pour", email);

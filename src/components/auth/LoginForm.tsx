@@ -36,6 +36,9 @@ const LoginForm = () => {
       // Vérifier si c'est un compte de démonstration
       const isDemo = isDemoAccount(cleanedEmail);
       
+      // Pour les comptes démo, fixer le mot de passe
+      const passwordToUse = isDemo ? "demo12345" : password;
+      
       // Pour les comptes non démo, on vérifie que le mot de passe est saisi
       if (!isDemo && !password) {
         setError("Veuillez saisir un mot de passe");
@@ -46,11 +49,12 @@ const LoginForm = () => {
       console.log("Tentative de connexion pour:", cleanedEmail, "- Compte de démo:", isDemo);
       
       // Effectuer la connexion
-      const success = await login(cleanedEmail, password);
+      const success = await login(cleanedEmail, passwordToUse);
       
       if (success) {
         console.log("Login réussi, redirection vers le tableau de bord...");
         // La redirection sera gérée par les redirections configurées dans les pages
+        navigate("/tableau-de-bord");
       } else {
         // Si c'est un compte de démo mais que la connexion a échoué, donner un message spécifique
         if (isDemo) {
@@ -75,6 +79,11 @@ const LoginForm = () => {
     { email: 'ahmed.tayin@example.com', role: 'superviseur' },
     { email: 'marie.andy@example.com', role: 'responsable' }
   ];
+
+  const selectDemoAccount = (demoEmail: string) => {
+    setEmail(demoEmail);
+    setPassword("demo12345"); // Préremplir aussi le mot de passe pour les comptes démo
+  };
 
   return (
     <Card>
@@ -133,7 +142,7 @@ const LoginForm = () => {
             />
             {isDemoAccount(email) && (
               <p className="text-xs text-muted-foreground mt-1">
-                Pour les comptes de démonstration, le mot de passe est facultatif.
+                Pour les comptes de démonstration, le mot de passe est "demo12345".
               </p>
             )}
           </div>
@@ -164,7 +173,7 @@ const LoginForm = () => {
               <button 
                 key={account.email} 
                 type="button"
-                onClick={() => setEmail(account.email)}
+                onClick={() => selectDemoAccount(account.email)}
                 className="text-xs text-left hover:bg-muted-foreground/10 p-1 rounded flex justify-between"
               >
                 <span>{account.email}</span>
@@ -173,7 +182,7 @@ const LoginForm = () => {
             ))}
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            Cliquez sur un email pour le sélectionner. Le mot de passe est prédéfini.
+            Cliquez sur un email pour le sélectionner. Le mot de passe "demo12345" est prédéfini.
           </p>
         </div>
       </div>
