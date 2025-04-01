@@ -14,6 +14,8 @@ export const useAuthMethods = (
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
+      console.log("Tentative de connexion pour:", email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -30,6 +32,7 @@ export const useAuthMethods = (
       }
 
       if (data.user) {
+        console.log("Authentification réussie pour:", email);
         // La mise à jour de l'utilisateur se fait via onAuthStateChange
         toast({
           title: "Connexion réussie",
@@ -51,26 +54,38 @@ export const useAuthMethods = (
   };
 
   const logout = async () => {
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
-      console.error("Erreur lors de la déconnexion:", error.message);
+    try {
+      console.log("Tentative de déconnexion");
+      
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error("Erreur lors de la déconnexion:", error.message);
+        toast({
+          title: "Erreur",
+          description: "Erreur lors de la déconnexion: " + error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      console.log("Déconnexion réussie");
+      setUser(null);
+      setIsAuthenticated(false);
+      setSession(null);
+      
+      toast({
+        title: "Déconnexion",
+        description: "Vous avez été déconnecté avec succès",
+      });
+    } catch (error) {
+      console.error("Erreur inattendue lors de la déconnexion:", error);
       toast({
         title: "Erreur",
-        description: "Erreur lors de la déconnexion: " + error.message,
+        description: "Une erreur inattendue s'est produite lors de la déconnexion",
         variant: "destructive",
       });
-      return;
     }
-    
-    setUser(null);
-    setIsAuthenticated(false);
-    setSession(null);
-    
-    toast({
-      title: "Déconnexion",
-      description: "Vous avez été déconnecté avec succès",
-    });
   };
 
   const hasPermission = (requiredRoles: UserRole[]): boolean => {

@@ -52,6 +52,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "agents_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "vue_performances_equipes"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "agents_id_fkey"
             columns: ["id"]
             isOneToOne: true
@@ -177,10 +184,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "dossiers_agent_phoner_id_fkey"
+            columns: ["agent_phoner_id"]
+            isOneToOne: false
+            referencedRelation: "vue_statistiques_agents"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "dossiers_agent_visio_id_fkey"
             columns: ["agent_visio_id"]
             isOneToOne: false
             referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossiers_agent_visio_id_fkey"
+            columns: ["agent_visio_id"]
+            isOneToOne: false
+            referencedRelation: "vue_statistiques_agents"
             referencedColumns: ["id"]
           },
           {
@@ -338,6 +359,13 @@ export type Database = {
             referencedRelation: "agents"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_agent"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "vue_statistiques_agents"
+            referencedColumns: ["id"]
+          },
         ]
       }
       teams: {
@@ -371,6 +399,7 @@ export type Database = {
           bic: string | null
           code_postal: string | null
           date_creation: string
+          derniere_connexion: string | null
           email: string
           iban: string | null
           id: string
@@ -387,6 +416,7 @@ export type Database = {
           bic?: string | null
           code_postal?: string | null
           date_creation?: string
+          derniere_connexion?: string | null
           email: string
           iban?: string | null
           id?: string
@@ -403,6 +433,7 @@ export type Database = {
           bic?: string | null
           code_postal?: string | null
           date_creation?: string
+          derniere_connexion?: string | null
           email?: string
           iban?: string | null
           id?: string
@@ -417,7 +448,48 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      vue_performances_equipes: {
+        Row: {
+          fonction: Database["public"]["Enums"]["team_fonction"] | null
+          id: string | null
+          nom: string | null
+          nombre_agents: number | null
+          total_appels_decroches: number | null
+          total_appels_emis: number | null
+          total_appels_transformes: number | null
+          total_dossiers_signes: number | null
+          total_dossiers_valides: number | null
+          total_rdv_honores: number | null
+        }
+        Relationships: []
+      }
+      vue_statistiques_agents: {
+        Row: {
+          appels_decroches: number | null
+          appels_emis: number | null
+          appels_transformes: number | null
+          dossiers_signe: number | null
+          dossiers_valides: number | null
+          email: string | null
+          equipe: string | null
+          id: string | null
+          nom: string | null
+          prenom: string | null
+          rendez_vous_honores: number | null
+          rendez_vous_non_honores: number | null
+          taux_decroche: number | null
+          taux_transformation: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agents_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       [_ in never]: never

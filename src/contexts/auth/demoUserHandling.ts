@@ -31,6 +31,8 @@ export const createDemoUserProfile = async (
   email: string
 ): Promise<User | null> => {
   try {
+    console.log("Création du profil utilisateur démo pour:", email);
+    
     // Déterminer le rôle en fonction de l'email
     const role = getDemoUserRole(email);
     
@@ -38,6 +40,41 @@ export const createDemoUserProfile = async (
     const names = email.split('@')[0].split('.') || [];
     const firstName = names[0] ? names[0].charAt(0).toUpperCase() + names[0].slice(1) : '';
     const lastName = names[1] ? names[1].charAt(0).toUpperCase() + names[1].slice(1) : '';
+    
+    // Vérifier d'abord si le profil existe déjà
+    const { data: existingUsers } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .limit(1);
+      
+    if (existingUsers && existingUsers.length > 0) {
+      console.log("Profil utilisateur démo existant trouvé, mise à jour de l'auth_id");
+      
+      // Mettre à jour l'auth_id si nécessaire
+      if (existingUsers[0].auth_id !== authId) {
+        await supabase
+          .from('users')
+          .update({ auth_id: authId })
+          .eq('id', existingUsers[0].id);
+      }
+      
+      return {
+        id: existingUsers[0].id,
+        nom: existingUsers[0].nom,
+        prenom: existingUsers[0].prenom,
+        email: existingUsers[0].email,
+        telephone: existingUsers[0].telephone,
+        role: existingUsers[0].role,
+        dateCreation: new Date(existingUsers[0].date_creation),
+        adresse: existingUsers[0].adresse || undefined,
+        ville: existingUsers[0].ville || undefined,
+        codePostal: existingUsers[0].code_postal || undefined,
+        iban: existingUsers[0].iban || undefined,
+        bic: existingUsers[0].bic || undefined,
+        nomBanque: existingUsers[0].nom_banque || undefined,
+      };
+    }
     
     const newUser = await createUser({
       nom: lastName,
@@ -59,3 +96,5 @@ export const createDemoUserProfile = async (
     return null;
   }
 };
+
+import { supabase } from "@/integrations/supabase/client";

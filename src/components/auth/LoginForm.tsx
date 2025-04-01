@@ -9,6 +9,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { isDemoAccount } from "@/contexts/auth/demoUserHandling";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -18,36 +19,23 @@ const LoginForm = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const isDemoAccount = (email: string): boolean => {
-    const demoAccounts = [
-      "jean.dupont@example.com", 
-      "thomas.leroy@example.com", 
-      "claire.moreau@example.com", 
-      "ahmed.tayin@example.com", 
-      "marie.andy@example.com"
-    ];
-    return demoAccounts.includes(email);
-  };
-
   const handleDemoLogin = async (email: string): Promise<boolean> => {
     // Pour les comptes de démo, on contourne la vérification du mot de passe
     // en créant directement une session Supabase
     try {
       console.log("Tentative de connexion avec compte démo:", email);
       
-      // On s'assure d'abord que l'utilisateur existe dans auth
-      const { data: userExists } = await supabase.auth.signInWithPassword({
+      // On tente simplement de se connecter directement
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: email,
-        password: "demo12345" // Mot de passe par défaut pour les démos
+        password: password || "demo12345" // Utiliser soit le mot de passe saisi, soit le mot de passe par défaut
       });
       
-      if (userExists.user) {
-        console.log("Connexion démo réussie");
-        return true;
-      } else {
+      if (error) {
+        console.log("Échec de connexion démo, tentative de création de compte", error);
+        
         // Si l'utilisateur n'existe pas dans auth, on le crée d'abord
-        console.log("Création du compte démo dans auth");
-        const { data: newUser, error: signUpError } = await supabase.auth.signUp({
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: email,
           password: "demo12345" // Mot de passe par défaut pour les démos
         });
@@ -57,10 +45,29 @@ const LoginForm = () => {
           return false;
         }
         
-        if (newUser.user) {
+        if (signUpData.user) {
           console.log("Compte démo créé avec succès");
+          
+          // On tente à nouveau de se connecter après la création
+          const { error: secondLoginError } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: "demo12345"
+          });
+          
+          if (secondLoginError) {
+            console.error("Échec de connexion après création du compte démo:", secondLoginError);
+            return false;
+          }
+          
           return true;
         }
+        
+        return false;
+      }
+      
+      if (data.user) {
+        console.log("Connexion démo réussie");
+        return true;
       }
       
       return false;
@@ -75,6 +82,12 @@ const LoginForm = () => {
     setIsLoading(true);
     setError(null);
     
+    if (!email) {
+      setError("Veuillez saisir une adresse email");
+      setIsLoading(false);
+      return;
+    }
+    
     try {
       let success = false;
       
@@ -82,26 +95,22 @@ const LoginForm = () => {
         // Logique spéciale pour les comptes de démonstration
         console.log("Compte de démonstration détecté, tentative de connexion...");
         success = await handleDemoLogin(email);
-        
-        if (success) {
-          console.log("Login réussi, redirection vers le tableau de bord...");
-          setTimeout(() => {
-            navigate("/tableau-de-bord");
-          }, 1000);
-        }
       } else {
         // Connexion normale pour les autres comptes
-        success = await login(email, password);
-        
-        if (success) {
-          console.log("Login standard réussi, redirection vers le tableau de bord...");
-          setTimeout(() => {
-            navigate("/tableau-de-bord");
-          }, 1000);
+        if (!password) {
+          setError("Veuillez saisir un mot de passe");
+          setIsLoading(false);
+          return;
         }
+        
+        console.log("Tentative de connexion standard avec", email);
+        success = await login(email, password);
       }
       
-      if (!success) {
+      if (success) {
+        console.log("Login réussi, redirection vers le tableau de bord...");
+        // La redirection sera gérée par les redirections configurées dans les pages
+      } else {
         setError("Identifiants incorrects. Veuillez réessayer.");
       }
     } catch (error) {
@@ -163,7 +172,7 @@ const LoginForm = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
+              required={!isDemoAccount(email)} // Le mot de passe est facultatif pour les comptes de démo
             />
           </div>
         </CardContent>
