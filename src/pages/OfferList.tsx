@@ -18,10 +18,13 @@ import {
 } from "lucide-react";
 import FeatureButton from "@/components/offers/FeatureButton";
 import PricingCard from "@/components/offers/PricingCard";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const OfferList = () => {
+  const { theme } = useTheme();
+  
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className={`min-h-screen ${theme === "light" ? "bg-gray-50" : "bg-gray-950"} ${theme === "light" ? "text-gray-800" : "text-white"}`}>
       <div className="container mx-auto px-4 py-8 space-y-8">
         {/* Top Feature Buttons - First Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -127,7 +130,7 @@ const OfferList = () => {
 
         {/* Trust Message */}
         <div className="text-center py-12">
-          <p className="text-xl text-gray-300 max-w-4xl mx-auto">
+          <p className={`text-xl ${theme === "light" ? "text-gray-700" : "text-gray-300"} max-w-4xl mx-auto`}>
             Partenaire de confiance de plus de 20 000 TPE/PME<br />
             depuis plus de 20 ans, nous valorisons les relations sur<br />
             le long terme.

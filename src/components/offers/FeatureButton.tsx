@@ -28,18 +28,18 @@ const FeatureButton: React.FC<FeatureButtonProps> = ({
   return (
     <div className={cn(
       "flex items-center gap-3 p-4 rounded-xl transition-all",
-      "bg-gray-900/60 hover:bg-gray-800/80 border border-gray-800 hover:border-gray-700",
+      "bg-white/90 hover:bg-gray-50 border border-gray-200 hover:border-gray-300",
       "cursor-pointer hover:shadow-md",
       className
     )}>
       <div className="text-primary/80">
         {icon}
       </div>
-      <div className="text-sm text-gray-200">
+      <div className="text-sm text-gray-700">
         {highlight ? (
           <>
             {beforeHighlight}
-            <span className="font-semibold text-white">{highlight}</span>
+            <span className="font-semibold text-black">{highlight}</span>
             {afterHighlight}
           </>
         ) : (

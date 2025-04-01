@@ -43,7 +43,7 @@ const OffresSelector: React.FC<OffresSelectorProps> = ({
     return (
       <div className="space-y-2">
         <Label>Offres</Label>
-        <div className="border rounded-md p-4 flex items-center justify-center h-32">
+        <div className="border rounded-md p-4 flex items-center justify-center h-32 bg-white shadow-sm">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
           <span className="ml-2">Chargement des offres...</span>
         </div>
@@ -55,7 +55,7 @@ const OffresSelector: React.FC<OffresSelectorProps> = ({
     return (
       <div className="space-y-2">
         <Label>Offres</Label>
-        <div className="border rounded-md p-4 text-destructive">
+        <div className="border rounded-md p-4 text-destructive bg-white shadow-sm">
           {error}
         </div>
       </div>
@@ -65,7 +65,7 @@ const OffresSelector: React.FC<OffresSelectorProps> = ({
   return (
     <div className="space-y-2">
       <Label>Offres</Label>
-      <div className="border rounded-md p-4 space-y-2">
+      <div className="border rounded-md p-4 space-y-2 bg-white shadow-sm">
         {offres.length === 0 ? (
           <p className="text-muted-foreground">Aucune offre disponible</p>
         ) : (
