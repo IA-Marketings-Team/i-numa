@@ -169,7 +169,7 @@ const AgentForm: React.FC<AgentFormProps> = ({ initialData, teams, onSubmit, onC
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Non assigné</SelectItem>
+                    <SelectItem value="aucune">Non assigné</SelectItem>
                     {teams.map((team) => (
                       <SelectItem key={team.id} value={team.id}>
                         {team.nom}

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -175,7 +174,7 @@ const SuperviseurEquipe = () => {
       email: data.email,
       telephone: data.telephone,
       role: data.role,
-      equipeId: data.equipeId || undefined,
+      equipeId: data.equipeId === "aucune" ? undefined : data.equipeId,
       dateCreation: new Date(),
       statistiques: {
         appelsEmis: 0,
