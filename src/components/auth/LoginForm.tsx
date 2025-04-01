@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +16,7 @@ const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const isDemoAccount = (email: string): boolean => {
     const demoAccounts = [
@@ -81,9 +82,23 @@ const LoginForm = () => {
         // Logique spéciale pour les comptes de démonstration
         console.log("Compte de démonstration détecté, tentative de connexion...");
         success = await handleDemoLogin(email);
+        
+        if (success) {
+          console.log("Login réussi, redirection vers le tableau de bord...");
+          setTimeout(() => {
+            navigate("/tableau-de-bord");
+          }, 1000);
+        }
       } else {
         // Connexion normale pour les autres comptes
         success = await login(email, password);
+        
+        if (success) {
+          console.log("Login standard réussi, redirection vers le tableau de bord...");
+          setTimeout(() => {
+            navigate("/tableau-de-bord");
+          }, 1000);
+        }
       }
       
       if (!success) {

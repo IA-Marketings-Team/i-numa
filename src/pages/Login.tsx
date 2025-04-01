@@ -11,7 +11,10 @@ const Login = () => {
   useEffect(() => {
     // If user is already authenticated, redirect to dashboard
     if (isAuthenticated) {
+      console.log("Utilisateur déjà authentifié, redirection vers le tableau de bord");
       navigate("/tableau-de-bord");
+    } else {
+      console.log("Attente de connexion utilisateur...");
     }
   }, [isAuthenticated, navigate]);
 
