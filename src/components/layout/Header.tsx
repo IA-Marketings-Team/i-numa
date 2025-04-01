@@ -1,8 +1,9 @@
+
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { User, LogOut, Search, Plus, ChevronLeft, Bell, Settings, HelpCircle } from "lucide-react";
 import CartDrawer from "@/components/cart/CartDrawer";
 import { SidebarTrigger } from "@/components/ui/sidebar";

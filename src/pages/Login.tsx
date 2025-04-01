@@ -1,6 +1,6 @@
 
 import LoginForm from "@/components/auth/LoginForm";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 

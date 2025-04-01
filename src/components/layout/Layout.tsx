@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import { Toaster } from "@/components/ui/toaster";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 const Layout = () => {
