@@ -18,8 +18,8 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
   const { hasPermission } = useAuth();
   
   const [selectedClient, setSelectedClient] = useState<string>(dossier?.clientId || "");
-  const [selectedAgentPhoner, setSelectedAgentPhoner] = useState<string>(dossier?.agentPhonerId || "");
-  const [selectedAgentVisio, setSelectedAgentVisio] = useState<string>(dossier?.agentVisioId || "");
+  const [selectedAgentPhoner, setSelectedAgentPhoner] = useState<string>(dossier?.agentPhonerId || "none");
+  const [selectedAgentVisio, setSelectedAgentVisio] = useState<string>(dossier?.agentVisioId || "none");
   const [status, setStatus] = useState<DossierStatus>(dossier?.status || "prospect");
   const [notes, setNotes] = useState<string>(dossier?.notes || "");
   const [selectedOffres, setSelectedOffres] = useState<string[]>(
@@ -34,7 +34,7 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
 
   // Auto-assigner l'agent phoner si l'utilisateur est un agent_phoner et qu'on crée un nouveau dossier
   useEffect(() => {
-    if (!isEditing && userRole === 'agent_phoner' && !selectedAgentPhoner) {
+    if (!isEditing && userRole === 'agent_phoner' && selectedAgentPhoner === "none") {
       const currentAgent = agents.find(a => a.role === 'agent_phoner');
       if (currentAgent) {
         setSelectedAgentPhoner(currentAgent.id);
@@ -70,8 +70,8 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
     const dossierData = {
       clientId: selectedClient,
       client: client as Client,
-      agentPhonerId: selectedAgentPhoner || undefined,
-      agentVisioId: selectedAgentVisio || undefined,
+      agentPhonerId: selectedAgentPhoner !== "none" ? selectedAgentPhoner : undefined,
+      agentVisioId: selectedAgentVisio !== "none" ? selectedAgentVisio : undefined,
       status,
       offres: offresToAdd,
       dateRdv: dateRdv ? new Date(dateRdv) : undefined,

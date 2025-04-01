@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
 import { Dossier, RendezVous } from "@/types";
@@ -21,9 +21,17 @@ interface RendezVousFormProps {
   dossier: Dossier;
   rendezVous?: RendezVous;
   isEditing?: boolean;
+  onRendezVousAdded?: (newRdv: Omit<RendezVous, "id">) => void;
+  onRendezVousUpdated?: (id: string, updates: Partial<RendezVous>) => void;
 }
 
-const RendezVousForm: React.FC<RendezVousFormProps> = ({ dossier, rendezVous, isEditing = false }) => {
+const RendezVousForm: React.FC<RendezVousFormProps> = ({ 
+  dossier, 
+  rendezVous, 
+  isEditing = false,
+  onRendezVousAdded,
+  onRendezVousUpdated
+}) => {
   const navigate = useNavigate();
   const { addRendezVous, updateRendezVous } = useDossier();
   
@@ -52,15 +60,22 @@ const RendezVousForm: React.FC<RendezVousFormProps> = ({ dossier, rendezVous, is
     dateTime.setHours(parseInt(hours), parseInt(minutes));
     
     if (isEditing && rendezVous) {
-      updateRendezVous(rendezVous.id, {
+      const updates = {
         date: dateTime,
         meetingLink,
         location,
         notes,
         honore
-      });
+      };
+      
+      if (onRendezVousUpdated) {
+        onRendezVousUpdated(rendezVous.id, updates);
+      } else {
+        updateRendezVous(rendezVous.id, updates);
+        navigate(`/dossiers/${dossier.id}`);
+      }
     } else {
-      addRendezVous({
+      const newRdv = {
         dossierId: dossier.id,
         dossier,
         date: dateTime,
@@ -68,10 +83,15 @@ const RendezVousForm: React.FC<RendezVousFormProps> = ({ dossier, rendezVous, is
         location,
         notes,
         honore
-      });
+      };
+      
+      if (onRendezVousAdded) {
+        onRendezVousAdded(newRdv);
+      } else {
+        addRendezVous(newRdv);
+        navigate(`/dossiers/${dossier.id}`);
+      }
     }
-    
-    navigate(`/dossiers/${dossier.id}`);
   };
 
   return (
