@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +8,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { X } from "lucide-react";
 import { isDemoAccount } from "@/contexts/auth/demoUserHandling";
-import { Progress } from "@/components/ui/progress"; 
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -31,39 +29,23 @@ const LoginForm = () => {
     }
     
     try {
-      // Nettoyer l'email (enlever les espaces et convertir en minuscules)
       const cleanedEmail = email.trim().toLowerCase();
-      
-      // Vérifier si c'est un compte de démonstration
       const isDemo = isDemoAccount(cleanedEmail);
-      
-      // Pour les comptes démo, fixer le mot de passe
       const passwordToUse = isDemo ? "demo12345" : password;
       
-      // Pour les comptes non démo, on vérifie que le mot de passe est saisi
       if (!isDemo && !password) {
         setError("Veuillez saisir un mot de passe");
         setIsLoading(false);
         return;
       }
       
-      console.log("Tentative de connexion pour:", cleanedEmail, "- Compte de démo:", isDemo);
-      
-      // Effectuer la connexion
       const success = await login(cleanedEmail, passwordToUse);
       
       if (success) {
-        console.log("Login réussi, redirection vers le tableau de bord...");
         navigate("/tableau-de-bord");
       } else {
-        // Si login échoue, isLoading doit être remis à false
+        setError("Identifiants incorrects. Veuillez réessayer.");
         setIsLoading(false);
-        // Si c'est un compte de démo mais que la connexion a échoué, donner un message spécifique
-        if (isDemo) {
-          setError("La connexion au compte de démonstration a échoué. Veuillez réessayer.");
-        } else {
-          setError("Identifiants incorrects. Veuillez réessayer.");
-        }
       }
     } catch (error) {
       console.error("Erreur de connexion:", error);
@@ -72,7 +54,6 @@ const LoginForm = () => {
     }
   };
 
-  // Liste des comptes de démonstration directement depuis demoUserHandling
   const demoAccounts = [
     { email: 'jean.dupont@example.com', role: 'client' },
     { email: 'thomas.leroy@example.com', role: 'agent_phoner' },
@@ -83,7 +64,7 @@ const LoginForm = () => {
 
   const selectDemoAccount = (demoEmail: string) => {
     setEmail(demoEmail);
-    setPassword("demo12345"); // Préremplir aussi le mot de passe pour les comptes démo
+    setPassword("demo12345");
   };
 
   return (
@@ -139,7 +120,7 @@ const LoginForm = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required={!isDemoAccount(email)} // Le mot de passe est facultatif pour les comptes de démo
+              required={!isDemoAccount(email)}
               placeholder="********"
               disabled={isLoading}
             />
@@ -156,12 +137,7 @@ const LoginForm = () => {
             className="w-full" 
             disabled={isLoading}
           >
-            {isLoading ? (
-              <div className="flex items-center space-x-2">
-                <span>Connexion en cours...</span>
-                <Progress value={70} className="w-20 h-2" />
-              </div>
-            ) : "Se connecter"}
+            {isLoading ? "Connexion en cours..." : "Se connecter"}
           </Button>
           
           <div className="text-sm text-center">
