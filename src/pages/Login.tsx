@@ -1,4 +1,3 @@
-
 import LoginForm from "@/components/auth/LoginForm";
 import { useAuth } from "@/contexts/auth";
 import { useEffect } from "react";
@@ -9,10 +8,10 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If user is already authenticated, redirect to dashboard
+    // Si l'utilisateur est déjà authentifié, rediriger vers le tableau de bord
     if (isAuthenticated) {
       console.log("Utilisateur déjà authentifié, redirection vers le tableau de bord");
-      navigate("/tableau-de-bord");
+      navigate("/tableau-de-bord", { replace: true });
     } else {
       console.log("Attente de connexion utilisateur...");
     }

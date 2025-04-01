@@ -1,8 +1,7 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { isDemoAccount } from "@/contexts/auth/demoUserHandling";
 
@@ -35,11 +34,10 @@ const LoginForm = () => {
       const cleanedEmail = email.trim().toLowerCase();
       const isDemo = isDemoAccount(cleanedEmail);
       
-      // Pour les comptes de démo, on peut utiliser le mot de passe fourni ou celui par défaut
       const success = await login(cleanedEmail, password);
       
       if (success) {
-        navigate("/tableau-de-bord");
+        navigate("/tableau-de-bord", { replace: true });
       } else {
         setError("Identifiants incorrects. Veuillez réessayer.");
         setIsLoading(false);
