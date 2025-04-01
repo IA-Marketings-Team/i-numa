@@ -61,3 +61,19 @@ export const sanitizeMongoData = <T>(data: any): T => {
   
   return result as T;
 };
+
+// Function to seed data to a collection if it doesn't exist
+export const seedCollection = async <T>(collectionName: string, data: T[]) => {
+  const db = await getDB();
+  const collection = db.collection(collectionName);
+  
+  // Check if collection is empty
+  const count = await collection.countDocuments();
+  if (count === 0) {
+    console.log(`Seeding ${collectionName} collection...`);
+    await collection.insertMany(data);
+    console.log(`${collectionName} collection seeded successfully.`);
+  } else {
+    console.log(`${collectionName} collection already has data.`);
+  }
+};

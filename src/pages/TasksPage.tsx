@@ -13,6 +13,7 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog";
 import TaskFormDialog from "@/components/tasks/TaskFormDialog";
+import { agents } from "@/data/mockData";
 
 const TasksContent = () => {
   const { tasks, loading, error, updateTaskStatus, searchTasks } = useTaskContext();
@@ -91,6 +92,7 @@ const TasksContent = () => {
         open={isTaskFormOpen}
         onOpenChange={setIsTaskFormOpen}
         initialData={selectedTask || undefined}
+        agents={agents}
         onSubmit={() => {
           setIsTaskFormOpen(false);
           setSelectedTask(null);
