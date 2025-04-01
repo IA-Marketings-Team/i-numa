@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -62,7 +63,7 @@ const LoginForm = () => {
           </div>
         </form>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex flex-col space-y-2">
         <Button 
           type="submit" 
           className="w-full" 
@@ -71,6 +72,14 @@ const LoginForm = () => {
         >
           {isLoading ? "Connexion en cours..." : "Se connecter"}
         </Button>
+        <div className="text-center text-sm mt-4">
+          <p className="text-muted-foreground">
+            Vous n'avez pas de compte ?{" "}
+            <Link to="/inscription" className="text-primary underline underline-offset-4 hover:text-primary/90">
+              Créer un compte
+            </Link>
+          </p>
+        </div>
       </CardFooter>
     </Card>
   );
