@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useDossier } from "@/contexts/DossierContext";
 import { useNavigate } from "react-router-dom";
@@ -32,11 +31,9 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
   const [formError, setFormError] = useState<string>("");
   const [clientError, setClientError] = useState<string>("");
 
-  // Filtrer les agents par rôle
   const phonerAgents = agents.filter(a => a.role === "agent_phoner");
   const visioAgents = agents.filter(a => a.role === "agent_visio");
 
-  // Auto-assigner l'agent phoner si l'utilisateur est un agent_phoner et qu'on crée un nouveau dossier
   useEffect(() => {
     if (!isEditing && userRole === 'agent_phoner' && selectedAgentPhoner === "none") {
       const currentAgent = agents.find(a => a.role === 'agent_phoner');
@@ -46,7 +43,6 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
     }
   }, [isEditing, userRole, selectedAgentPhoner]);
 
-  // Formater la date pour l'input
   useEffect(() => {
     if (dossier?.dateRdv) {
       const date = new Date(dossier.dateRdv);
@@ -59,7 +55,23 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
     setFormError("");
     setClientError("");
 
-    // Vérifier qu'un client est sélectionné
+    console.log("Form submission started", { 
+      selectedClient, 
+      isEditing, 
+      userRole,
+      hasPermission: hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable'])
+    });
+
+    if (!hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable'])) {
+      toast({
+        variant: "destructive",
+        title: "Accès refusé",
+        description: "Vous n'avez pas les permissions nécessaires pour créer un dossier"
+      });
+      console.error("Permission denied for dossier creation");
+      return;
+    }
+
     if (!selectedClient) {
       setClientError("Veuillez sélectionner un client");
       setFormError("Des champs obligatoires n'ont pas été remplis");
@@ -71,7 +83,6 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
       return;
     }
 
-    // Trouver le client sélectionné
     const client = clients.find(c => c.id === selectedClient);
     if (!client) {
       setClientError("Client non trouvé");
@@ -84,10 +95,8 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
       return;
     }
 
-    // Trouver les offres sélectionnées
     const offresToAdd = mockOffres.filter(o => selectedOffres.includes(o.id));
     
-    // Préparer les données du dossier
     const dossierData = {
       clientId: selectedClient,
       client: client as Client,
@@ -102,14 +111,12 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
     
     try {
       if (isEditing && dossier) {
-        // Mise à jour d'un dossier existant
         updateDossier(dossier.id, dossierData);
         toast({
           title: "Succès",
           description: "Le dossier a été mis à jour avec succès",
         });
       } else {
-        // Création d'un nouveau dossier
         addDossier(dossierData);
         toast({
           title: "Succès",
@@ -137,7 +144,6 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
     );
   };
 
-  // Calculer automatiquement le montant total des offres sélectionnées
   useEffect(() => {
     if (hasPermission(['superviseur', 'responsable'])) {
       const total = mockOffres
