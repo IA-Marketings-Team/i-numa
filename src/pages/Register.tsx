@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,10 +12,19 @@ import { createUser } from "@/services/supabase/usersService";
 import { UserRole } from "@/types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { X } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Register = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
+  
+  useEffect(() => {
+    // Redirect authenticated users away from registration
+    if (isAuthenticated) {
+      navigate("/tableau-de-bord");
+    }
+  }, [isAuthenticated, navigate]);
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -98,7 +107,6 @@ const Register = () => {
     }
   };
   
-  // Le reste du composant Register reste inchangé
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="w-full max-w-md">
