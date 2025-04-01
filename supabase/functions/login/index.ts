@@ -63,7 +63,7 @@ serve(async (req) => {
       );
     }
 
-    // Générer un token simple (dans un environnement de production, utiliser JWT)
+    // Générer un token simple
     const token = crypto.randomUUID();
     
     console.log("Login successful for:", email);

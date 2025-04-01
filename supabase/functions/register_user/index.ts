@@ -39,10 +39,15 @@ serve(async (req) => {
       .maybeSingle();
 
     if (existingUser) {
+      console.error("User already exists with email:", email);
       return new Response(
         JSON.stringify({ error: "User already exists with this email" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
+    }
+
+    if (checkError) {
+      console.error("Error checking for existing user:", checkError);
     }
 
     // Insérer l'utilisateur avec le mot de passe
