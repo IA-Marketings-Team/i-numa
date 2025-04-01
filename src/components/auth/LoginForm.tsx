@@ -6,7 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { isDemoAccount } from "@/contexts/auth/demoUserHandling";
 
-// Import our new components
+// Import our components
 import ErrorAlert from "./ErrorAlert";
 import LoginHeader from "./LoginHeader";
 import LoginCredentialsForm from "./LoginCredentialsForm";
@@ -34,15 +34,9 @@ const LoginForm = () => {
     try {
       const cleanedEmail = email.trim().toLowerCase();
       const isDemo = isDemoAccount(cleanedEmail);
-      const passwordToUse = isDemo ? "demo12345" : password;
       
-      if (!isDemo && !password) {
-        setError("Veuillez saisir un mot de passe");
-        setIsLoading(false);
-        return;
-      }
-      
-      const success = await login(cleanedEmail, passwordToUse);
+      // Pour les comptes de démo, on peut utiliser le mot de passe fourni ou celui par défaut
+      const success = await login(cleanedEmail, password);
       
       if (success) {
         navigate("/tableau-de-bord");

@@ -26,7 +26,7 @@ export const useLoginMethod = (
         // Pour les comptes de démo, effectuer une connexion directe avec le mot de passe standard
         const { data, error } = await supabase.auth.signInWithPassword({
           email: cleanedEmail,
-          password: "demo12345"  // Mot de passe fixe pour tous les comptes de démo
+          password: password || "demo12345"  // Utiliser le mot de passe fourni ou celui par défaut
         });
 
         if (error) {

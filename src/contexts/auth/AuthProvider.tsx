@@ -101,59 +101,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Vérifier la session existante au chargement
     const checkExistingSession = async () => {
       console.log("Vérification de session existante");
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
       
-      if (currentSession?.user) {
-        console.log("Session existante trouvée pour", currentSession.user.email);
-        setSession(currentSession);
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
         
-        try {
-          // Récupérer les informations complètes de l'utilisateur
-          const userData = await getUserByAuthId(currentSession.user.id);
+        if (currentSession?.user) {
+          console.log("Session existante trouvée pour", currentSession.user.email);
+          setSession(currentSession);
           
-          if (userData) {
-            console.log("Profil utilisateur trouvé pour la session existante");
-            setUser(userData);
-            setIsAuthenticated(true);
-          } else {
-            console.log("Session trouvée mais utilisateur non trouvé dans la table users");
+          try {
+            // Récupérer les informations complètes de l'utilisateur
+            const userData = await getUserByAuthId(currentSession.user.id);
             
-            // Pour les comptes de démonstration, créer un profil si nécessaire
-            if (isDemoAccount(currentSession.user.email)) {
-              console.log("Compte de démo détecté, création du profil...");
-              const newUser = await createDemoUserProfile(
-                currentSession.user.id, 
-                currentSession.user.email || ''
-              );
+            if (userData) {
+              console.log("Profil utilisateur trouvé pour la session existante");
+              setUser(userData);
+              setIsAuthenticated(true);
+            } else {
+              console.log("Session trouvée mais utilisateur non trouvé dans la table users");
               
-              if (newUser) {
-                console.log("Profil de démonstration créé avec succès pour session existante");
-                setUser(newUser);
-                setIsAuthenticated(true);
+              // Pour les comptes de démonstration, créer un profil si nécessaire
+              if (isDemoAccount(currentSession.user.email)) {
+                console.log("Compte de démo détecté, création du profil...");
+                const newUser = await createDemoUserProfile(
+                  currentSession.user.id, 
+                  currentSession.user.email || ''
+                );
+                
+                if (newUser) {
+                  console.log("Profil de démonstration créé avec succès pour session existante");
+                  setUser(newUser);
+                  setIsAuthenticated(true);
+                } else {
+                  console.error("Échec de création du profil de démonstration pour session existante");
+                  await supabase.auth.signOut();
+                  setUser(null);
+                  setIsAuthenticated(false);
+                  setSession(null);
+                }
               } else {
-                console.error("Échec de création du profil de démonstration pour session existante");
+                console.error("Session trouvée mais utilisateur non trouvé dans la table users");
                 await supabase.auth.signOut();
                 setUser(null);
                 setIsAuthenticated(false);
                 setSession(null);
               }
-            } else {
-              console.error("Session trouvée mais utilisateur non trouvé dans la table users");
-              await supabase.auth.signOut();
-              setUser(null);
-              setIsAuthenticated(false);
-              setSession(null);
             }
+          } catch (error) {
+            console.error("Erreur lors de la récupération des données utilisateur:", error);
+            await supabase.auth.signOut();
+            setUser(null);
+            setIsAuthenticated(false);
+            setSession(null);
           }
-        } catch (error) {
-          console.error("Erreur lors de la récupération des données utilisateur:", error);
-          await supabase.auth.signOut();
-          setUser(null);
-          setIsAuthenticated(false);
-          setSession(null);
+        } else {
+          console.log("Aucune session existante trouvée");
         }
-      } else {
-        console.log("Aucune session existante trouvée");
+      } catch (error) {
+        console.error("Erreur lors de la vérification de session:", error);
       }
     };
     
