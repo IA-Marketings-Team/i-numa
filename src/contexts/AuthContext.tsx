@@ -4,6 +4,7 @@ import { User, UserRole } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
+import { Database } from "@/integrations/supabase/types";
 
 interface AuthContextType {
   user: User | null;
@@ -59,6 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      // Utilisation du typage correct pour la table profiles
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
