@@ -134,6 +134,119 @@ export const migrateData = async () => {
       }
     }
     
+    // Maintenant, ajoutons spécifiquement les 5 clients fournis
+    console.log("Migration des 5 clients spécifiques...");
+    const specialClients = [
+      {
+        nom: "Dupont",
+        prenom: "Jean",
+        email: "jean.dupont@example.com",
+        telephone: "0123456789",
+        role: "client",
+        dateCreation: new Date("2023-01-15"),
+        adresse: "123 Rue de Paris, 75001 Paris",
+        iban: "FR7630001007941234567890185",
+        secteurActivite: "E-commerce",
+        typeEntreprise: "PME",
+        besoins: "Amélioration de la visibilité en ligne"
+      },
+      {
+        nom: "Martin",
+        prenom: "Sophie",
+        email: "sophie.martin@example.com",
+        telephone: "0234567890",
+        role: "client",
+        dateCreation: new Date("2023-02-20"),
+        adresse: "45 Avenue Victor Hugo, 69002 Lyon",
+        iban: "FR7630004000031234567890143",
+        secteurActivite: "Restauration",
+        typeEntreprise: "TPE",
+        besoins: "Acquisition de nouveaux clients locaux"
+      },
+      {
+        nom: "Petit",
+        prenom: "Robert",
+        email: "robert.petit@example.com",
+        telephone: "0345678901",
+        role: "client",
+        dateCreation: new Date("2023-03-10"),
+        adresse: "8 Boulevard des Capucines, 13001 Marseille",
+        secteurActivite: "Consulting",
+        typeEntreprise: "Indépendant",
+        besoins: "Développement de clientèle B2B"
+      },
+      {
+        nom: "Dubois",
+        prenom: "Émilie",
+        email: "emilie.dubois@example.com",
+        telephone: "0456789012",
+        role: "client",
+        dateCreation: new Date("2023-04-05"),
+        adresse: "27 Rue du Commerce, 33000 Bordeaux",
+        secteurActivite: "Immobilier",
+        typeEntreprise: "PME",
+        besoins: "Stratégie marketing digitale complète"
+      },
+      {
+        nom: "Lefebvre",
+        prenom: "Michel",
+        email: "michel.lefebvre@example.com",
+        telephone: "0567890123",
+        role: "client",
+        dateCreation: new Date("2023-05-12"),
+        adresse: "56 Rue de la Liberté, 59000 Lille",
+        secteurActivite: "Santé",
+        typeEntreprise: "Profession libérale",
+        besoins: "Visibilité locale et référencement"
+      }
+    ];
+    
+    for (const client of specialClients) {
+      // Créer l'utilisateur dans auth.users
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: client.email,
+        password: "password123", // Mot de passe temporaire
+        options: {
+          data: {
+            nom: client.nom,
+            prenom: client.prenom,
+            role: client.role
+          }
+        }
+      });
+      
+      if (authError) {
+        console.error(`Erreur lors de la création du client ${client.email}:`, authError);
+        continue;
+      }
+      
+      if (authData?.user) {
+        // Mettre à jour le profil avec les données supplémentaires
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            nom: client.nom,
+            prenom: client.prenom,
+            email: client.email,
+            telephone: client.telephone,
+            role: client.role,
+            adresse: client.adresse,
+            iban: client.iban,
+            date_creation: client.dateCreation.toISOString(),
+            secteur_activite: client.secteurActivite,
+            type_entreprise: client.typeEntreprise,
+            besoins: client.besoins
+          })
+          .eq('id', authData.user.id);
+        
+        if (profileError) {
+          console.error(`Erreur lors de la mise à jour du profil client ${client.email}:`, profileError);
+        } else {
+          console.log(`Client ${client.prenom} ${client.nom} migré avec succès!`);
+        }
+      }
+    }
+    
     // 4. Migrer les dossiers
     console.log("Migration des dossiers...");
     
