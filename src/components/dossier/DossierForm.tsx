@@ -45,7 +45,8 @@ const DossierForm: React.FC<DossierFormProps> = ({ dossier, isEditing = false, u
     visioAgents,
     hasPermission,
     navigate,
-    formError
+    formError,
+    clientError
   } = useDossierForm({ dossier, isEditing, userRole });
 
   return (
@@ -69,7 +70,7 @@ const DossierForm: React.FC<DossierFormProps> = ({ dossier, isEditing = false, u
             selectedClient={selectedClient} 
             onClientChange={setSelectedClient} 
             disabled={isEditing}
-            error={!selectedClient && formError ? "Ce champ est obligatoire" : ""}
+            error={clientError}
           />
 
           {/* Statut du dossier */}

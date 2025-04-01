@@ -21,7 +21,7 @@ const ClientSelector: React.FC<ClientSelectorProps> = ({
     <div className="space-y-2">
       <Label htmlFor="client" className={error ? "text-destructive" : ""}>Client *</Label>
       <Select
-        value={selectedClient}
+        value={selectedClient || undefined}
         onValueChange={onClientChange}
         disabled={disabled}
       >

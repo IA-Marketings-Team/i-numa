@@ -30,6 +30,7 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
   const [montant, setMontant] = useState<number | undefined>(dossier?.montant);
   const [dateRdv, setDateRdv] = useState<string>("");
   const [formError, setFormError] = useState<string>("");
+  const [clientError, setClientError] = useState<string>("");
 
   // Filtrer les agents par rôle
   const phonerAgents = agents.filter(a => a.role === "agent_phoner");
@@ -56,10 +57,12 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
+    setClientError("");
 
     // Vérifier qu'un client est sélectionné
     if (!selectedClient) {
-      setFormError("Veuillez sélectionner un client");
+      setClientError("Veuillez sélectionner un client");
+      setFormError("Des champs obligatoires n'ont pas été remplis");
       toast({
         variant: "destructive",
         title: "Erreur",
@@ -71,6 +74,7 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
     // Trouver le client sélectionné
     const client = clients.find(c => c.id === selectedClient);
     if (!client) {
+      setClientError("Client non trouvé");
       setFormError("Client non trouvé");
       toast({
         variant: "destructive",
@@ -116,6 +120,7 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
       navigate("/dossiers");
     } catch (error) {
       console.error("Erreur lors de la sauvegarde du dossier:", error);
+      setFormError("Une erreur est survenue lors de la sauvegarde du dossier");
       toast({
         variant: "destructive",
         title: "Erreur",
@@ -166,6 +171,7 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
     visioAgents,
     hasPermission,
     navigate,
-    formError
+    formError,
+    clientError
   };
 };
