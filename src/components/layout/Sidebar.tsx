@@ -26,6 +26,7 @@ import {
   Settings,
   HelpCircle,
   LogOut,
+  UserCog
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { UserRole } from "@/types";
@@ -72,6 +73,12 @@ export default function Sidebar() {
         path: "/statistiques",
         icon: <BarChart2 className="size-4" />,
         roles: ["agent_phoner", "agent_visio", "superviseur", "responsable"] as UserRole[]
+      },
+      {
+        name: "Gestion d'équipes",
+        path: "/superviseur/equipes",
+        icon: <UserCog className="size-4" />,
+        roles: ["superviseur", "responsable"] as UserRole[]
       }
     ];
     

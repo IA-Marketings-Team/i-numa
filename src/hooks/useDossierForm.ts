@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useDossierFormState } from "./useDossierFormState";
 import { useDossierFormSubmit } from "./useDossierFormSubmit";
 import { Dossier, UserRole } from "@/types";
-import { mockOffres } from "@/data/mockData";
+import { mockOffres } from "@/data/mock/offres";
 
 interface UseDossierFormProps {
   dossier?: Dossier;

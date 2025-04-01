@@ -2,8 +2,9 @@
 import { useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Client, Offre } from "@/types";
-import { clients, mockOffres } from "@/data/mockData";
+import { Client, DossierStatus, Offre } from "@/types";
+import { clients } from "@/data/mockData";
+import { mockOffres } from "@/data/mock/offres";
 import { useToast } from "@/hooks/use-toast";
 
 interface UseDossierFormSubmitProps {
@@ -111,7 +112,7 @@ export const useDossierFormSubmit = ({
       client: client as Client,
       agentPhonerId: selectedAgentPhoner !== "none" ? selectedAgentPhoner : undefined,
       agentVisioId: selectedAgentVisio !== "none" ? selectedAgentVisio : undefined,
-      status,
+      status: status as DossierStatus,
       offres: offresToAdd as Offre[],
       dateRdv: dateRdv ? new Date(dateRdv) : undefined,
       notes,

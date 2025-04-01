@@ -11,13 +11,17 @@ interface ChartData {
 
 interface RendezVousChartProps {
   data: ChartData[];
+  title?: string;
 }
 
-const RendezVousChart: React.FC<RendezVousChartProps> = ({ data }) => {
+const RendezVousChart: React.FC<RendezVousChartProps> = ({ 
+  data, 
+  title = "Rendez-vous par statut" 
+}) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Rendez-vous par statut</CardTitle>
+        <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-64">
@@ -28,7 +32,7 @@ const RendezVousChart: React.FC<RendezVousChartProps> = ({ data }) => {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="value" name="Nombre de RDV" />
+              <Bar dataKey="value" name="Nombre" fill={(entry) => entry.fill || "#8884d8"} />
             </BarChart>
           </ResponsiveContainer>
         </div>

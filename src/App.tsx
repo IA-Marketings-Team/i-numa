@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,11 +26,11 @@ import { StatistiqueProvider } from "./contexts/StatistiqueContext";
 import { CartProvider } from "./contexts/CartContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import SuperviseurEquipes from "./pages/SuperviseurEquipes";
 
-// Create a QueryClient instance that will persist across renders
 const queryClient = new QueryClient();
 
-const App = () => {
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -75,8 +74,7 @@ const App = () => {
                             </ProtectedRoute>
                           } 
                         />
-
-                        {/* Route pour nouveau dossier - placer avant la route avec paramètre :id/edit */}
+                        
                         <Route 
                           path="/dossiers/nouveau" 
                           element={
@@ -185,6 +183,14 @@ const App = () => {
                           } 
                         />
                         
+                        <Route path="/superviseur/equipes" element={
+                          <ProtectedRoute allowedRoles={['superviseur', 'responsable']}>
+                            <Layout>
+                              <SuperviseurEquipes />
+                            </Layout>
+                          </ProtectedRoute>
+                        } />
+                        
                         <Route path="*" element={<NotFound />} />
                       </Route>
                     </Routes>
@@ -197,6 +203,6 @@ const App = () => {
       </TooltipProvider>
     </QueryClientProvider>
   );
-};
+}
 
 export default App;
