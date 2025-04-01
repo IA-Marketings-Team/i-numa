@@ -2,18 +2,23 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { useAuth } from "@/contexts/AuthContext";
-import { User, LogOut, Search, Plus, ChevronLeft, Bell, Settings } from "lucide-react";
+import { User, LogOut, Search, Plus, ChevronLeft, Bell, Settings, HelpCircle } from "lucide-react";
 import CartDrawer from "@/components/cart/CartDrawer";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import NotificationsPanel from "@/components/notifications/NotificationsPanel";
+import HelpDialog from "@/components/support/HelpDialog";
 
 const Header = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const isClient = user?.role === 'client';
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [helpDialogOpen, setHelpDialogOpen] = useState(false);
   
   // Log component initialization
   useEffect(() => {
@@ -148,11 +153,24 @@ const Header = () => {
             <span>Créer</span>
           </Button>
           
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-destructive-foreground">
-              2
-            </span>
+          <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-destructive-foreground">
+                  2
+                </span>
+              </Button>
+            </PopoverTrigger>
+            <NotificationsPanel />
+          </Popover>
+          
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setHelpDialogOpen(true)}
+          >
+            <HelpCircle className="h-5 w-5" />
           </Button>
           
           {isClient && <CartDrawer />}
@@ -166,6 +184,8 @@ const Header = () => {
           </Button>
         </div>
       </div>
+      
+      <HelpDialog open={helpDialogOpen} onOpenChange={setHelpDialogOpen} />
     </header>
   );
 };
