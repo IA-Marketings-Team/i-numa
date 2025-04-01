@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -16,27 +17,77 @@ const LoginForm = () => {
   const [error, setError] = useState<string | null>(null);
   const { login } = useAuth();
 
+  const isDemoAccount = (email: string): boolean => {
+    const demoAccounts = [
+      "jean.dupont@example.com", 
+      "thomas.leroy@example.com", 
+      "claire.moreau@example.com", 
+      "ahmed.tayin@example.com", 
+      "marie.andy@example.com"
+    ];
+    return demoAccounts.includes(email);
+  };
+
+  const handleDemoLogin = async (email: string): Promise<boolean> => {
+    // Pour les comptes de démo, on contourne la vérification du mot de passe
+    // en créant directement une session Supabase
+    try {
+      console.log("Tentative de connexion avec compte démo:", email);
+      
+      // On s'assure d'abord que l'utilisateur existe dans auth
+      const { data: userExists } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: "demo12345" // Mot de passe par défaut pour les démos
+      });
+      
+      if (userExists.user) {
+        console.log("Connexion démo réussie");
+        return true;
+      } else {
+        // Si l'utilisateur n'existe pas dans auth, on le crée d'abord
+        console.log("Création du compte démo dans auth");
+        const { data: newUser, error: signUpError } = await supabase.auth.signUp({
+          email: email,
+          password: "demo12345" // Mot de passe par défaut pour les démos
+        });
+        
+        if (signUpError) {
+          console.error("Erreur lors de la création du compte démo:", signUpError);
+          return false;
+        }
+        
+        if (newUser.user) {
+          console.log("Compte démo créé avec succès");
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (error) {
+      console.error("Erreur lors du login démo:", error);
+      return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     
     try {
-      // Pour les besoins de démonstration, permettre toute connexion avec les comptes de démo
-      if (["jean.dupont@example.com", "thomas.leroy@example.com", "claire.moreau@example.com", 
-           "ahmed.tayin@example.com", "marie.andy@example.com"].includes(email)) {
-        // Connexion spéciale pour les comptes de démonstration
+      let success = false;
+      
+      if (isDemoAccount(email)) {
+        // Logique spéciale pour les comptes de démonstration
         console.log("Compte de démonstration détecté, tentative de connexion...");
-        const success = await login(email, password);
-        if (!success) {
-          setError("Échec de connexion avec le compte de démonstration. Veuillez réessayer.");
-        }
+        success = await handleDemoLogin(email);
       } else {
         // Connexion normale pour les autres comptes
-        const success = await login(email, password);
-        if (!success) {
-          setError("Identifiants incorrects. Veuillez réessayer.");
-        }
+        success = await login(email, password);
+      }
+      
+      if (!success) {
+        setError("Identifiants incorrects. Veuillez réessayer.");
       }
     } catch (error) {
       console.error("Erreur de connexion:", error);
