@@ -29,6 +29,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import SuperviseurEquipes from "./pages/SuperviseurEquipes";
 import SuperviseurEquipe from "./pages/SuperviseurEquipe";
+import MigrationPage from "./pages/MigrationPage";
 
 const queryClient = new QueryClient();
 
@@ -185,17 +186,32 @@ function App() {
                           } 
                         />
                         
-                        <Route path="/superviseur/equipes" element={
-                          <ProtectedRoute roles={['superviseur', 'responsable']}>
-                            <SuperviseurEquipes />
-                          </ProtectedRoute>
-                        } />
+                        <Route 
+                          path="/superviseur/equipes" 
+                          element={
+                            <ProtectedRoute roles={['superviseur', 'responsable']}>
+                              <SuperviseurEquipes />
+                            </ProtectedRoute>
+                          } 
+                        />
                         
-                        <Route path="/superviseur/equipe" element={
-                          <ProtectedRoute roles={['superviseur', 'responsable']}>
-                            <SuperviseurEquipe />
-                          </ProtectedRoute>
-                        } />
+                        <Route 
+                          path="/superviseur/equipe" 
+                          element={
+                            <ProtectedRoute roles={['superviseur', 'responsable']}>
+                              <SuperviseurEquipe />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
+                          path="/migration" 
+                          element={
+                            <ProtectedRoute roles={['superviseur', 'responsable']}>
+                              <MigrationPage />
+                            </ProtectedRoute>
+                          } 
+                        />
                         
                         <Route path="*" element={<NotFound />} />
                       </Route>

@@ -9,6 +9,296 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agents: {
+        Row: {
+          appels_decroches: number
+          appels_emis: number
+          appels_transformes: number
+          dossiers_signe: number
+          dossiers_valides: number
+          equipe_id: string | null
+          id: string
+          rendez_vous_honores: number
+          rendez_vous_non_honores: number
+        }
+        Insert: {
+          appels_decroches?: number
+          appels_emis?: number
+          appels_transformes?: number
+          dossiers_signe?: number
+          dossiers_valides?: number
+          equipe_id?: string | null
+          id: string
+          rendez_vous_honores?: number
+          rendez_vous_non_honores?: number
+        }
+        Update: {
+          appels_decroches?: number
+          appels_emis?: number
+          appels_transformes?: number
+          dossiers_signe?: number
+          dossiers_valides?: number
+          equipe_id?: string | null
+          id?: string
+          rendez_vous_honores?: number
+          rendez_vous_non_honores?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agents_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agents_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          besoins: string
+          id: string
+          secteur_activite: string
+          type_entreprise: string
+        }
+        Insert: {
+          besoins: string
+          id: string
+          secteur_activite: string
+          type_entreprise: string
+        }
+        Update: {
+          besoins?: string
+          id?: string
+          secteur_activite?: string
+          type_entreprise?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dossier_offres: {
+        Row: {
+          dossier_id: string
+          id: string
+          offre_id: string
+        }
+        Insert: {
+          dossier_id: string
+          id?: string
+          offre_id: string
+        }
+        Update: {
+          dossier_id?: string
+          id?: string
+          offre_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dossier_offres_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossier_offres_offre_id_fkey"
+            columns: ["offre_id"]
+            isOneToOne: false
+            referencedRelation: "offres"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dossiers: {
+        Row: {
+          agent_phoner_id: string | null
+          agent_visio_id: string | null
+          client_id: string
+          date_archivage: string | null
+          date_creation: string
+          date_mise_a_jour: string
+          date_rdv: string | null
+          date_signature: string | null
+          date_validation: string | null
+          id: string
+          montant: number | null
+          notes: string | null
+          status: Database["public"]["Enums"]["dossier_status"]
+        }
+        Insert: {
+          agent_phoner_id?: string | null
+          agent_visio_id?: string | null
+          client_id: string
+          date_archivage?: string | null
+          date_creation?: string
+          date_mise_a_jour?: string
+          date_rdv?: string | null
+          date_signature?: string | null
+          date_validation?: string | null
+          id?: string
+          montant?: number | null
+          notes?: string | null
+          status: Database["public"]["Enums"]["dossier_status"]
+        }
+        Update: {
+          agent_phoner_id?: string | null
+          agent_visio_id?: string | null
+          client_id?: string
+          date_archivage?: string | null
+          date_creation?: string
+          date_mise_a_jour?: string
+          date_rdv?: string | null
+          date_signature?: string | null
+          date_validation?: string | null
+          id?: string
+          montant?: number | null
+          notes?: string | null
+          status?: Database["public"]["Enums"]["dossier_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dossiers_agent_phoner_id_fkey"
+            columns: ["agent_phoner_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossiers_agent_visio_id_fkey"
+            columns: ["agent_visio_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossiers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offres: {
+        Row: {
+          description: string
+          id: string
+          nom: string
+          prix: number | null
+          type: Database["public"]["Enums"]["offre_type"]
+        }
+        Insert: {
+          description: string
+          id?: string
+          nom: string
+          prix?: number | null
+          type: Database["public"]["Enums"]["offre_type"]
+        }
+        Update: {
+          description?: string
+          id?: string
+          nom?: string
+          prix?: number | null
+          type?: Database["public"]["Enums"]["offre_type"]
+        }
+        Relationships: []
+      }
+      rendez_vous: {
+        Row: {
+          date: string
+          dossier_id: string
+          honore: boolean
+          id: string
+          location: string | null
+          meeting_link: string | null
+          notes: string | null
+        }
+        Insert: {
+          date: string
+          dossier_id: string
+          honore?: boolean
+          id?: string
+          location?: string | null
+          meeting_link?: string | null
+          notes?: string | null
+        }
+        Update: {
+          date?: string
+          dossier_id?: string
+          honore?: boolean
+          id?: string
+          location?: string | null
+          meeting_link?: string | null
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rendez_vous_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      statistiques: {
+        Row: {
+          appels_decroches: number
+          appels_emis: number
+          appels_transformes: number
+          chiffre_affaires: number | null
+          date_debut: string
+          date_fin: string
+          dossiers_signe: number
+          dossiers_valides: number
+          id: string
+          periode: string
+          rendez_vous_honores: number
+          rendez_vous_non_honores: number
+        }
+        Insert: {
+          appels_decroches: number
+          appels_emis: number
+          appels_transformes: number
+          chiffre_affaires?: number | null
+          date_debut: string
+          date_fin: string
+          dossiers_signe: number
+          dossiers_valides: number
+          id?: string
+          periode: string
+          rendez_vous_honores: number
+          rendez_vous_non_honores: number
+        }
+        Update: {
+          appels_decroches?: number
+          appels_emis?: number
+          appels_transformes?: number
+          chiffre_affaires?: number | null
+          date_debut?: string
+          date_fin?: string
+          dossiers_signe?: number
+          dossiers_valides?: number
+          id?: string
+          periode?: string
+          rendez_vous_honores?: number
+          rendez_vous_non_honores?: number
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           agent_id: string | null
@@ -40,6 +330,89 @@ export type Database = {
           status?: string
           title?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "fk_agent"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          date_creation: string
+          description: string | null
+          fonction: Database["public"]["Enums"]["team_fonction"]
+          id: string
+          nom: string
+        }
+        Insert: {
+          date_creation?: string
+          description?: string | null
+          fonction: Database["public"]["Enums"]["team_fonction"]
+          id?: string
+          nom: string
+        }
+        Update: {
+          date_creation?: string
+          description?: string | null
+          fonction?: Database["public"]["Enums"]["team_fonction"]
+          id?: string
+          nom?: string
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          adresse: string | null
+          auth_id: string | null
+          bic: string | null
+          code_postal: string | null
+          date_creation: string
+          email: string
+          iban: string | null
+          id: string
+          nom: string
+          nom_banque: string | null
+          prenom: string
+          role: Database["public"]["Enums"]["user_role"]
+          telephone: string
+          ville: string | null
+        }
+        Insert: {
+          adresse?: string | null
+          auth_id?: string | null
+          bic?: string | null
+          code_postal?: string | null
+          date_creation?: string
+          email: string
+          iban?: string | null
+          id?: string
+          nom: string
+          nom_banque?: string | null
+          prenom: string
+          role: Database["public"]["Enums"]["user_role"]
+          telephone: string
+          ville?: string | null
+        }
+        Update: {
+          adresse?: string | null
+          auth_id?: string | null
+          bic?: string | null
+          code_postal?: string | null
+          date_creation?: string
+          email?: string
+          iban?: string | null
+          id?: string
+          nom?: string
+          nom_banque?: string | null
+          prenom?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          telephone?: string
+          ville?: string | null
+        }
         Relationships: []
       }
     }
@@ -50,7 +423,29 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      dossier_status:
+        | "prospect"
+        | "rdv_en_cours"
+        | "valide"
+        | "signe"
+        | "archive"
+      offre_type: "SEO" | "Google Ads" | "Email X" | "Foner" | "Devis"
+      task_priority: "low" | "medium" | "high"
+      task_status: "to_do" | "in_progress" | "done"
+      team_fonction:
+        | "phoning"
+        | "visio"
+        | "developpement"
+        | "marketing"
+        | "mixte"
+      user_role:
+        | "client"
+        | "agent_phoner"
+        | "agent_visio"
+        | "agent_developpeur"
+        | "agent_marketing"
+        | "superviseur"
+        | "responsable"
     }
     CompositeTypes: {
       [_ in never]: never
