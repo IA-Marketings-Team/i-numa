@@ -3,14 +3,17 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Client } from "@/types";
 import { clients } from "@/data/mock/clients";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Eye, FileEdit, Trash2, Search, UserPlus, Phone } from "lucide-react";
+import { Search, UserPlus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
+
+// Composant refactorisé
+import ClientCard from "./ClientCard";
 
 const ClientList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -39,6 +42,16 @@ const ClientList = () => {
 
   const handleEditClient = (clientId: string) => {
     navigate(`/clients/${clientId}/edit`);
+  };
+
+  const handleDeleteClick = (client: Client) => {
+    setSelectedClient(client);
+    setIsDeleting(true);
+  };
+
+  const handleCallClick = (client: Client) => {
+    setSelectedClient(client);
+    setIsCalling(true);
   };
 
   const handleDeleteClient = () => {
@@ -104,81 +117,13 @@ const ClientList = () => {
         {filteredClients.length > 0 ? (
           filteredClients.map((client) => (
             <Card key={client.id} className="shadow-sm hover:shadow transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg">
-                      {client.nom} {client.prenom}
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                      <p className="text-gray-600">{client.email}</p>
-                      <p className="text-gray-600">{client.telephone}</p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                        {client.secteurActivite}
-                      </span>
-                      <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
-                        {client.typeEntreprise}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleViewClient(client.id)}
-                      className="flex items-center gap-1"
-                    >
-                      <Eye className="w-4 h-4" />
-                      <span className="hidden sm:inline">Voir</span>
-                    </Button>
-                    
-                    {hasPermission(['agent_phoner', 'agent_visio']) && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedClient(client);
-                          setIsCalling(true);
-                        }}
-                        className="flex items-center gap-1"
-                      >
-                        <Phone className="w-4 h-4" />
-                        <span className="hidden sm:inline">Appeler</span>
-                      </Button>
-                    )}
-                    
-                    {hasPermission(['superviseur', 'responsable']) && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditClient(client.id)}
-                          className="flex items-center gap-1"
-                        >
-                          <FileEdit className="w-4 h-4" />
-                          <span className="hidden sm:inline">Modifier</span>
-                        </Button>
-                        
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedClient(client);
-                            setIsDeleting(true);
-                          }}
-                          className="flex items-center gap-1"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          <span className="hidden sm:inline">Supprimer</span>
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
+              <ClientCard 
+                client={client} 
+                onView={handleViewClient}
+                onEdit={handleEditClient}
+                onDelete={handleDeleteClick}
+                onCall={handleCallClick}
+              />
             </Card>
           ))
         ) : (
