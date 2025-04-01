@@ -1,4 +1,3 @@
-
 import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
@@ -11,16 +10,19 @@ const Layout = () => {
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="flex h-screen overflow-hidden bg-background">
+      <div className="flex h-screen w-full overflow-hidden bg-background">
         {isAuthenticated && <Sidebar />}
-        
-        <div className="flex flex-col flex-1 w-full overflow-hidden">
+
+        <div
+          className="flex flex-col flex-1 w-full overflow-hidden"
+          style={{ backgroundColor: "red" }}
+        >
           {isAuthenticated && <Header />}
-          
+
           <main className="flex-1 overflow-auto bg-background">
-              <Outlet />
+            <Outlet />
           </main>
-          
+
           <footer className="py-2 md:py-3 bg-card border-t">
             <div className="w-full px-4 md:px-6">
               <p className="text-center text-xs text-muted-foreground">
@@ -29,7 +31,7 @@ const Layout = () => {
             </div>
           </footer>
         </div>
-        
+
         <Toaster />
       </div>
     </SidebarProvider>
