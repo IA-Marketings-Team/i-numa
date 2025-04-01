@@ -7,10 +7,9 @@ import { User } from "@/types";
  */
 export const customLogin = async (email: string, password: string): Promise<{ token: string; user: User | null }> => {
   try {
-    // Appeler la fonction login personnalisée
-    const { data, error } = await supabase.rpc('login', {
-      email: email,
-      password: password
+    // Appeler la fonction login personnalisée avec l'API functions.invoke au lieu de rpc
+    const { data, error } = await supabase.functions.invoke<string>("login", {
+      body: { email, password }
     });
 
     if (error) {
@@ -68,14 +67,16 @@ export const customRegister = async (
   password: string
 ): Promise<User | null> => {
   try {
-    // Appeler la fonction register_user personnalisée
-    const { data, error } = await supabase.rpc('register_user', {
-      nom: nom,
-      prenom: prenom,
-      email: email,
-      telephone: telephone,
-      role: role,
-      password: password
+    // Appeler la fonction register_user personnalisée avec l'API functions.invoke au lieu de rpc
+    const { data, error } = await supabase.functions.invoke<string>("register_user", {
+      body: { 
+        nom, 
+        prenom, 
+        email, 
+        telephone, 
+        role, 
+        password 
+      }
     });
 
     if (error) {
