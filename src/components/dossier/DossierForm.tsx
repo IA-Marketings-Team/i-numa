@@ -13,6 +13,8 @@ import AgentSelectors from "./AgentSelectors";
 import OffresSelector from "./OffresSelector";
 import MontantInput from "./MontantInput";
 import NotesInput from "./NotesInput";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface DossierFormProps {
   dossier?: Dossier;
@@ -42,7 +44,8 @@ const DossierForm: React.FC<DossierFormProps> = ({ dossier, isEditing = false, u
     phonerAgents,
     visioAgents,
     hasPermission,
-    navigate
+    navigate,
+    formError
   } = useDossierForm({ dossier, isEditing, userRole });
 
   return (
@@ -52,11 +55,21 @@ const DossierForm: React.FC<DossierFormProps> = ({ dossier, isEditing = false, u
           <CardTitle>{isEditing ? "Modifier le dossier" : "Créer un nouveau dossier"}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {formError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {formError}
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Sélection du client */}
           <ClientSelector 
             selectedClient={selectedClient} 
             onClientChange={setSelectedClient} 
             disabled={isEditing}
+            error={!selectedClient && formError ? "Ce champ est obligatoire" : ""}
           />
 
           {/* Statut du dossier */}

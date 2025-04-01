@@ -8,22 +8,24 @@ interface ClientSelectorProps {
   selectedClient: string;
   onClientChange: (value: string) => void;
   disabled?: boolean;
+  error?: string;
 }
 
 const ClientSelector: React.FC<ClientSelectorProps> = ({ 
   selectedClient, 
   onClientChange,
-  disabled = false
+  disabled = false,
+  error
 }) => {
   return (
     <div className="space-y-2">
-      <Label htmlFor="client">Client</Label>
+      <Label htmlFor="client" className={error ? "text-destructive" : ""}>Client *</Label>
       <Select
         value={selectedClient}
         onValueChange={onClientChange}
         disabled={disabled}
       >
-        <SelectTrigger id="client">
+        <SelectTrigger id="client" className={error ? "border-destructive ring-destructive" : ""}>
           <SelectValue placeholder="Sélectionner un client" />
         </SelectTrigger>
         <SelectContent>
@@ -34,6 +36,7 @@ const ClientSelector: React.FC<ClientSelectorProps> = ({
           ))}
         </SelectContent>
       </Select>
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );
 };

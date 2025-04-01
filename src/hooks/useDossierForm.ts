@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Client, Dossier, DossierStatus, UserRole, Offre } from "@/types";
 import { clients, agents, offres as mockOffres } from "@/data/mockData";
+import { useToast } from "@/hooks/use-toast";
 
 interface UseDossierFormProps {
   dossier?: Dossier;
@@ -16,6 +17,7 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
   const navigate = useNavigate();
   const { addDossier, updateDossier } = useDossier();
   const { hasPermission } = useAuth();
+  const { toast } = useToast();
   
   const [selectedClient, setSelectedClient] = useState<string>(dossier?.clientId || "");
   const [selectedAgentPhoner, setSelectedAgentPhoner] = useState<string>(dossier?.agentPhonerId || "none");
@@ -27,6 +29,7 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
   );
   const [montant, setMontant] = useState<number | undefined>(dossier?.montant);
   const [dateRdv, setDateRdv] = useState<string>("");
+  const [formError, setFormError] = useState<string>("");
 
   // Filtrer les agents par rôle
   const phonerAgents = agents.filter(a => a.role === "agent_phoner");
@@ -52,16 +55,30 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError("");
 
     // Vérifier qu'un client est sélectionné
     if (!selectedClient) {
-      alert("Veuillez sélectionner un client");
+      setFormError("Veuillez sélectionner un client");
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Veuillez sélectionner un client"
+      });
       return;
     }
 
     // Trouver le client sélectionné
     const client = clients.find(c => c.id === selectedClient);
-    if (!client) return;
+    if (!client) {
+      setFormError("Client non trouvé");
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Client non trouvé"
+      });
+      return;
+    }
 
     // Trouver les offres sélectionnées
     const offresToAdd = mockOffres.filter(o => selectedOffres.includes(o.id));
@@ -79,15 +96,32 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
       montant
     };
     
-    if (isEditing && dossier) {
-      // Mise à jour d'un dossier existant
-      updateDossier(dossier.id, dossierData);
-    } else {
-      // Création d'un nouveau dossier
-      addDossier(dossierData);
+    try {
+      if (isEditing && dossier) {
+        // Mise à jour d'un dossier existant
+        updateDossier(dossier.id, dossierData);
+        toast({
+          title: "Succès",
+          description: "Le dossier a été mis à jour avec succès",
+        });
+      } else {
+        // Création d'un nouveau dossier
+        addDossier(dossierData);
+        toast({
+          title: "Succès",
+          description: "Le dossier a été créé avec succès",
+        });
+      }
+      
+      navigate("/dossiers");
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde du dossier:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la sauvegarde du dossier",
+      });
     }
-
-    navigate("/dossiers");
   };
 
   const handleOffreChange = (offreId: string) => {
@@ -131,6 +165,7 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
     phonerAgents,
     visioAgents,
     hasPermission,
-    navigate
+    navigate,
+    formError
   };
 };
