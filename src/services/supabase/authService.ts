@@ -7,7 +7,7 @@ import { User } from "@/types";
  */
 export const customLogin = async (email: string, password: string): Promise<{ token: string; user: User | null }> => {
   try {
-    // Appeler la fonction login personnalisée avec l'API functions.invoke au lieu de rpc
+    // Call the login edge function with the API functions.invoke
     const { data, error } = await supabase.functions.invoke<string>("login", {
       body: { email, password }
     });
@@ -19,7 +19,7 @@ export const customLogin = async (email: string, password: string): Promise<{ to
 
     const token = data;
 
-    // Récupérer les informations de l'utilisateur
+    // Retrieve user information
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
@@ -67,7 +67,7 @@ export const customRegister = async (
   password: string
 ): Promise<User | null> => {
   try {
-    // Appeler la fonction register_user personnalisée avec l'API functions.invoke au lieu de rpc
+    // Call the register_user edge function with the API functions.invoke
     const { data, error } = await supabase.functions.invoke<string>("register_user", {
       body: { 
         nom, 
@@ -86,7 +86,7 @@ export const customRegister = async (
 
     const userId = data;
 
-    // Récupérer les informations de l'utilisateur créé
+    // Retrieve the created user information
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
