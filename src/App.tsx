@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -39,13 +40,15 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <ThemeProvider>
-          <AuthProvider>
-            <BrowserRouter>
+          <BrowserRouter>
+            <AuthProvider>
               <Routes>
+                {/* Public routes - outside of Layout but still within AuthProvider */}
                 <Route path="/connexion" element={<Login />} />
                 <Route path="/inscription" element={<Register />} />
                 <Route path="/" element={<Index />} />
                 
+                {/* Protected routes - with Layout wrapper */}
                 <Route element={
                   <DossierProvider>
                     <StatistiqueProvider>
@@ -222,8 +225,8 @@ function App() {
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>
-            </BrowserRouter>
-          </AuthProvider>
+            </AuthProvider>
+          </BrowserRouter>
         </ThemeProvider>
       </TooltipProvider>
     </QueryClientProvider>

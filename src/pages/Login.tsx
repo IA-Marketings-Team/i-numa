@@ -9,6 +9,7 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // If user is already authenticated, redirect to dashboard
     if (isAuthenticated) {
       navigate("/tableau-de-bord");
     }
