@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, UserRole } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { getUserById } from "@/services/supabase/usersService";
+import { getUserByAuthId } from "@/services/supabase/usersService";
 import { Session } from "@supabase/supabase-js";
 
 interface AuthContextType {
@@ -33,10 +33,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (currentSession?.user) {
           setTimeout(async () => {
             try {
-              const userData = await getUserById(currentSession.user.id);
+              // Utilisons auth_id pour chercher l'utilisateur
+              const userData = await getUserByAuthId(currentSession.user.id);
               if (userData) {
                 setUser(userData);
                 setIsAuthenticated(true);
+              } else {
+                console.error("Utilisateur authentifié mais non trouvé dans la table users");
+                // Gérer le cas où l'authentification est réussie mais l'utilisateur n'existe pas dans la table users
+                toast({
+                  title: "Erreur",
+                  description: "Votre profil utilisateur est incomplet. Contactez l'administrateur.",
+                  variant: "destructive",
+                });
               }
             } catch (error) {
               console.error("Erreur lors de la récupération des données utilisateur:", error);
@@ -55,11 +64,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(currentSession);
         
         // Récupérer les informations complètes de l'utilisateur
-        getUserById(currentSession.user.id)
+        getUserByAuthId(currentSession.user.id)
           .then(userData => {
             if (userData) {
               setUser(userData);
               setIsAuthenticated(true);
+            } else {
+              console.error("Session trouvée mais utilisateur non trouvé dans la table users");
             }
           })
           .catch(error => {
@@ -71,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [toast]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
@@ -91,6 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.user) {
+        // La mise à jour de l'utilisateur se fait via onAuthStateChange
         toast({
           title: "Connexion réussie",
           description: "Vous êtes maintenant connecté",

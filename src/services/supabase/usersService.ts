@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/types";
 
@@ -14,6 +13,38 @@ export const getUserById = async (id: string): Promise<User | null> => {
     console.error("Error fetching user:", error);
     return null;
   }
+
+  return {
+    id: data.id,
+    nom: data.nom,
+    prenom: data.prenom,
+    email: data.email,
+    telephone: data.telephone,
+    role: data.role,
+    dateCreation: new Date(data.date_creation),
+    adresse: data.adresse || undefined,
+    ville: data.ville || undefined,
+    codePostal: data.code_postal || undefined,
+    iban: data.iban || undefined,
+    bic: data.bic || undefined,
+    nomBanque: data.nom_banque || undefined,
+  };
+};
+
+export const getUserByAuthId = async (authId: string): Promise<User | null> => {
+  // @ts-ignore - Ignoring type error since we know the table exists but TypeScript doesn't
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("auth_id", authId)
+    .single();
+
+  if (error) {
+    console.error("Error fetching user by auth ID:", error);
+    return null;
+  }
+
+  if (!data) return null;
 
   return {
     id: data.id,
@@ -61,48 +92,56 @@ export const getAllUsers = async (): Promise<User[]> => {
   }));
 };
 
-export const createUser = async (user: Omit<User, "id" | "dateCreation">): Promise<User | null> => {
-  // @ts-ignore - Ignoring type error since we know the table exists but TypeScript doesn't
-  const { data, error } = await supabase
-    .from("users")
-    .insert([
-      {
-        nom: user.nom,
-        prenom: user.prenom,
-        email: user.email,
-        telephone: user.telephone,
-        role: user.role,
-        adresse: user.adresse,
-        ville: user.ville,
-        code_postal: user.codePostal,
-        iban: user.iban,
-        bic: user.bic,
-        nom_banque: user.nomBanque
-      }
-    ])
-    .select()
-    .single();
+export const createUser = async (user: Omit<User, "id" | "dateCreation"> & { auth_id?: string }): Promise<User | null> => {
+  console.log("Creating user with data:", user);
+  
+  try {
+    // @ts-ignore - Ignoring type error since we know the table exists but TypeScript doesn't
+    const { data, error } = await supabase
+      .from("users")
+      .insert([
+        {
+          nom: user.nom,
+          prenom: user.prenom,
+          email: user.email,
+          telephone: user.telephone,
+          role: user.role,
+          adresse: user.adresse,
+          ville: user.ville,
+          code_postal: user.codePostal,
+          iban: user.iban,
+          bic: user.bic,
+          nom_banque: user.nomBanque,
+          auth_id: user.auth_id
+        }
+      ])
+      .select()
+      .single();
 
-  if (error) {
-    console.error("Error creating user:", error);
+    if (error) {
+      console.error("Error creating user:", error);
+      return null;
+    }
+
+    return {
+      id: data.id,
+      nom: data.nom,
+      prenom: data.prenom,
+      email: data.email,
+      telephone: data.telephone,
+      role: data.role,
+      dateCreation: new Date(data.date_creation),
+      adresse: data.adresse || undefined,
+      ville: data.ville || undefined,
+      codePostal: data.code_postal || undefined,
+      iban: data.iban || undefined,
+      bic: data.bic || undefined,
+      nomBanque: data.nom_banque || undefined,
+    };
+  } catch (err) {
+    console.error("Unexpected error creating user:", err);
     return null;
   }
-
-  return {
-    id: data.id,
-    nom: data.nom,
-    prenom: data.prenom,
-    email: data.email,
-    telephone: data.telephone,
-    role: data.role,
-    dateCreation: new Date(data.date_creation),
-    adresse: data.adresse || undefined,
-    ville: data.ville || undefined,
-    codePostal: data.code_postal || undefined,
-    iban: data.iban || undefined,
-    bic: data.bic || undefined,
-    nomBanque: data.nom_banque || undefined,
-  };
 };
 
 export const updateUser = async (id: string, updates: Partial<User>): Promise<User | null> => {

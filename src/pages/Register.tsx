@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { createUser } from "@/services/supabase/usersService";
 import { UserRole } from "@/types";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { X } from "lucide-react";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -22,10 +24,12 @@ const Register = () => {
   const [telephone, setTelephone] = useState("");
   const [role, setRole] = useState<UserRole>("client");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
     
     try {
       // Créer un utilisateur dans Supabase Auth
@@ -44,57 +48,52 @@ const Register = () => {
       
       if (authError) {
         console.error("Erreur d'inscription:", authError);
-        toast({
-          title: "Échec d'inscription",
-          description: authError.message,
-          variant: "destructive",
-        });
+        setError(authError.message);
         setIsLoading(false);
         return;
       }
       
       if (!authData.user) {
-        toast({
-          title: "Échec d'inscription",
-          description: "Impossible de créer l'utilisateur",
-          variant: "destructive",
-        });
+        setError("Impossible de créer l'utilisateur");
         setIsLoading(false);
         return;
       }
       
-      // Créer l'utilisateur dans notre table users personnalisée
-      const newUser = await createUser({
-        nom,
-        prenom,
-        email,
-        telephone,
-        role
-      });
+      // Attendre un moment pour que l'utilisateur soit créé dans auth avant d'essayer d'insérer dans la table users
+      setTimeout(async () => {
+        try {
+          // Créer l'utilisateur dans notre table users personnalisée
+          const newUser = await createUser({
+            nom,
+            prenom,
+            email,
+            telephone,
+            role,
+            auth_id: authData.user.id
+          });
+          
+          if (!newUser) {
+            setError("Compte créé mais impossible de sauvegarder toutes les informations");
+          } else {
+            toast({
+              title: "Inscription réussie",
+              description: "Votre compte a été créé avec succès",
+            });
+            
+            // Rediriger vers la page de connexion
+            navigate("/connexion");
+          }
+        } catch (err) {
+          console.error("Erreur lors de la création du profil utilisateur:", err);
+          setError("Compte créé mais impossible de sauvegarder toutes les informations");
+        } finally {
+          setIsLoading(false);
+        }
+      }, 1000);
       
-      if (!newUser) {
-        toast({
-          title: "Avertissement",
-          description: "Compte créé mais impossible de sauvegarder toutes les informations",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Inscription réussie",
-          description: "Votre compte a été créé avec succès",
-        });
-      }
-      
-      // Rediriger vers la page de connexion
-      navigate("/connexion");
-    } catch (error) {
-      console.error("Erreur inattendue lors de l'inscription:", error);
-      toast({
-        title: "Échec d'inscription",
-        description: "Une erreur inattendue s'est produite",
-        variant: "destructive",
-      });
-    } finally {
+    } catch (err) {
+      console.error("Erreur inattendue lors de l'inscription:", err);
+      setError("Une erreur inattendue s'est produite");
       setIsLoading(false);
     }
   };
@@ -117,6 +116,24 @@ const Register = () => {
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
+            {error && (
+              <div className="px-6">
+                <Alert variant="destructive" className="mb-4">
+                  <AlertDescription className="flex items-center justify-between">
+                    {error}
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0" 
+                      onClick={() => setError(null)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              </div>
+            )}
+            
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
