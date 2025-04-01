@@ -18,9 +18,7 @@ const Layout = () => {
           {isAuthenticated && <Header />}
           
           <main className="flex-1 overflow-auto bg-background">
-            <div className="w-full">
               <Outlet />
-            </div>
           </main>
           
           <footer className="py-2 md:py-3 bg-card border-t">
