@@ -43,7 +43,7 @@ function App() {
           <BrowserRouter>
             <AuthProvider>
               <Routes>
-                {/* Public routes - outside of Layout but still within AuthProvider */}
+                {/* Public routes - outside of Layout */}
                 <Route path="/connexion" element={<Login />} />
                 <Route path="/inscription" element={<Register />} />
                 <Route path="/" element={<Index />} />
