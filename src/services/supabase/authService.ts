@@ -7,8 +7,10 @@ import { User } from "@/types";
  */
 export const customLogin = async (email: string, password: string): Promise<{ token: string; user: User | null }> => {
   try {
+    console.log("Début de customLogin pour:", email);
+    
     // Call the login edge function with the API functions.invoke
-    const { data, error } = await supabase.functions.invoke<string>("login", {
+    const { data, error } = await supabase.functions.invoke("login", {
       body: { email, password }
     });
 
@@ -17,14 +19,20 @@ export const customLogin = async (email: string, password: string): Promise<{ to
       throw error;
     }
 
-    const token = data;
+    if (!data) {
+      console.error("Pas de données retournées par la fonction login");
+      throw new Error("Authentication failed - no data returned");
+    }
+
+    const token = data as string;
+    console.log("Token reçu:", token ? "OUI" : "NON");
 
     // Retrieve user information
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
       .eq('email', email)
-      .single();
+      .maybeSingle();
 
     if (userError) {
       console.error("Erreur lors de la récupération des données utilisateur:", userError);
@@ -32,9 +40,12 @@ export const customLogin = async (email: string, password: string): Promise<{ to
     }
 
     if (!userData) {
+      console.log("Aucun utilisateur trouvé avec cet email:", email);
       return { token, user: null };
     }
 
+    console.log("Données utilisateur récupérées avec succès");
+    
     const user: User = {
       id: userData.id,
       nom: userData.nom,
@@ -67,8 +78,10 @@ export const customRegister = async (
   password: string
 ): Promise<User | null> => {
   try {
+    console.log("Début de l'inscription pour:", email);
+    
     // Call the register_user edge function with the API functions.invoke
-    const { data, error } = await supabase.functions.invoke<string>("register_user", {
+    const { data, error } = await supabase.functions.invoke("register_user", {
       body: { 
         nom, 
         prenom, 
@@ -84,20 +97,33 @@ export const customRegister = async (
       throw error;
     }
 
-    const userId = data;
+    if (!data) {
+      console.error("Pas de données retournées par la fonction register_user");
+      throw new Error("Registration failed - no data returned");
+    }
+
+    const userId = data as string;
+    console.log("ID utilisateur reçu:", userId);
 
     // Retrieve the created user information
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
     if (userError) {
       console.error("Erreur lors de la récupération des données utilisateur:", userError);
       throw userError;
     }
 
+    if (!userData) {
+      console.log("Utilisateur créé mais impossible de récupérer ses informations");
+      return null;
+    }
+
+    console.log("Données du nouvel utilisateur récupérées avec succès");
+    
     const user: User = {
       id: userData.id,
       nom: userData.nom,

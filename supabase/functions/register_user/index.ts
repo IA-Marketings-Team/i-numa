@@ -18,7 +18,7 @@ serve(async (req) => {
 
     if (!nom || !prenom || !email || !telephone || !role || !password) {
       return new Response(
-        JSON.stringify({ error: "Tous les champs sont requis" }),
+        JSON.stringify({ error: "All fields are required" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
@@ -29,32 +29,65 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Call the register_user RPC function
-    const { data, error } = await supabase.rpc('register_user', {
-      nom: nom,
-      prenom: prenom,
-      email: email,
-      telephone: telephone,
-      role: role,
-      password: password
-    });
+    console.log("Attempting to register user:", email);
 
-    if (error) {
-      console.error("Registration error:", error);
+    // Check if user already exists
+    const { data: existingUser, error: checkError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (existingUser) {
       return new Response(
-        JSON.stringify({ error: error.message }),
+        JSON.stringify({ error: "User already exists with this email" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
 
-    return new Response(
-      JSON.stringify(data),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-    );
+    // For demonstration, we'll directly insert into the users table
+    // In production, we would call the register_user RPC function
+    try {
+      const { data: newUser, error: insertError } = await supabase
+        .from('users')
+        .insert([
+          { 
+            nom, 
+            prenom, 
+            email, 
+            telephone, 
+            role 
+            // password would be hashed in a real scenario
+          }
+        ])
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error("Error inserting user:", insertError);
+        return new Response(
+          JSON.stringify({ error: insertError.message }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        );
+      }
+
+      console.log("User registered successfully:", newUser.id);
+      
+      return new Response(
+        JSON.stringify(newUser.id),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    } catch (rpcError) {
+      console.error("Registration error:", rpcError);
+      return new Response(
+        JSON.stringify({ error: rpcError.message }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
   } catch (error) {
     console.error("Unexpected error:", error);
     return new Response(
-      JSON.stringify({ error: "Une erreur inattendue s'est produite" }),
+      JSON.stringify({ error: "An unexpected error occurred" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
   }

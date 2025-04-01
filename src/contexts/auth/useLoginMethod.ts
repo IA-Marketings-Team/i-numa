@@ -23,10 +23,9 @@ export const useLoginMethod = (
         console.log("Compte de démonstration détecté, traitement spécial");
         
         // Pour les comptes de démo, simuler une connexion réussie sans authentification réelle
-        // et créer directement un profil utilisateur de démo
         try {
           const demoUser = await createDemoUserProfile(
-            `demo_${cleanedEmail.replace('@', '_at_')}`, // Générer un ID fictif pour le démo
+            `demo_${cleanedEmail.replace('@', '_at_')}`,
             cleanedEmail
           );
           
@@ -65,7 +64,10 @@ export const useLoginMethod = (
       } else {
         // Utiliser notre service d'authentification personnalisé
         try {
+          console.log("Appel du service d'authentification personnalisé");
           const { token, user } = await customLogin(cleanedEmail, password);
+          
+          console.log("Résultat de l'authentification:", { token: !!token, user: !!user });
           
           if (!user) {
             console.error("Authentification réussie mais profil utilisateur non trouvé");
@@ -92,7 +94,7 @@ export const useLoginMethod = (
           console.error("Erreur lors de la connexion:", error.message || error);
           toast({
             title: "Échec de connexion",
-            description: "Identifiants incorrects. Veuillez réessayer.",
+            description: "Identifiants incorrects ou service indisponible. Veuillez réessayer.",
             variant: "destructive",
           });
           return false;
