@@ -15,7 +15,7 @@ export const useAuthState = () => {
     // Configurer l'écoute des changements d'état d'authentification
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
-        console.log("Auth state change:", event, currentSession);
+        console.log("Changement d'état d'authentification:", event, currentSession);
         setSession(currentSession);
         
         if (currentSession?.user) {
@@ -34,7 +34,7 @@ export const useAuthState = () => {
 
     // Vérifier si l'utilisateur est déjà connecté
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      console.log("Initial session check:", currentSession);
+      console.log("Vérification initiale de la session:", currentSession);
       setSession(currentSession);
       
       if (currentSession?.user) {
@@ -56,7 +56,7 @@ export const useAuthState = () => {
       setUser(userProfile);
       setIsAuthenticated(true);
     } else {
-      console.error("Failed to fetch user profile:", error);
+      console.error("Échec de la récupération du profil utilisateur:", error);
       setUser(null);
       setIsAuthenticated(false);
     }

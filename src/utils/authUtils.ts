@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 
 /**
- * Fetches the user profile from Supabase
+ * Fetche le profil utilisateur depuis Supabase
  */
 export const fetchUserProfile = async (userId: string): Promise<{ user: User | null; error: Error | null }> => {
   try {
@@ -16,7 +16,7 @@ export const fetchUserProfile = async (userId: string): Promise<{ user: User | n
       .single();
 
     if (error) {
-      console.error("Error fetching user profile:", error);
+      console.error("Erreur lors de la récupération du profil utilisateur:", error);
       return { user: null, error };
     }
 
@@ -42,13 +42,13 @@ export const fetchUserProfile = async (userId: string): Promise<{ user: User | n
     
     return { user: null, error: null };
   } catch (error) {
-    console.error("Error in fetchUserProfile:", error);
+    console.error("Erreur dans fetchUserProfile:", error);
     return { user: null, error: error as Error };
   }
 };
 
 /**
- * Logs in a user with email and password
+ * Authentifie un utilisateur avec email et mot de passe
  */
 export const loginWithEmail = async (email: string, password: string): Promise<{ success: boolean; error: Error | null }> => {
   try {
@@ -58,19 +58,19 @@ export const loginWithEmail = async (email: string, password: string): Promise<{
     });
 
     if (error) {
-      console.error("Login error:", error);
+      console.error("Erreur de connexion:", error);
       return { success: false, error };
     }
 
     return { success: !!data.user, error: null };
   } catch (error) {
-    console.error("Unexpected login error:", error);
+    console.error("Erreur inattendue lors de la connexion:", error);
     return { success: false, error: error as Error };
   }
 };
 
 /**
- * Registers a new user with email and password
+ * Inscrit un nouvel utilisateur avec email et mot de passe
  */
 export const registerWithEmail = async (
   email: string, 
@@ -91,38 +91,38 @@ export const registerWithEmail = async (
     });
 
     if (error) {
-      console.error("Register error:", error);
+      console.error("Erreur d'inscription:", error);
       return { success: false, error };
     }
 
     return { success: !!data.user, error: null };
   } catch (error) {
-    console.error("Unexpected register error:", error);
+    console.error("Erreur inattendue lors de l'inscription:", error);
     return { success: false, error: error as Error };
   }
 };
 
 /**
- * Signs out the current user
+ * Déconnecte l'utilisateur actuel
  */
 export const signOut = async (): Promise<{ success: boolean; error: Error | null }> => {
   try {
     const { error } = await supabase.auth.signOut();
     
     if (error) {
-      console.error("Logout error:", error);
+      console.error("Erreur de déconnexion:", error);
       return { success: false, error };
     }
     
     return { success: true, error: null };
   } catch (error) {
-    console.error("Unexpected logout error:", error);
+    console.error("Erreur inattendue lors de la déconnexion:", error);
     return { success: false, error: error as Error };
   }
 };
 
 /**
- * Checks if a user has the required role
+ * Vérifie si un utilisateur a le rôle requis
  */
 export const hasPermission = (user: User | null, requiredRoles: UserRole[]): boolean => {
   if (!user) return false;

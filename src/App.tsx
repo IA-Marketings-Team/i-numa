@@ -29,6 +29,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import SuperviseurEquipes from "./pages/SuperviseurEquipes";
 import SuperviseurEquipe from "./pages/SuperviseurEquipe";
+import MigrationPage from "./pages/MigrationPage";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ function App() {
                   <BrowserRouter>
                     <Routes>
                       <Route path="/connexion" element={<Login />} />
+                      <Route path="/migration" element={<MigrationPage />} />
                       
                       <Route element={<Layout />}>
                         <Route path="/" element={<Navigate to="/tableau-de-bord" replace />} />
