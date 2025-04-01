@@ -1,6 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { Agent } from "@/types";
+import { Agent, UserRole } from "@/types";
 
 export const getAgentById = async (id: string): Promise<Agent | null> => {
   // @ts-ignore - Ignoring type error since we know the table exists but TypeScript doesn't
@@ -109,7 +108,7 @@ export const getAllAgents = async (): Promise<Agent[]> => {
   });
 };
 
-export const getAgentsByRole = async (role: string): Promise<Agent[]> => {
+export const getAgentsByRole = async (role: UserRole): Promise<Agent[]> => {
   // @ts-ignore - Ignoring type error since we know the table exists but TypeScript doesn't
   const { data: users, error: usersError } = await supabase
     .from("users")

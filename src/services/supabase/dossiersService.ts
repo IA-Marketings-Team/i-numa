@@ -262,20 +262,18 @@ export const createDossier = async (dossier: Omit<Dossier, "id" | "dateCreation"
   // @ts-ignore - Ignoring type error since we know the table exists but TypeScript doesn't
   const { data: dossierData, error: dossierError } = await supabase
     .from("dossiers")
-    .insert([
-      {
-        client_id: dossier.clientId,
-        agent_phoner_id: dossier.agentPhonerId,
-        agent_visio_id: dossier.agentVisioId,
-        status: dossier.status,
-        notes: dossier.notes,
-        montant: dossier.montant,
-        date_rdv: dossier.dateRdv,
-        date_validation: dossier.dateValidation,
-        date_signature: dossier.dateSignature,
-        date_archivage: dossier.dateArchivage
-      }
-    ])
+    .insert({
+      client_id: dossier.clientId,
+      agent_phoner_id: dossier.agentPhonerId,
+      agent_visio_id: dossier.agentVisioId,
+      status: dossier.status,
+      notes: dossier.notes,
+      montant: dossier.montant,
+      date_rdv: dossier.dateRdv ? dossier.dateRdv.toISOString() : null,
+      date_validation: dossier.dateValidation ? dossier.dateValidation.toISOString() : null,
+      date_signature: dossier.dateSignature ? dossier.dateSignature.toISOString() : null,
+      date_archivage: dossier.dateArchivage ? dossier.dateArchivage.toISOString() : null
+    })
     .select()
     .single();
 
