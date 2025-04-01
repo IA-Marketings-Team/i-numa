@@ -1,4 +1,3 @@
-
 import { Offre } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -145,15 +144,10 @@ export const deleteOffre = async (id: string): Promise<boolean> => {
   }
 };
 
-/**
- * Fonction auxiliaire pour convertir le type d'offre
- * Cette fonction garantit que les valeurs de type provenant de la base de données
- * sont mappées correctement aux types attendus par TypeScript
- */
+// Fonction auxiliaire pour convertir le type d'offre
 const convertOffreType = (type: string): "SEO" | "Google Ads" | "Email X" | "Foner" | "Devis" => {
-  const validTypes = ["SEO", "Google Ads", "Email X", "Foner", "Devis"];
-  if (validTypes.includes(type)) {
-    return type as "SEO" | "Google Ads" | "Email X" | "Foner" | "Devis";
+  if (type === "SEO" || type === "Google Ads" || type === "Email X" || type === "Foner" || type === "Devis") {
+    return type;
   }
   // Valeur par défaut si le type n'est pas reconnu
   return "Devis";
