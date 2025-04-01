@@ -128,9 +128,9 @@ export interface Task {
   id: string;
   title: string;
   description?: string;
-  agentId: string;
+  agent_id: string;
   status: TaskStatus;
-  dateCreation: Date;
-  dateEcheance?: Date;
+  date_creation: Date;
+  date_echeance?: Date;
   priority: 'low' | 'medium' | 'high';
 }

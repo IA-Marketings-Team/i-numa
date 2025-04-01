@@ -38,9 +38,9 @@ import { cn } from "@/lib/utils";
 const taskSchema = z.object({
   title: z.string().min(2, { message: "Le titre doit contenir au moins 2 caractères" }),
   description: z.string().optional(),
-  agentId: z.string({ required_error: "Veuillez sélectionner un agent" }),
+  agent_id: z.string({ required_error: "Veuillez sélectionner un agent" }),
   status: z.enum(["to_do", "in_progress", "done"]),
-  dateEcheance: z.date().optional(),
+  date_echeance: z.date().optional(),
   priority: z.enum(["low", "medium", "high"]),
 });
 
@@ -67,17 +67,17 @@ const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
       ? {
           title: initialData.title,
           description: initialData.description || "",
-          agentId: initialData.agentId,
+          agent_id: initialData.agent_id,
           status: initialData.status,
-          dateEcheance: initialData.dateEcheance ? new Date(initialData.dateEcheance) : undefined,
+          date_echeance: initialData.date_echeance ? new Date(initialData.date_echeance) : undefined,
           priority: initialData.priority,
         }
       : {
           title: "",
           description: "",
-          agentId: "",
+          agent_id: "",
           status: "to_do",
-          dateEcheance: undefined,
+          date_echeance: undefined,
           priority: "medium",
         },
   });
@@ -132,7 +132,7 @@ const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="agentId"
+                name="agent_id"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Agent assigné</FormLabel>
@@ -188,7 +188,7 @@ const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="dateEcheance"
+                name="date_echeance"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Date d'échéance</FormLabel>

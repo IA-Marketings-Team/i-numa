@@ -15,12 +15,14 @@ interface KanbanBoardProps {
   tasks: Task[];
   onTaskClick: (task: Task) => void;
   onTaskStatusChange?: (taskId: string, newStatus: Task["status"]) => void;
+  loading?: boolean;
 }
 
 const KanbanBoard: React.FC<KanbanBoardProps> = ({ 
   tasks, 
   onTaskClick,
-  onTaskStatusChange 
+  onTaskStatusChange,
+  loading = false
 }) => {
   const todoTasks = tasks.filter((task) => task.status === "to_do");
   const inProgressTasks = tasks.filter((task) => task.status === "in_progress");
@@ -46,6 +48,23 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
       }
     }
   };
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[1, 2, 3].map((col) => (
+          <div key={col} className="bg-slate-50 rounded-lg p-4">
+            <div className="h-4 w-24 bg-slate-200 rounded mb-3"></div>
+            <div className="space-y-3">
+              {[1, 2].map((item) => (
+                <div key={item} className="bg-white rounded-lg p-4 h-24 animate-pulse"></div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
