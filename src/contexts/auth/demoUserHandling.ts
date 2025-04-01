@@ -1,6 +1,7 @@
 
 import { User, UserRole } from "@/types";
 import { createUser } from "@/services/supabase/usersService";
+import { supabase } from "@/integrations/supabase/client";
 
 export const DEMO_ACCOUNTS = [
   'jean.dupont@example.com', 
@@ -12,16 +13,18 @@ export const DEMO_ACCOUNTS = [
 
 export const isDemoAccount = (email: string | null | undefined): boolean => {
   if (!email) return false;
-  return DEMO_ACCOUNTS.includes(email);
+  return DEMO_ACCOUNTS.includes(email.toLowerCase());
 };
 
 export const getDemoUserRole = (email: string | null | undefined): UserRole => {
   if (!email) return 'client';
   
-  if (email === 'thomas.leroy@example.com') return 'agent_phoner';
-  if (email === 'claire.moreau@example.com') return 'agent_visio';
-  if (email === 'ahmed.tayin@example.com') return 'superviseur';
-  if (email === 'marie.andy@example.com') return 'responsable';
+  const lowerEmail = email.toLowerCase();
+  
+  if (lowerEmail === 'thomas.leroy@example.com') return 'agent_phoner';
+  if (lowerEmail === 'claire.moreau@example.com') return 'agent_visio';
+  if (lowerEmail === 'ahmed.tayin@example.com') return 'superviseur';
+  if (lowerEmail === 'marie.andy@example.com') return 'responsable';
   
   return 'client';
 };
@@ -96,5 +99,3 @@ export const createDemoUserProfile = async (
     return null;
   }
 };
-
-import { supabase } from "@/integrations/supabase/client";

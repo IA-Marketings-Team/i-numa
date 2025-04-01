@@ -353,14 +353,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_agent"
+            foreignKeyName: "tasks_agent_id_fkey"
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "agents"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fk_agent"
+            foreignKeyName: "tasks_agent_id_fkey"
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "vue_statistiques_agents"

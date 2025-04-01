@@ -16,8 +16,11 @@ export const useAuthMethods = (
     try {
       console.log("Tentative de connexion pour:", email);
       
+      // Nettoyer l'email (enlever les espaces et convertir en minuscules)
+      const cleanedEmail = email.trim().toLowerCase();
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: cleanedEmail,
         password
       });
 
@@ -32,7 +35,7 @@ export const useAuthMethods = (
       }
 
       if (data.user) {
-        console.log("Authentification réussie pour:", email);
+        console.log("Authentification réussie pour:", cleanedEmail);
         // La mise à jour de l'utilisateur se fait via onAuthStateChange
         toast({
           title: "Connexion réussie",

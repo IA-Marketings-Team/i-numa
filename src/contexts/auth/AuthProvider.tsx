@@ -19,7 +19,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Configurer le listener pour les changements d'état d'authentification
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-        console.log("Auth state changed:", event);
+        console.log("Auth state changed:", event, currentSession?.user?.email);
         
         // Mettre à jour l'état de la session immédiatement
         setSession(currentSession);
@@ -57,6 +57,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     description: "Impossible de créer votre profil utilisateur.",
                     variant: "destructive",
                   });
+                  // Déconnexion en cas d'échec
+                  await supabase.auth.signOut();
                 }
               } else {
                 console.error("Utilisateur authentifié mais non trouvé dans la table users");
@@ -65,6 +67,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   description: "Votre profil utilisateur est incomplet. Contactez l'administrateur.",
                   variant: "destructive",
                 });
+                // Déconnexion en cas d'échec
+                await supabase.auth.signOut();
               }
             }
           } catch (error) {
@@ -74,6 +78,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               description: "Erreur lors de la récupération de votre profil.",
               variant: "destructive",
             });
+            // Déconnexion en cas d'erreur
+            await supabase.auth.signOut();
           }
         } else {
           // Réinitialiser l'état si l'utilisateur est déconnecté
@@ -89,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data: { session: currentSession } } = await supabase.auth.getSession();
       
       if (currentSession?.user) {
-        console.log("Session existante trouvée");
+        console.log("Session existante trouvée pour", currentSession.user.email);
         setSession(currentSession);
         
         try {

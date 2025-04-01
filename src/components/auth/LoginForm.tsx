@@ -21,13 +21,15 @@ const LoginForm = () => {
 
   const handleDemoLogin = async (email: string): Promise<boolean> => {
     // Pour les comptes de démo, on contourne la vérification du mot de passe
-    // en créant directement une session Supabase
     try {
       console.log("Tentative de connexion avec compte démo:", email);
       
+      // Nettoyer l'email (enlever les espaces et convertir en minuscules)
+      const cleanedEmail = email.trim().toLowerCase();
+      
       // On tente simplement de se connecter directement
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
+        email: cleanedEmail,
         password: password || "demo12345" // Utiliser soit le mot de passe saisi, soit le mot de passe par défaut
       });
       
@@ -36,7 +38,7 @@ const LoginForm = () => {
         
         // Si l'utilisateur n'existe pas dans auth, on le crée d'abord
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: email,
+          email: cleanedEmail,
           password: "demo12345" // Mot de passe par défaut pour les démos
         });
         
@@ -50,7 +52,7 @@ const LoginForm = () => {
           
           // On tente à nouveau de se connecter après la création
           const { error: secondLoginError } = await supabase.auth.signInWithPassword({
-            email: email,
+            email: cleanedEmail,
             password: "demo12345"
           });
           
@@ -91,10 +93,13 @@ const LoginForm = () => {
     try {
       let success = false;
       
-      if (isDemoAccount(email)) {
+      // Nettoyer l'email (enlever les espaces et convertir en minuscules)
+      const cleanedEmail = email.trim().toLowerCase();
+      
+      if (isDemoAccount(cleanedEmail)) {
         // Logique spéciale pour les comptes de démonstration
         console.log("Compte de démonstration détecté, tentative de connexion...");
-        success = await handleDemoLogin(email);
+        success = await handleDemoLogin(cleanedEmail);
       } else {
         // Connexion normale pour les autres comptes
         if (!password) {
@@ -103,8 +108,8 @@ const LoginForm = () => {
           return;
         }
         
-        console.log("Tentative de connexion standard avec", email);
-        success = await login(email, password);
+        console.log("Tentative de connexion standard avec", cleanedEmail);
+        success = await login(cleanedEmail, password);
       }
       
       if (success) {
@@ -155,6 +160,7 @@ const LoginForm = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              placeholder="exemple@domain.com"
             />
           </div>
           <div className="space-y-2">
@@ -173,6 +179,7 @@ const LoginForm = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required={!isDemoAccount(email)} // Le mot de passe est facultatif pour les comptes de démo
+              placeholder="********"
             />
           </div>
         </CardContent>
