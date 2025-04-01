@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,12 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { createUser } from "@/services/supabase/usersService";
 import { UserRole } from "@/types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { customRegister } from "@/services/supabase/authService";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -20,7 +18,6 @@ const Register = () => {
   const { isAuthenticated } = useAuth();
   
   useEffect(() => {
-    // Redirect authenticated users away from registration
     if (isAuthenticated) {
       navigate("/tableau-de-bord");
     }
@@ -41,68 +38,31 @@ const Register = () => {
     setError(null);
     
     try {
-      // Créer un utilisateur dans Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const newUser = await customRegister(
+        nom,
+        prenom,
         email,
-        password,
-        options: {
-          data: {
-            nom,
-            prenom,
-            telephone,
-            role
-          }
-        }
-      });
+        telephone,
+        role,
+        password
+      );
       
-      if (authError) {
-        console.error("Erreur d'inscription:", authError);
-        setError(authError.message);
-        setIsLoading(false);
-        return;
-      }
-      
-      if (!authData.user) {
+      if (!newUser) {
         setError("Impossible de créer l'utilisateur");
         setIsLoading(false);
         return;
       }
       
-      // Attendre un moment pour que l'utilisateur soit créé dans auth avant d'essayer d'insérer dans la table users
-      setTimeout(async () => {
-        try {
-          // Créer l'utilisateur dans notre table users personnalisée
-          const newUser = await createUser({
-            nom,
-            prenom,
-            email,
-            telephone,
-            role,
-            auth_id: authData.user.id
-          });
-          
-          if (!newUser) {
-            setError("Compte créé mais impossible de sauvegarder toutes les informations");
-          } else {
-            toast({
-              title: "Inscription réussie",
-              description: "Votre compte a été créé avec succès",
-            });
-            
-            // Rediriger vers la page de connexion
-            navigate("/connexion");
-          }
-        } catch (err) {
-          console.error("Erreur lors de la création du profil utilisateur:", err);
-          setError("Compte créé mais impossible de sauvegarder toutes les informations");
-        } finally {
-          setIsLoading(false);
-        }
-      }, 1000);
+      toast({
+        title: "Inscription réussie",
+        description: "Votre compte a été créé avec succès",
+      });
       
-    } catch (err) {
-      console.error("Erreur inattendue lors de l'inscription:", err);
-      setError("Une erreur inattendue s'est produite");
+      navigate("/connexion");
+      
+    } catch (err: any) {
+      console.error("Erreur lors de l'inscription:", err);
+      setError(err.message || "Une erreur inattendue s'est produite");
       setIsLoading(false);
     }
   };

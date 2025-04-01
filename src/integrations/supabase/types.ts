@@ -492,7 +492,12 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      generate_jwt: {
+        Args: {
+          user_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       dossier_status:

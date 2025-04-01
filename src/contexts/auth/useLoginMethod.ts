@@ -1,8 +1,7 @@
 
 import { useToast } from "@/hooks/use-toast";
 import { User } from "@/types";
-import { supabase } from "@/integrations/supabase/client";
-import { getUserByAuthId, createUser } from "@/services/supabase/usersService";
+import { customLogin } from "@/services/supabase/authService";
 import { isDemoAccount, createDemoUserProfile } from "./demoUserHandling";
 
 export const useLoginMethod = (
@@ -64,14 +63,33 @@ export const useLoginMethod = (
           return false;
         }
       } else {
-        // Logique de connexion standard pour les comptes non-démo
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: cleanedEmail,
-          password
-        });
-
-        if (error) {
-          console.error("Erreur de connexion:", error.message);
+        // Utiliser notre service d'authentification personnalisé
+        try {
+          const { token, user } = await customLogin(cleanedEmail, password);
+          
+          if (!user) {
+            console.error("Authentification réussie mais profil utilisateur non trouvé");
+            toast({
+              title: "Erreur",
+              description: "Profil utilisateur non trouvé. Veuillez contacter le support.",
+              variant: "destructive",
+            });
+            return false;
+          }
+          
+          // Mettre à jour l'état de l'application
+          setUser(user);
+          setIsAuthenticated(true);
+          setSession({ token, user: { id: user.id, email: user.email } });
+          
+          toast({
+            title: "Connexion réussie",
+            description: `Bienvenue, ${user.prenom} ${user.nom}`,
+          });
+          
+          return true;
+        } catch (error: any) {
+          console.error("Erreur lors de la connexion:", error.message || error);
           toast({
             title: "Échec de connexion",
             description: "Identifiants incorrects. Veuillez réessayer.",
@@ -79,40 +97,6 @@ export const useLoginMethod = (
           });
           return false;
         }
-
-        if (data.user) {
-          console.log("Authentification réussie pour:", cleanedEmail);
-          
-          // Récupérer les informations complètes de l'utilisateur
-          const userData = await getUserByAuthId(data.user.id);
-          
-          if (userData) {
-            setUser(userData);
-            setIsAuthenticated(true);
-            setSession(data.session);
-            
-            toast({
-              title: "Connexion réussie",
-              description: "Vous êtes maintenant connecté",
-            });
-            
-            return true;
-          } else {
-            // Si l'utilisateur n'existe pas dans notre table users
-            console.error("Authentification réussie mais profil utilisateur non trouvé");
-            toast({
-              title: "Erreur",
-              description: "Profil utilisateur non trouvé. Veuillez contacter le support.",
-              variant: "destructive",
-            });
-            
-            // Déconnecter l'utilisateur car son profil n'existe pas
-            await supabase.auth.signOut();
-            return false;
-          }
-        }
-        
-        return false;
       }
     } catch (error) {
       console.error("Erreur inattendue lors de la connexion:", error);

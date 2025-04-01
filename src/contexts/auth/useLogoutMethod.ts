@@ -1,7 +1,6 @@
 
 import { useToast } from "@/hooks/use-toast";
 import { User } from "@/types";
-import { supabase } from "@/integrations/supabase/client";
 
 export const useLogoutMethod = (
   setUser: (user: User | null) => void,
@@ -14,22 +13,14 @@ export const useLogoutMethod = (
     try {
       console.log("Tentative de déconnexion");
       
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error("Erreur lors de la déconnexion:", error.message);
-        toast({
-          title: "Erreur",
-          description: "Erreur lors de la déconnexion: " + error.message,
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      console.log("Déconnexion réussie");
+      // Avec notre authentification personnalisée, nous n'avons pas besoin de 
+      // faire une requête au serveur, nous pouvons simplement effacer les états
       setUser(null);
       setIsAuthenticated(false);
       setSession(null);
+      
+      // Effacer le token stocké localement (si applicable)
+      localStorage.removeItem('auth_token');
       
       toast({
         title: "Déconnexion",
