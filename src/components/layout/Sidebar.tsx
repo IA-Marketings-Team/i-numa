@@ -1,172 +1,220 @@
-import {
-  CheckSquare,
-  FolderOpen,
-  HelpCircle,
-  Home,
-  Info,
-  LogOut,
-  Phone,
-  Settings,
-  ShoppingCart,
-  Users,
-  UserPlus,
-  ChevronDown,
-  ChevronRight,
-  Bell,
-  BarChart,
-} from "lucide-react";
-import * as React from "react";
-import { useLocation, useNavigate, Link } from "react-router-dom";
 
+import { useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  Sidebar as SidebarComponent,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+} from "@/components/ui/sidebar";
+import { 
+  Home, 
+  FileText, 
+  Users, 
+  ShoppingBag, 
+  BarChart2, 
+  User,
+  Sun,
+  Moon,
+  Settings,
+  HelpCircle,
+  LogOut,
+  UserCog,
+  UsersRound
+} from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { UserRole } from "@/types";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import HelpDialog from "@/components/support/HelpDialog";
 
-interface SidebarItemProps {
-  label: string;
-  icon: React.ReactNode;
-  link: string;
-}
-
-export function Sidebar() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+export default function Sidebar() {
   const location = useLocation();
-  const pathState = location.pathname.split("/")[1];
+  const navigate = useNavigate();
+  const { user, hasPermission, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const [helpDialogOpen, setHelpDialogOpen] = useState(false);
+  
+  const getNavItems = () => {
+    const items = [
+      {
+        name: "Tableau de bord",
+        path: "/tableau-de-bord",
+        icon: <Home className="size-4" />,
+        roles: ["client", "agent_phoner", "agent_visio", "agent_developpeur", "agent_marketing", "superviseur", "responsable"] as UserRole[]
+      }, 
+      {
+        name: "Dossiers",
+        path: "/dossiers",
+        icon: <FileText className="size-4" />,
+        roles: ["client", "agent_phoner", "agent_visio", "agent_developpeur", "agent_marketing", "superviseur", "responsable"] as UserRole[]
+      }, 
+      {
+        name: "Clients",
+        path: "/clients",
+        icon: <Users className="size-4" />,
+        roles: ["agent_phoner", "agent_visio", "agent_developpeur", "agent_marketing", "superviseur", "responsable"] as UserRole[]
+      }, 
+      {
+        name: "Nos offres",
+        path: "/mes-offres",
+        icon: <ShoppingBag className="size-4" />,
+        roles: ["client", "agent_phoner", "responsable"] as UserRole[]
+      }, 
+      {
+        name: "Statistiques",
+        path: "/statistiques",
+        icon: <BarChart2 className="size-4" />,
+        roles: ["agent_phoner", "agent_visio", "agent_developpeur", "agent_marketing", "superviseur", "responsable"] as UserRole[]
+      },
+      {
+        name: "Anciennes équipes",
+        path: "/superviseur/equipes",
+        icon: <UserCog className="size-4" />,
+        roles: ["superviseur", "responsable"] as UserRole[]
+      },
+      {
+        name: "Gestion d'équipes",
+        path: "/superviseur/equipe",
+        icon: <UsersRound className="size-4" />,
+        roles: ["superviseur", "responsable"] as UserRole[]
+      }
+    ];
+    
+    return items.filter(item => hasPermission(item.roles));
+  };
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate("/login");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+  const isActive = (path: string) => {
+    return location.pathname === path || 
+           (path !== '/tableau-de-bord' && location.pathname.startsWith(path));
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/connexion");
+  };
+  
+  const handleOpenHelpDialog = () => {
+    setHelpDialogOpen(true);
   };
 
   return (
-    <div
-      className={cn(
-        "flex h-screen w-[var(--sidebar-width)] flex-col border-r bg-secondary",
-        "dark:bg-gray-900 dark:border-gray-700"
-      )}
-    >
-      <div className="mb-4 px-3 pt-1 flex flex-col">
-        <Link
-          to="/tableau-de-bord"
-          className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary",
-            pathState === "tableau-de-bord" ? "bg-accent" : "transparent",
-            "text-foreground"
-          )}
-        >
-          <Home className="h-5 w-5" />
-          Tableau de bord
-        </Link>
+    <>
+      <SidebarComponent className="border-r">
+        <SidebarHeader className="flex items-center justify-center py-4 border-b">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-semibold">
+              i
+            </div>
+            <div className="text-lg font-semibold">i-numa</div>
+          </div>
+        </SidebarHeader>
+        
+        <SidebarContent className="overflow-y-auto flex-1">
+          <SidebarGroup className="pt-2">
+            <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {getNavItems().map((item) => (
+                  <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton 
+                      asChild 
+                      isActive={isActive(item.path)}
+                      className="py-2"
+                    >
+                      <Link to={item.path} className="flex items-center gap-3">
+                        {item.icon}
+                        <span>{item.name}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
 
-        <Link
-          to="/dossiers"
-          className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary",
-            pathState === "dossiers" ? "bg-accent" : "transparent",
-            "text-foreground"
-          )}
-        >
-          <FolderOpen className="h-5 w-5" />
-          Dossiers
-        </Link>
-
-        {user?.role === "superviseur" || user?.role === "responsable" ? (
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="item-1">
-              <AccordionTrigger className="hover:text-primary">
-                <div className="flex items-center gap-3 w-full justify-between">
-                  <div className="flex items-center gap-3">
-                    <Users className="h-5 w-5" />
-                    Équipes
-                  </div>
-                  <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 peer-data-[state=open]:rotate-180" />
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="flex flex-col gap-2 mt-2">
-                  <Link
-                    to="/superviseur-equipes"
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary",
-                      pathState === "superviseur-equipes"
-                        ? "bg-accent"
-                        : "transparent",
-                      "text-foreground"
-                    )}
+          <SidebarGroup className="mt-4">
+            <SidebarGroupLabel>Paramètres</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    asChild 
+                    isActive={isActive("/parametres")}
+                    className="py-2"
                   >
-                    <ChevronRight className="h-4 w-4" />
-                    Gestion des équipes
-                  </Link>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        ) : null}
+                    <Link to="/parametres" className="flex items-center gap-3">
+                      <Settings className="size-4" />
+                      <span>Paramètres</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    className="py-2"
+                    onClick={handleOpenHelpDialog}
+                  >
+                    <div className="flex items-center gap-3">
+                      <HelpCircle className="size-4" />
+                      <span>Aide</span>
+                    </div>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        
+        <SidebarFooter className="border-t mt-auto">
+          <div className="p-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {theme === "light" ? (
+                <Sun className="size-4" />
+              ) : (
+                <Moon className="size-4" />
+              )}
+              <span className="text-sm">Mode {theme === "light" ? "clair" : "sombre"}</span>
+            </div>
+            <Switch 
+              checked={theme === "dark"}
+              onCheckedChange={toggleTheme}
+            />
+          </div>
 
-        <Link
-          to="/taches"
-          className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary",
-            pathState === "taches" ? "bg-accent" : "transparent",
-            "text-foreground"
+          {user && (
+            <div className="p-3 border-t">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-9 w-9 border">
+                  <AvatarFallback className="bg-muted text-muted-foreground">
+                    {user.prenom.charAt(0)}{user.nom.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {user.prenom} {user.nom}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {user.email}
+                  </p>
+                </div>
+                <button onClick={handleLogout} className="text-muted-foreground hover:text-foreground">
+                  <LogOut className="size-4" />
+                </button>
+              </div>
+            </div>
           )}
-        >
-          <CheckSquare className="h-5 w-5" />
-          Tâches
-        </Link>
-
-        <Accordion type="single" collapsible className="w-full">
-          <AccordionItem value="item-2">
-            <AccordionTrigger className="hover:text-primary">
-              <div className="flex items-center gap-3 w-full justify-between">
-                <div className="flex items-center gap-3">
-                  <Settings className="h-5 w-5" />
-                  Paramètres
-                </div>
-                <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 peer-data-[state=open]:rotate-180" />
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="flex flex-col gap-2 mt-2">
-                <Link
-                  to="/mon-profil"
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary",
-                    pathState === "mon-profil" ? "bg-accent" : "transparent",
-                    "text-foreground"
-                  )}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                  Mon profil
-                </Link>
-                <Link
-                  to="/notifications"
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary",
-                    pathState === "notifications" ? "bg-accent" : "transparent",
-                    "text-foreground"
-                  )}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                  Notifications
-                </Link>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </div>
-    </div>
+        </SidebarFooter>
+      </SidebarComponent>
+      
+      <HelpDialog open={helpDialogOpen} onOpenChange={setHelpDialogOpen} />
+    </>
   );
 }

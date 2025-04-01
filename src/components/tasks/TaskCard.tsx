@@ -75,12 +75,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
         <div className="flex justify-between w-full">
           <div className="flex items-center">
             <Calendar className="h-3 w-3 mr-1" />
-            {task.date_creation && format(new Date(task.date_creation), "dd MMM yyyy", { locale: fr })}
+            {task.dateCreation && format(new Date(task.dateCreation), "dd MMM yyyy", { locale: fr })}
           </div>
-          {task.date_echeance && (
+          {task.dateEcheance && (
             <div className="flex items-center">
               <Clock className="h-3 w-3 mr-1" />
-              {format(new Date(task.date_echeance), "dd MMM yyyy", { locale: fr })}
+              {format(new Date(task.dateEcheance), "dd MMM yyyy", { locale: fr })}
             </div>
           )}
         </div>
