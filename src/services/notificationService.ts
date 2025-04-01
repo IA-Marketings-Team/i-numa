@@ -1,4 +1,3 @@
-
 import { Notification } from "@/components/notifications/NotificationsList";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -29,7 +28,7 @@ export const fetchNotifications = async (userId?: string): Promise<Notification[
       description: notif.description,
       time: notif.time,
       read: notif.read,
-      type: notif.type,
+      type: convertNotificationType(notif.type),
       link: notif.link,
       action: notif.action
     }));
@@ -67,7 +66,7 @@ export const fetchUnreadNotifications = async (userId?: string): Promise<Notific
       description: notif.description,
       time: notif.time,
       read: notif.read,
-      type: notif.type,
+      type: convertNotificationType(notif.type),
       link: notif.link,
       action: notif.action
     }));
@@ -108,7 +107,7 @@ export const createNotification = async (notification: Omit<Notification, 'id' |
       description: data.description,
       time: data.time,
       read: data.read,
-      type: data.type,
+      type: convertNotificationType(data.type),
       link: data.link,
       action: data.action
     };
@@ -188,4 +187,13 @@ export const deleteNotification = async (id: string): Promise<boolean> => {
     console.error(`Erreur inattendue lors de la suppression de la notification ${id}:`, error);
     return false;
   }
+};
+
+// Fonction auxiliaire pour convertir le type de notification
+const convertNotificationType = (type: string): "success" | "info" | "warning" => {
+  if (type === "success" || type === "info" || type === "warning") {
+    return type;
+  }
+  // Valeur par défaut si le type n'est pas reconnu
+  return "info";
 };

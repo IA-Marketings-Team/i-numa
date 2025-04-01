@@ -20,7 +20,7 @@ export const fetchTeams = async (): Promise<Team[]> => {
     return data.map(team => ({
       id: team.id,
       nom: team.nom,
-      fonction: team.fonction,
+      fonction: convertFonctionType(team.fonction),
       description: team.description || undefined,
       dateCreation: new Date(team.date_creation)
     }));
@@ -51,7 +51,7 @@ export const fetchTeamById = async (id: string): Promise<Team | null> => {
     return {
       id: data.id,
       nom: data.nom,
-      fonction: data.fonction,
+      fonction: convertFonctionType(data.fonction),
       description: data.description || undefined,
       dateCreation: new Date(data.date_creation)
     };
@@ -59,6 +59,15 @@ export const fetchTeamById = async (id: string): Promise<Team | null> => {
     console.error(`Erreur inattendue lors de la récupération de l'équipe ${id}:`, error);
     return null;
   }
+};
+
+// Fonction auxiliaire pour convertir le type de fonction d'équipe
+const convertFonctionType = (fonction: string): "phoning" | "visio" | "developpement" | "marketing" | "mixte" => {
+  if (fonction === "phoning" || fonction === "visio" || fonction === "developpement" || fonction === "marketing" || fonction === "mixte") {
+    return fonction;
+  }
+  // Valeur par défaut si la fonction n'est pas reconnue
+  return "mixte";
 };
 
 /**
@@ -70,7 +79,7 @@ export const createTeam = async (team: Omit<Team, 'id' | 'dateCreation'>): Promi
       .from('teams')
       .insert({
         nom: team.nom,
-        fonction: team.fonction,
+        fonction: team.fonction, // Déjà du bon type car provenant de l'application
         description: team.description
       })
       .select()
@@ -84,7 +93,7 @@ export const createTeam = async (team: Omit<Team, 'id' | 'dateCreation'>): Promi
     return {
       id: data.id,
       nom: data.nom,
-      fonction: data.fonction,
+      fonction: convertFonctionType(data.fonction),
       description: data.description || undefined,
       dateCreation: new Date(data.date_creation)
     };

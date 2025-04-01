@@ -1,4 +1,3 @@
-
 import { Offre } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -21,7 +20,7 @@ export const fetchOffres = async (): Promise<Offre[]> => {
       id: offre.id,
       nom: offre.nom,
       description: offre.description || '',
-      type: offre.type,
+      type: convertOffreType(offre.type),
       prix: offre.prix
     }));
   } catch (error) {
@@ -52,7 +51,7 @@ export const fetchOffreById = async (id: string): Promise<Offre | null> => {
       id: data.id,
       nom: data.nom,
       description: data.description || '',
-      type: data.type,
+      type: convertOffreType(data.type),
       prix: data.prix
     };
   } catch (error) {
@@ -86,7 +85,7 @@ export const createOffre = async (offre: Omit<Offre, 'id'>): Promise<Offre | nul
       id: data.id,
       nom: data.nom,
       description: data.description || '',
-      type: data.type,
+      type: convertOffreType(data.type),
       prix: data.prix
     };
   } catch (error) {
@@ -143,4 +142,13 @@ export const deleteOffre = async (id: string): Promise<boolean> => {
     console.error(`Erreur inattendue lors de la suppression de l'offre ${id}:`, error);
     return false;
   }
+};
+
+// Fonction auxiliaire pour convertir le type d'offre
+const convertOffreType = (type: string): "SEO" | "Google Ads" | "Email X" | "Foner" | "Devis" => {
+  if (type === "SEO" || type === "Google Ads" || type === "Email X" || type === "Foner" || type === "Devis") {
+    return type;
+  }
+  // Valeur par défaut si le type n'est pas reconnu
+  return "Devis";
 };

@@ -1,4 +1,3 @@
-
 import { Statistique } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -18,7 +17,7 @@ export const fetchStatistiques = async (): Promise<Statistique[]> => {
     }
 
     return data.map(stat => ({
-      periode: stat.periode,
+      periode: convertPeriodeType(stat.periode),
       dateDebut: new Date(stat.date_debut),
       dateFin: new Date(stat.date_fin),
       appelsEmis: stat.appels_emis,
@@ -53,7 +52,7 @@ export const fetchStatistiquesByPeriode = async (periode: 'jour' | 'semaine' | '
     }
 
     return data.map(stat => ({
-      periode: stat.periode,
+      periode: convertPeriodeType(stat.periode),
       dateDebut: new Date(stat.date_debut),
       dateFin: new Date(stat.date_fin),
       appelsEmis: stat.appels_emis,
@@ -89,7 +88,7 @@ export const fetchStatistiquesBetweenDates = async (debut: Date, fin: Date): Pro
     }
 
     return data.map(stat => ({
-      periode: stat.periode,
+      periode: convertPeriodeType(stat.periode),
       dateDebut: new Date(stat.date_debut),
       dateFin: new Date(stat.date_fin),
       appelsEmis: stat.appels_emis,
@@ -105,6 +104,15 @@ export const fetchStatistiquesBetweenDates = async (debut: Date, fin: Date): Pro
     console.error(`Erreur inattendue lors de la récupération des statistiques entre ${debut} et ${fin}:`, error);
     return [];
   }
+};
+
+// Fonction auxiliaire pour convertir le type de période
+const convertPeriodeType = (periode: string): "jour" | "semaine" | "mois" => {
+  if (periode === "jour" || periode === "semaine" || periode === "mois") {
+    return periode;
+  }
+  // Valeur par défaut si la période n'est pas reconnue
+  return "jour";
 };
 
 /**
@@ -136,7 +144,7 @@ export const createStatistique = async (statistique: Omit<Statistique, 'id'>): P
     }
 
     return {
-      periode: data.periode,
+      periode: convertPeriodeType(data.periode),
       dateDebut: new Date(data.date_debut),
       dateFin: new Date(data.date_fin),
       appelsEmis: data.appels_emis,
@@ -201,8 +209,10 @@ export const generateStatistiques = async (): Promise<boolean> => {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     
+    const periode: "jour" | "semaine" | "mois" = "jour";
+    
     await createStatistique({
-      periode: 'jour',
+      periode,
       dateDebut: today,
       dateFin: tomorrow,
       appelsEmis: stats.appelsEmis,

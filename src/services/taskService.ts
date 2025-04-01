@@ -1,4 +1,3 @@
-
 import { Task, TaskStatus } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -25,7 +24,7 @@ export const fetchTasks = async (): Promise<Task[]> => {
       status: task.status as TaskStatus,
       dateCreation: new Date(task.date_creation),
       dateEcheance: task.date_echeance ? new Date(task.date_echeance) : undefined,
-      priority: task.priority
+      priority: convertPriorityType(task.priority)
     }));
   } catch (error) {
     console.error("Erreur inattendue lors de la récupération des tâches:", error);
@@ -57,7 +56,7 @@ export const fetchTasksByAgent = async (agentId: string): Promise<Task[]> => {
       status: task.status as TaskStatus,
       dateCreation: new Date(task.date_creation),
       dateEcheance: task.date_echeance ? new Date(task.date_echeance) : undefined,
-      priority: task.priority
+      priority: convertPriorityType(task.priority)
     }));
   } catch (error) {
     console.error(`Erreur inattendue lors de la récupération des tâches pour l'agent ${agentId}:`, error);
@@ -91,12 +90,21 @@ export const fetchTaskById = async (id: string): Promise<Task | null> => {
       status: data.status as TaskStatus,
       dateCreation: new Date(data.date_creation),
       dateEcheance: data.date_echeance ? new Date(data.date_echeance) : undefined,
-      priority: data.priority
+      priority: convertPriorityType(data.priority)
     };
   } catch (error) {
     console.error(`Erreur inattendue lors de la récupération de la tâche ${id}:`, error);
     return null;
   }
+};
+
+// Fonction auxiliaire pour convertir le type de priorité
+const convertPriorityType = (priority: string): "low" | "medium" | "high" => {
+  if (priority === "low" || priority === "medium" || priority === "high") {
+    return priority;
+  }
+  // Valeur par défaut si la priorité n'est pas reconnue
+  return "medium";
 };
 
 /**
@@ -130,7 +138,7 @@ export const createTask = async (task: Omit<Task, 'id' | 'dateCreation'>): Promi
       status: data.status as TaskStatus,
       dateCreation: new Date(data.date_creation),
       dateEcheance: data.date_echeance ? new Date(data.date_echeance) : undefined,
-      priority: data.priority
+      priority: convertPriorityType(data.priority)
     };
   } catch (error) {
     console.error("Erreur inattendue lors de la création de la tâche:", error);
