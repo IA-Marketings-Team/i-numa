@@ -7,6 +7,7 @@ import { User, LogOut, Search, Plus, ChevronLeft, Bell, Settings } from "lucide-
 import CartDrawer from "@/components/cart/CartDrawer";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
+import { useEffect } from "react";
 
 const Header = () => {
   const { user } = useAuth();
@@ -14,6 +15,14 @@ const Header = () => {
   const location = useLocation();
   const isClient = user?.role === 'client';
   
+  // Log component initialization
+  useEffect(() => {
+    console.log("[Header] Component initialized:", { 
+      currentPath: location.pathname,
+      userRole: user?.role
+    });
+  }, [location.pathname, user]);
+
   // Obtenir le titre de la page en fonction de l'URL
   const getPageTitle = () => {
     const path = location.pathname;
@@ -91,6 +100,11 @@ const Header = () => {
     );
   };
 
+  const handleCreateButtonClick = () => {
+    console.log("[Header] Create button clicked, navigating to /dossiers/nouveau");
+    navigate("/dossiers/nouveau");
+  };
+
   return (
     <header className="border-b sticky top-0 z-40 w-full bg-card">
       <div className="flex h-16 px-4 items-center justify-between">
@@ -128,7 +142,7 @@ const Header = () => {
             variant="outline"
             size="sm"
             className="hidden md:flex items-center gap-1"
-            onClick={() => navigate("/dossiers/nouveau")}
+            onClick={handleCreateButtonClick}
           >
             <Plus className="h-4 w-4" />
             <span>Créer</span>

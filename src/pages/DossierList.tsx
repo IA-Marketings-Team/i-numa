@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
 import DossierList from "@/components/dossier/DossierList";
@@ -15,7 +15,17 @@ const DossierListPage = () => {
   const { filteredDossiers, setStatusFilter, statusFilter } = useDossier();
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
-  const { hasPermission } = useAuth();
+  const { hasPermission, user } = useAuth();
+
+  // Log component initialization
+  useEffect(() => {
+    console.log("[DossierListPage] Component initialized:", { 
+      userRole: user?.role,
+      hasPermissions: hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable']),
+      dossierCount: filteredDossiers.length,
+      statusFilter
+    });
+  }, [statusFilter, filteredDossiers.length, user, hasPermission]);
 
   // Filtrer les dossiers en fonction du terme de recherche
   const searchFilteredDossiers = filteredDossiers.filter(
@@ -27,7 +37,13 @@ const DossierListPage = () => {
   );
 
   const handleStatusChange = (status: string) => {
+    console.log("[DossierListPage] Status filter changed:", status);
     setStatusFilter(status as DossierStatus | 'all');
+  };
+
+  const handleNewDossierClick = () => {
+    console.log("[DossierListPage] New dossier button clicked, navigating to /dossiers/nouveau");
+    navigate("/dossiers/nouveau");
   };
 
   return (
@@ -38,7 +54,7 @@ const DossierListPage = () => {
           
           {hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable']) && (
             <Button 
-              onClick={() => navigate("/dossiers/nouveau")}
+              onClick={handleNewDossierClick}
               size="sm"
               className="flex items-center gap-2"
             >

@@ -18,16 +18,30 @@ const DossierEdit = () => {
   const isCreating = id === "nouveau";
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Log component initialization
+  useEffect(() => {
+    console.log("[DossierEdit] Component initialized:", { 
+      id, 
+      isCreating, 
+      userRole: user?.role,
+      hasPermissions: hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable'])
+    });
+  }, [id, isCreating, user, hasPermission]);
+
   useEffect(() => {
     // Si nous sommes en mode création, initialiser un dossier vide
     if (isCreating) {
+      console.log("[DossierEdit] Creating new dossier mode");
       setCurrentDossier(null);
     } else if (id) {
       // Sinon charger le dossier existant
+      console.log("[DossierEdit] Loading existing dossier:", id);
       const dossier = getDossierById(id);
       if (dossier) {
+        console.log("[DossierEdit] Dossier found:", dossier.id);
         setCurrentDossier(dossier);
       } else {
+        console.error("[DossierEdit] Dossier not found:", id);
         navigate("/dossiers");
         toast({
           variant: "destructive",
@@ -44,7 +58,14 @@ const DossierEdit = () => {
 
   // Vérifier que l'utilisateur a les permissions nécessaires pour cette page
   useEffect(() => {
-    if (!hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable'])) {
+    const hasRequiredPermission = hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable']);
+    console.log("[DossierEdit] Permission check:", { 
+      userRole: user?.role, 
+      hasRequiredPermission
+    });
+    
+    if (!hasRequiredPermission) {
+      console.error("[DossierEdit] Access denied for user role:", user?.role);
       navigate("/dossiers");
       toast({
         variant: "destructive",
@@ -52,10 +73,11 @@ const DossierEdit = () => {
         description: "Vous n'avez pas les permissions nécessaires pour accéder à cette page."
       });
     }
-  }, [hasPermission, navigate, toast]);
+  }, [hasPermission, navigate, toast, user]);
 
   const handleDelete = () => {
     if (id && id !== "nouveau" && currentDossier) {
+      console.log("[DossierEdit] Deleting dossier:", id);
       deleteDossier(id);
       navigate("/dossiers");
       toast({
@@ -67,6 +89,7 @@ const DossierEdit = () => {
   };
 
   if (!isCreating && !currentDossier) {
+    console.log("[DossierEdit] Loading state - dossier not yet available");
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <p className="text-gray-600 mb-4">Chargement du dossier...</p>
@@ -77,6 +100,11 @@ const DossierEdit = () => {
       </div>
     );
   }
+
+  console.log("[DossierEdit] Rendering form with:", { 
+    isCreating, 
+    currentDossier: currentDossier?.id
+  });
 
   return (
     <div className="space-y-6">

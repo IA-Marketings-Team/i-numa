@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useDossier } from "@/contexts/DossierContext";
 import { useNavigate } from "react-router-dom";
@@ -34,10 +35,21 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
   const phonerAgents = agents.filter(a => a.role === "agent_phoner");
   const visioAgents = agents.filter(a => a.role === "agent_visio");
 
+  // Log initial component state
+  useEffect(() => {
+    console.log("[DossierForm] Initial state:", { 
+      isEditing, 
+      userRole, 
+      dossierExists: !!dossier,
+      dossierID: dossier?.id
+    });
+  }, [dossier, isEditing, userRole]);
+
   useEffect(() => {
     if (!isEditing && userRole === 'agent_phoner' && selectedAgentPhoner === "none") {
       const currentAgent = agents.find(a => a.role === 'agent_phoner');
       if (currentAgent) {
+        console.log("[DossierForm] Auto-assigning phoner agent:", currentAgent.id);
         setSelectedAgentPhoner(currentAgent.id);
       }
     }
@@ -47,6 +59,7 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
     if (dossier?.dateRdv) {
       const date = new Date(dossier.dateRdv);
       setDateRdv(date.toISOString().split('T')[0]);
+      console.log("[DossierForm] Setting date:", date.toISOString().split('T')[0]);
     }
   }, [dossier]);
 
@@ -55,7 +68,7 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
     setFormError("");
     setClientError("");
 
-    console.log("Form submission started", { 
+    console.log("[DossierForm] Form submission started", { 
       selectedClient, 
       isEditing, 
       userRole,
@@ -63,16 +76,20 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
     });
 
     if (!hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable'])) {
+      console.error("[DossierForm] Permission denied for dossier creation:", {
+        userRole,
+        requiredRoles: ['agent_phoner', 'agent_visio', 'superviseur', 'responsable']
+      });
       toast({
         variant: "destructive",
         title: "Accès refusé",
         description: "Vous n'avez pas les permissions nécessaires pour créer un dossier"
       });
-      console.error("Permission denied for dossier creation");
       return;
     }
 
     if (!selectedClient) {
+      console.warn("[DossierForm] No client selected");
       setClientError("Veuillez sélectionner un client");
       setFormError("Des champs obligatoires n'ont pas été remplis");
       toast({
@@ -85,6 +102,7 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
 
     const client = clients.find(c => c.id === selectedClient);
     if (!client) {
+      console.error("[DossierForm] Client not found for ID:", selectedClient);
       setClientError("Client non trouvé");
       setFormError("Client non trouvé");
       toast({
@@ -96,6 +114,7 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
     }
 
     const offresToAdd = mockOffres.filter(o => selectedOffres.includes(o.id));
+    console.log("[DossierForm] Selected offres:", offresToAdd.map(o => o.nom));
     
     const dossierData = {
       clientId: selectedClient,
@@ -109,14 +128,18 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
       montant
     };
     
+    console.log("[DossierForm] Dossier data prepared:", dossierData);
+    
     try {
       if (isEditing && dossier) {
+        console.log("[DossierForm] Updating existing dossier:", dossier.id);
         updateDossier(dossier.id, dossierData);
         toast({
           title: "Succès",
           description: "Le dossier a été mis à jour avec succès",
         });
       } else {
+        console.log("[DossierForm] Creating new dossier");
         addDossier(dossierData);
         toast({
           title: "Succès",
@@ -124,9 +147,10 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
         });
       }
       
+      console.log("[DossierForm] Navigating to /dossiers");
       navigate("/dossiers");
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde du dossier:", error);
+      console.error("[DossierForm] Error saving dossier:", error);
       setFormError("Une erreur est survenue lors de la sauvegarde du dossier");
       toast({
         variant: "destructive",
