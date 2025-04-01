@@ -59,15 +59,6 @@ export const createDemoUserProfile = async (
     if (existingUsers && existingUsers.length > 0) {
       console.log("Profil utilisateur démo existant trouvé pour", email);
       
-      // Mettre à jour l'auth_id si nécessaire
-      if (existingUsers[0].auth_id !== authId) {
-        console.log("Mise à jour de l'auth_id pour", email);
-        await supabase
-          .from('users')
-          .update({ auth_id: authId })
-          .eq('id', existingUsers[0].id);
-      }
-      
       return {
         id: existingUsers[0].id,
         nom: existingUsers[0].nom,
@@ -87,49 +78,77 @@ export const createDemoUserProfile = async (
     
     // Si le profil n'existe pas encore, le créer
     console.log("Création d'un nouveau profil utilisateur démo pour", email);
-    const newUser = await createUser({
-      nom: lastName,
-      prenom: firstName,
-      email: email.toLowerCase().trim(),
-      telephone: "0123456789", // Valeur par défaut pour les démos
-      role,
-      auth_id: authId
-    });
     
-    if (newUser) {
-      console.log("Profil utilisateur de démo créé avec succès pour", email);
-      
-      // Si c'est un client, créer aussi l'entrée dans la table clients
-      if (role === 'client') {
-        try {
-          await supabase.from('clients').insert({
-            id: newUser.id,
-            secteur_activite: 'Commerce',
-            type_entreprise: 'PME',
-            besoins: 'Visibilité en ligne'
-          });
-          console.log("Entrée client créée pour", email);
-        } catch (error) {
-          console.error("Erreur lors de la création de l'entrée client:", error);
-        }
-      }
-      
-      // Si c'est un agent, créer aussi l'entrée dans la table agents
-      if (role === 'agent_phoner' || role === 'agent_visio') {
-        try {
-          await supabase.from('agents').insert({
-            id: newUser.id
-          });
-          console.log("Entrée agent créée pour", email);
-        } catch (error) {
-          console.error("Erreur lors de la création de l'entrée agent:", error);
-        }
-      }
-      
-      return newUser;
+    // Créer l'entrée directement dans la table users sans passer par Supabase Auth
+    const { data: newUserData, error: insertError } = await supabase
+      .from('users')
+      .insert({
+        nom: lastName,
+        prenom: firstName,
+        email: email.toLowerCase().trim(),
+        telephone: "0123456789", // Valeur par défaut pour les démos
+        role,
+        auth_id: authId
+      })
+      .select()
+      .single();
+    
+    if (insertError) {
+      console.error("Erreur lors de la création du profil démo:", insertError);
+      return null;
     }
     
-    return null;
+    if (!newUserData) {
+      console.error("Aucune donnée retournée après création du profil démo");
+      return null;
+    }
+    
+    const newUser: User = {
+      id: newUserData.id,
+      nom: newUserData.nom,
+      prenom: newUserData.prenom,
+      email: newUserData.email,
+      telephone: newUserData.telephone,
+      role: newUserData.role,
+      dateCreation: new Date(newUserData.date_creation),
+      adresse: newUserData.adresse || undefined,
+      ville: newUserData.ville || undefined,
+      codePostal: newUserData.code_postal || undefined,
+      iban: newUserData.iban || undefined,
+      bic: newUserData.bic || undefined,
+      nomBanque: newUserData.nom_banque || undefined,
+    };
+    
+    console.log("Profil utilisateur de démo créé avec succès pour", email);
+    
+    // Si c'est un client, créer aussi l'entrée dans la table clients
+    if (role === 'client') {
+      try {
+        await supabase.from('clients').insert({
+          id: newUser.id,
+          secteur_activite: 'Commerce',
+          type_entreprise: 'PME',
+          besoins: 'Visibilité en ligne'
+        });
+        console.log("Entrée client créée pour", email);
+      } catch (error) {
+        console.error("Erreur lors de la création de l'entrée client:", error);
+      }
+    }
+    
+    // Si c'est un agent, créer aussi l'entrée dans la table agents
+    if (role === 'agent_phoner' || role === 'agent_visio') {
+      try {
+        await supabase.from('agents').insert({
+          id: newUser.id
+        });
+        console.log("Entrée agent créée pour", email);
+      } catch (error) {
+        console.error("Erreur lors de la création de l'entrée agent:", error);
+      }
+    }
+    
+    return newUser;
   } catch (error) {
     console.error("Erreur lors de la création du profil utilisateur de démo:", error);
     return null;

@@ -21,74 +21,48 @@ export const useLoginMethod = (
       
       // Si c'est un compte de démo, on utilise une logique spéciale
       if (isDemoAccount(cleanedEmail)) {
-        console.log("Compte de démonstration détecté, authentification en cours");
+        console.log("Compte de démonstration détecté, traitement spécial");
         
-        // Pour les comptes de démo, effectuer une connexion directe avec le mot de passe standard
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: cleanedEmail,
-          password: password || "demo12345"  // Utiliser le mot de passe fourni ou celui par défaut
-        });
-
-        if (error) {
-          console.error("Erreur d'authentification pour le compte de démo:", error.message);
+        // Pour les comptes de démo, simuler une connexion réussie sans authentification réelle
+        // et créer directement un profil utilisateur de démo
+        try {
+          const demoUser = await createDemoUserProfile(
+            `demo_${cleanedEmail.replace('@', '_at_')}`, // Générer un ID fictif pour le démo
+            cleanedEmail
+          );
           
-          // Message d'erreur plus détaillé pour déboguer
-          toast({
-            title: "Échec de connexion",
-            description: `Erreur: ${error.message}. Veuillez contacter le support.`,
-            variant: "destructive",
-          });
-          return false;
-        }
-
-        if (data.user) {
-          console.log("Authentification réussie pour le compte de démo:", data.user);
-          
-          try {
-            // Récupérer l'utilisateur depuis la base de données
-            let userData = await getUserByAuthId(data.user.id);
+          if (demoUser) {
+            console.log("Profil utilisateur de démo configuré:", demoUser);
             
-            // Si l'utilisateur démo n'existe pas encore dans la base de données, le créer
-            if (!userData) {
-              console.log("Profil utilisateur de démo non trouvé, création en cours");
-              userData = await createDemoUserProfile(data.user.id, cleanedEmail);
-            }
+            // Mettre à jour l'état de l'application
+            setUser(demoUser);
+            setIsAuthenticated(true);
+            setSession({ user: { id: demoUser.id, email: demoUser.email } });
             
-            if (userData) {
-              console.log("Profil utilisateur de démo configuré:", userData);
-              
-              // Mettre à jour l'état de l'application
-              setUser(userData);
-              setIsAuthenticated(true);
-              setSession(data.session);
-              
-              toast({
-                title: "Connexion réussie",
-                description: `Bienvenue, ${userData.prenom} ${userData.nom} (${userData.role})`,
-              });
-              
-              return true;
-            } else {
-              console.error("Échec de création/récupération du profil utilisateur de démo");
-              toast({
-                title: "Échec de connexion",
-                description: "Erreur lors de la configuration du compte de démonstration",
-                variant: "destructive",
-              });
-              return false;
-            }
-          } catch (profileError) {
-            console.error("Erreur lors de la récupération du profil démo:", profileError);
             toast({
-              title: "Erreur",
-              description: "Erreur lors de la récupération de votre profil. Veuillez réessayer.",
+              title: "Connexion réussie",
+              description: `Bienvenue, ${demoUser.prenom} ${demoUser.nom} (${demoUser.role})`,
+            });
+            
+            return true;
+          } else {
+            console.error("Échec de création du profil utilisateur de démo");
+            toast({
+              title: "Échec de connexion",
+              description: "Erreur lors de la configuration du compte de démonstration",
               variant: "destructive",
             });
             return false;
           }
+        } catch (profileError) {
+          console.error("Erreur lors de la création du profil démo:", profileError);
+          toast({
+            title: "Erreur",
+            description: "Erreur lors de la création de votre profil de démo. Veuillez réessayer.",
+            variant: "destructive",
+          });
+          return false;
         }
-        
-        return false;
       } else {
         // Logique de connexion standard pour les comptes non-démo
         const { data, error } = await supabase.auth.signInWithPassword({
