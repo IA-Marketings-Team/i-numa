@@ -31,16 +31,24 @@ serve(async (req) => {
 
     console.log("Attempting login for:", email);
 
-    // Utiliser la fonction RPC auth_user pour vérifier les identifiants
+    // Use the auth_user function to verify credentials
     const { data: authData, error: authError } = await supabase.rpc(
       'auth_user',
       { user_email: email, user_password: password }
     );
 
-    if (authError || !authData || authData.length === 0) {
-      console.error("Authentication failed for user:", email, authError);
+    if (authError) {
+      console.error("Authentication error:", authError);
       return new Response(
-        JSON.stringify({ error: "Invalid credentials" }),
+        JSON.stringify({ error: "Authentication failed: " + authError.message }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+      );
+    }
+
+    if (!authData || authData.length === 0) {
+      console.error("Invalid credentials for user:", email);
+      return new Response(
+        JSON.stringify({ error: "Invalid email or password" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
       );
     }
@@ -48,7 +56,7 @@ serve(async (req) => {
     const userData = authData[0];
     console.log("User authenticated:", userData);
 
-    // Récupérer les informations complètes de l'utilisateur
+    // Get complete user information
     const { data: userDetails, error: userError } = await supabase
       .from('users')
       .select('*')
@@ -58,12 +66,12 @@ serve(async (req) => {
     if (userError) {
       console.error("Error fetching user details:", userError);
       return new Response(
-        JSON.stringify({ error: "Error fetching user details" }),
+        JSON.stringify({ error: "Error fetching user details: " + userError.message }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
       );
     }
 
-    // Générer un token simple
+    // Generate a simple token
     const token = crypto.randomUUID();
     
     console.log("Login successful for:", email);
@@ -75,7 +83,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("Unexpected error:", error);
     return new Response(
-      JSON.stringify({ error: "An unexpected error occurred" }),
+      JSON.stringify({ error: "An unexpected error occurred: " + (error.message || error) }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
   }

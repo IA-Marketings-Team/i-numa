@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,12 @@ const Register = () => {
     setIsLoading(true);
     setError(null);
     
+    if (!email || !password || !nom || !prenom || !telephone) {
+      setError("Tous les champs sont obligatoires");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const newUser = await customRegister(
         nom,
@@ -55,14 +62,24 @@ const Register = () => {
       
       toast({
         title: "Inscription réussie",
-        description: "Votre compte a été créé avec succès",
+        description: "Votre compte a été créé avec succès. Vous pouvez vous connecter maintenant.",
       });
       
       navigate("/connexion");
       
     } catch (err: any) {
       console.error("Erreur lors de l'inscription:", err);
-      setError(err.message || "Une erreur inattendue s'est produite");
+      let errorMessage = "Une erreur inattendue s'est produite";
+      
+      if (err.message && err.message.includes("User already exists")) {
+        errorMessage = "Un utilisateur avec cette adresse email existe déjà";
+      } else if (err.message) {
+        errorMessage = err.message;
+      } else if (err.error) {
+        errorMessage = err.error;
+      }
+      
+      setError(errorMessage);
       setIsLoading(false);
     }
   };

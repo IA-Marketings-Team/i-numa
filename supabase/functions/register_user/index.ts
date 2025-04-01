@@ -50,7 +50,7 @@ serve(async (req) => {
       console.error("Error checking for existing user:", checkError);
     }
 
-    // Insérer l'utilisateur avec le mot de passe
+    // Insert user with password
     const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert([
@@ -60,7 +60,7 @@ serve(async (req) => {
           email, 
           telephone, 
           role,
-          mot_de_passe: password // Stockage direct du mot de passe
+          mot_de_passe: password // Direct password storage
         }
       ])
       .select()
@@ -83,7 +83,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("Unexpected error:", error);
     return new Response(
-      JSON.stringify({ error: "An unexpected error occurred" }),
+      JSON.stringify({ error: "An unexpected error occurred: " + (error.message || error) }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
   }
