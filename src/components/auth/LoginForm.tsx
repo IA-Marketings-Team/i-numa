@@ -1,8 +1,9 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LoginTab } from "@/components/auth/LoginTab";
-import { RegisterTab } from "@/components/auth/RegisterTab";
+import LoginTab from "@/components/auth/LoginTab";
+import RegisterTab from "@/components/auth/RegisterTab";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { UserRole } from "@/types";
@@ -52,10 +53,14 @@ const LoginForm = () => {
     }
   };
 
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as "login" | "register");
+  };
+
   return (
     <Card>
       <CardHeader className="space-y-2">
-        <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs defaultValue="login" value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login">Se connecter</TabsTrigger>
             <TabsTrigger value="register">S'inscrire</TabsTrigger>
