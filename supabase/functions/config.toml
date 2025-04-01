@@ -1,6 +1,0 @@
-
-[functions.login]
-verify_jwt = false
-
-[functions.register_user]
-verify_jwt = false
