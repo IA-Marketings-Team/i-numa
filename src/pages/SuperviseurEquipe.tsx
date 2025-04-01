@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,6 +42,14 @@ import {
 import { 
   Button 
 } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
 import RendezVousChart from "@/components/stats/RendezVousChart";
 import KanbanBoard from "@/components/tasks/KanbanBoard";
 import TeamForm from "@/components/teams/TeamForm";
@@ -56,7 +65,10 @@ import {
   UserPlus,
   PlusCircle,
   List,
-  ClipboardCheck
+  ClipboardCheck,
+  Calendar,
+  ChevronRight,
+  Briefcase
 } from "lucide-react";
 
 const SuperviseurEquipe = () => {
@@ -69,7 +81,9 @@ const SuperviseurEquipe = () => {
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
   
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [isStatsOpen, setIsStatsOpen] = useState(false);
+  const [isTeamDetailsOpen, setIsTeamDetailsOpen] = useState(false);
   const [isAddAgentOpen, setIsAddAgentOpen] = useState(false);
   const [isAddTeamOpen, setIsAddTeamOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState<string>("teams");
@@ -144,6 +158,12 @@ const SuperviseurEquipe = () => {
   const handleAgentClick = (agent: Agent) => {
     setSelectedAgent(agent);
     setIsStatsOpen(true);
+  };
+
+  // Handle team click
+  const handleTeamClick = (team: Team) => {
+    setSelectedTeam(team);
+    setIsTeamDetailsOpen(true);
   };
 
   // Handle add team
@@ -307,7 +327,10 @@ const SuperviseurEquipe = () => {
     const teamAgents = agents.filter(agent => agent.equipeId === team.id);
     
     return (
-      <Card>
+      <Card 
+        className="cursor-pointer hover:shadow-md transition-shadow" 
+        onClick={() => handleTeamClick(team)}
+      >
         <CardHeader>
           <CardTitle>{team.nom}</CardTitle>
           <CardDescription>{team.description}</CardDescription>
@@ -328,11 +351,10 @@ const SuperviseurEquipe = () => {
           
           {teamAgents.length > 0 ? (
             <div className="space-y-3">
-              {teamAgents.map(agent => (
+              {teamAgents.slice(0, 3).map(agent => (
                 <div 
                   key={agent.id}
-                  className="flex items-center space-x-3 p-2 rounded-md border hover:bg-muted/50 cursor-pointer"
-                  onClick={() => handleAgentClick(agent)}
+                  className="flex items-center space-x-3 p-2 rounded-md border hover:bg-muted/50"
                 >
                   <Avatar className="h-8 w-8 border">
                     <AvatarFallback className="bg-primary/10 text-primary text-xs">
@@ -347,6 +369,13 @@ const SuperviseurEquipe = () => {
                   </div>
                 </div>
               ))}
+              {teamAgents.length > 3 && (
+                <div className="text-center text-sm text-muted-foreground">
+                  <Button variant="ghost" size="sm" className="w-full">
+                    +{teamAgents.length - 3} autres agents <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-4 text-sm text-muted-foreground">
@@ -560,6 +589,222 @@ const SuperviseurEquipe = () => {
                   </div>
                   <KanbanBoard 
                     tasks={getAgentTasks(selectedAgent.id)}
+                    onTaskClick={handleTaskClick}
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for team details */}
+      <Dialog open={isTeamDetailsOpen} onOpenChange={setIsTeamDetailsOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5" />
+              {selectedTeam && (
+                <>Détails de l'équipe {selectedTeam.nom}</>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedTeam && (
+            <Tabs defaultValue="info">
+              <TabsList>
+                <TabsTrigger value="info">Information</TabsTrigger>
+                <TabsTrigger value="members">
+                  <Users className="h-4 w-4 mr-2" />
+                  Membres
+                </TabsTrigger>
+                <TabsTrigger value="tasks">
+                  <List className="h-4 w-4 mr-2" />
+                  Tâches
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="info">
+                <div className="grid grid-cols-1 gap-6 mt-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Informations de l'équipe</CardTitle>
+                      <CardDescription>Détails et fonction</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <div>
+                            <h3 className="font-medium text-lg">{selectedTeam.nom}</h3>
+                            <Badge className="mt-1">
+                              {selectedTeam.fonction === "phoning" ? "Phoning" :
+                              selectedTeam.fonction === "visio" ? "Visio" :
+                              selectedTeam.fonction === "developpement" ? "Développement" :
+                              selectedTeam.fonction === "marketing" ? "Marketing" : "Mixte"}
+                            </Badge>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm text-muted-foreground">
+                              Créée le {new Date(selectedTeam.dateCreation).toLocaleDateString('fr-FR')}
+                            </p>
+                            <Badge variant="outline" className="mt-1 flex items-center gap-1">
+                              <Users className="h-3 w-3" />
+                              {agents.filter(a => a.equipeId === selectedTeam.id).length} membres
+                            </Badge>
+                          </div>
+                        </div>
+                        
+                        <div className="pt-2">
+                          <p className="text-sm font-medium">Description:</p>
+                          <p className="text-sm mt-1">{selectedTeam.description}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="pt-2">
+                        <h4 className="text-sm font-medium mb-2">Statistiques d'équipe</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          {(() => {
+                            const teamAgents = agents.filter(a => a.equipeId === selectedTeam.id);
+                            const totalAppels = teamAgents.reduce((sum, agent) => sum + agent.statistiques.appelsEmis, 0);
+                            const totalRDV = teamAgents.reduce((sum, agent) => 
+                              sum + agent.statistiques.rendezVousHonores + agent.statistiques.rendezVousNonHonores, 0);
+                            const totalDossiers = teamAgents.reduce((sum, agent) => sum + agent.statistiques.dossiersValides, 0);
+                            const totalSignes = teamAgents.reduce((sum, agent) => sum + agent.statistiques.dossiersSigne, 0);
+                            
+                            return (
+                              <>
+                                <div className="rounded-lg border p-3">
+                                  <div className="text-xs font-medium text-muted-foreground">Total Appels</div>
+                                  <div className="text-xl font-bold">{totalAppels}</div>
+                                </div>
+                                <div className="rounded-lg border p-3">
+                                  <div className="text-xs font-medium text-muted-foreground">Total RDV</div>
+                                  <div className="text-xl font-bold">{totalRDV}</div>
+                                </div>
+                                <div className="rounded-lg border p-3">
+                                  <div className="text-xs font-medium text-muted-foreground">Dossiers validés</div>
+                                  <div className="text-xl font-bold">{totalDossiers}</div>
+                                </div>
+                                <div className="rounded-lg border p-3">
+                                  <div className="text-xs font-medium text-muted-foreground">Contrats signés</div>
+                                  <div className="text-xl font-bold">{totalSignes}</div>
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="members">
+                <div className="mt-4">
+                  <Card>
+                    <CardHeader>
+                      <div className="flex justify-between items-center">
+                        <CardTitle>Membres de l'équipe</CardTitle>
+                        <Button size="sm" onClick={() => setIsAddAgentOpen(true)}>
+                          <UserPlus className="mr-2 h-4 w-4" />
+                          Ajouter un agent
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Agent</TableHead>
+                            <TableHead>Rôle</TableHead>
+                            <TableHead>Contact</TableHead>
+                            <TableHead>Performances</TableHead>
+                            <TableHead></TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {agents.filter(agent => agent.equipeId === selectedTeam.id).map(agent => (
+                            <TableRow key={agent.id}>
+                              <TableCell>
+                                <div className="flex items-center space-x-3">
+                                  <Avatar className="h-8 w-8">
+                                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                                      {agent.prenom.charAt(0)}{agent.nom.charAt(0)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="font-medium">{agent.prenom} {agent.nom}</p>
+                                    <p className="text-xs text-muted-foreground">{agent.email}</p>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="flex w-fit items-center gap-1">
+                                  {getAgentRoleIcon(agent.role)}
+                                  {getAgentRoleLabel(agent.role)}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <p className="text-sm">{agent.telephone}</p>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex space-x-2 text-xs">
+                                  <div className="p-1 px-2 rounded-md bg-blue-100 text-blue-700">
+                                    {agent.statistiques.appelsEmis} appels
+                                  </div>
+                                  <div className="p-1 px-2 rounded-md bg-green-100 text-green-700">
+                                    {agent.statistiques.rendezVousHonores} RDV
+                                  </div>
+                                  <div className="p-1 px-2 rounded-md bg-purple-100 text-purple-700">
+                                    {agent.statistiques.dossiersValides} dossiers
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Button size="sm" variant="ghost" onClick={() => handleAgentClick(agent)}>
+                                  Détails
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          {agents.filter(agent => agent.equipeId === selectedTeam.id).length === 0 && (
+                            <TableRow>
+                              <TableCell colSpan={5} className="text-center py-6">
+                                <p className="text-muted-foreground">Aucun agent dans cette équipe</p>
+                                <Button variant="outline" className="mt-2" onClick={() => setIsAddAgentOpen(true)}>
+                                  <UserPlus className="mr-2 h-4 w-4" />
+                                  Ajouter un agent
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="tasks">
+                <div className="mt-4 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-medium">Tâches de l'équipe</h3>
+                    <Button 
+                      onClick={() => {
+                        setSelectedTask(null);
+                        setIsTaskFormOpen(true);
+                      }}
+                      size="sm"
+                    >
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Ajouter une tâche
+                    </Button>
+                  </div>
+                  <KanbanBoard 
+                    tasks={tasks.filter(task => {
+                      const agent = agents.find(a => a.id === task.agentId);
+                      return agent && agent.equipeId === selectedTeam.id;
+                    })}
                     onTaskClick={handleTaskClick}
                   />
                 </div>
