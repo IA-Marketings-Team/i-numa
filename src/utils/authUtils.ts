@@ -8,6 +8,7 @@ import { Database } from "@/integrations/supabase/types";
  */
 export const fetchUserProfile = async (userId: string): Promise<{ user: User | null; error: Error | null }> => {
   try {
+    // Use the more reliable .eq() method for filtering and add better error handling
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
