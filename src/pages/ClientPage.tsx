@@ -5,11 +5,25 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronLeft, Mail, Phone, MapPin, Building, Info } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 const ClientPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
+  const { toast } = useToast();
+  
+  // État pour les dialogues
+  const [isCallingOpen, setIsCallingOpen] = useState(false);
+  const [isEmailOpen, setIsEmailOpen] = useState(false);
+  const [callNotes, setCallNotes] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
   
   // Rechercher le client avec l'ID spécifié
   const client = clients.find((c) => c.id === id);
@@ -25,6 +39,40 @@ const ClientPage = () => {
       </div>
     );
   }
+
+  const handleSendEmail = () => {
+    // Simulation d'envoi d'email
+    if (!emailSubject || !emailBody) {
+      toast({
+        title: "Champs manquants",
+        description: "Veuillez remplir tous les champs du formulaire.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    toast({
+      title: "Email envoyé",
+      description: `Un email a été envoyé à ${client.prenom} ${client.nom}.`,
+    });
+    
+    // Réinitialiser et fermer
+    setEmailSubject("");
+    setEmailBody("");
+    setIsEmailOpen(false);
+  };
+
+  const handleCallClient = () => {
+    // Simulation d'appel client
+    toast({
+      title: "Appel terminé",
+      description: `Les notes de l'appel avec ${client.prenom} ${client.nom} ont été enregistrées.`,
+    });
+    
+    // Réinitialiser et fermer
+    setCallNotes("");
+    setIsCallingOpen(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -55,11 +103,19 @@ const ClientPage = () => {
           </div>
           
           <div className="mt-4 md:mt-0 space-x-2">
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={() => setIsEmailOpen(true)}
+            >
               <Mail className="w-4 h-4" />
               Envoyer un email
             </Button>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={() => setIsCallingOpen(true)}
+            >
               <Phone className="w-4 h-4" />
               Appeler
             </Button>
@@ -137,6 +193,79 @@ const ClientPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Dialog pour l'email */}
+      <Dialog open={isEmailOpen} onOpenChange={setIsEmailOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Envoyer un email à {client.prenom} {client.nom}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Destinataire</Label>
+              <Input 
+                id="email" 
+                value={client.email} 
+                readOnly 
+                className="bg-gray-50"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="subject">Sujet</Label>
+              <Input 
+                id="subject" 
+                placeholder="Sujet de l'email" 
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="message">Message</Label>
+              <Textarea 
+                id="message" 
+                placeholder="Votre message..." 
+                className="min-h-[150px]"
+                value={emailBody}
+                onChange={(e) => setEmailBody(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEmailOpen(false)}>Annuler</Button>
+            <Button onClick={handleSendEmail}>Envoyer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog pour l'appel */}
+      <Dialog open={isCallingOpen} onOpenChange={setIsCallingOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Appel à {client.prenom} {client.nom}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-gray-50 p-3 rounded-md">
+              <p className="font-medium text-sm">Numéro de téléphone</p>
+              <p className="text-lg">{client.telephone}</p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes d'appel</Label>
+              <Textarea 
+                id="notes"
+                placeholder="Entrez les détails de votre appel ici..."
+                value={callNotes}
+                onChange={(e) => setCallNotes(e.target.value)}
+                className="min-h-[150px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCallingOpen(false)}>Annuler</Button>
+            <Button onClick={handleCallClient}>Terminer l'appel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
