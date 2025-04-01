@@ -15,7 +15,7 @@ const DossierEdit = () => {
   const { user, hasPermission } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isCreating = id === "nouveau";
+  const isCreating = id === "nouveau" || window.location.pathname.includes("/dossiers/nouveau");
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Log component initialization with more details
@@ -90,17 +90,18 @@ const DossierEdit = () => {
     setIsDeleting(false);
   };
 
-  if (!isCreating && !currentDossier) {
-    console.log("[DossierEdit] Loading state - dossier not yet available");
-    return (
-      <div className="flex flex-col items-center justify-center h-64">
-        <p className="text-gray-600 mb-4">Chargement du dossier...</p>
-        <Button variant="outline" onClick={() => navigate("/dossiers")} className="flex items-center gap-2">
-          <ChevronLeft className="w-4 h-4" />
-          Retour à la liste
-        </Button>
-      </div>
-    );
+  // Ajouter un délai pour s'assurer que le composant est bien monté
+  const [isReady, setIsReady] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsReady(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!isReady) {
+    console.log("[DossierEdit] Component not ready yet, waiting...");
+    return null;
   }
 
   console.log("[DossierEdit] Rendering form with:", { 

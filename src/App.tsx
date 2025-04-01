@@ -72,9 +72,10 @@ const App = () => {
                             </ProtectedRoute>
                           } 
                         />
-                        
+
+                        {/* Route pour nouveau dossier - placer avant la route avec paramètre :id/edit */}
                         <Route 
-                          path="/dossiers/:id/edit" 
+                          path="/dossiers/nouveau" 
                           element={
                             <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
                               <DossierEdit />
@@ -83,7 +84,7 @@ const App = () => {
                         />
                         
                         <Route 
-                          path="/dossiers/nouveau" 
+                          path="/dossiers/:id/edit" 
                           element={
                             <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
                               <DossierEdit />
