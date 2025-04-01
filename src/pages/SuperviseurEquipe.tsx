@@ -144,7 +144,7 @@ const SuperviseurEquipe = () => {
   };
 
   const getAgentTasks = (agentId: string) => {
-    return tasks.filter(task => task.agentId === agentId);
+    return tasks.filter(task => task.agent_id === agentId);
   };
 
   const handleTaskStatusChange = (taskId: string, newStatus: Task["status"]) => {
@@ -231,7 +231,7 @@ const SuperviseurEquipe = () => {
       id: `task${tasks.length + 1}`,
       title: data.title,
       description: data.description,
-      agentId: data.agentId,
+      agent_id: data.agent_id,
       status: data.status,
       dateCreation: new Date(),
       dateEcheance: data.dateEcheance,
@@ -256,7 +256,7 @@ const SuperviseurEquipe = () => {
             ...task,
             title: data.title,
             description: data.description,
-            agentId: data.agentId,
+            agent_id: data.agent_id,
             status: data.status,
             dateEcheance: data.dateEcheance,
             priority: data.priority
@@ -452,7 +452,10 @@ const SuperviseurEquipe = () => {
             </Button>
           </div>
           <KanbanBoard 
-            tasks={tasks}
+            tasks={tasks.filter(task => {
+              const agent = agents.find(a => a.id === task.agent_id);
+              return agent && agent.equipeId === selectedTeam.id;
+            })}
             onTaskClick={handleTaskClick}
             onTaskStatusChange={handleTaskStatusChange}
           />
@@ -807,7 +810,7 @@ const SuperviseurEquipe = () => {
                   </div>
                   <KanbanBoard 
                     tasks={tasks.filter(task => {
-                      const agent = agents.find(a => a.id === task.agentId);
+                      const agent = agents.find(a => a.id === task.agent_id);
                       return agent && agent.equipeId === selectedTeam.id;
                     })}
                     onTaskClick={handleTaskClick}

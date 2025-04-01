@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { Task } from "@/types";
 import { getTasks, createTask, updateTask, updateTaskStatus, deleteTask } from "@/services/taskService";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TaskContextType {
   tasks: Task[];
@@ -162,5 +163,3 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;
 };
-
-import { supabase } from "@/integrations/supabase/client";
