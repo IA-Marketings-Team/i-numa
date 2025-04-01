@@ -184,10 +184,8 @@ function App() {
                         />
                         
                         <Route path="/superviseur/equipes" element={
-                          <ProtectedRoute allowedRoles={['superviseur', 'responsable']}>
-                            <Layout>
-                              <SuperviseurEquipes />
-                            </Layout>
+                          <ProtectedRoute roles={['superviseur', 'responsable']}>
+                            <SuperviseurEquipes />
                           </ProtectedRoute>
                         } />
                         

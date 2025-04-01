@@ -2,7 +2,7 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { offres as mockOffres } from "@/data/mockData";
+import { offres } from "@/data/mock/offres";
 
 interface OffresSelectorProps {
   selectedOffres: string[];
@@ -19,7 +19,7 @@ const OffresSelector: React.FC<OffresSelectorProps> = ({
     <div className="space-y-2">
       <Label>Offres</Label>
       <div className="border rounded-md p-4 space-y-2">
-        {mockOffres.map((offre) => (
+        {offres.map((offre) => (
           <div key={offre.id} className="flex items-center space-x-2">
             <Checkbox
               id={`offre-${offre.id}`}

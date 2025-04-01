@@ -1,10 +1,9 @@
-
 import { useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Client, DossierStatus, Offre } from "@/types";
 import { clients } from "@/data/mockData";
-import { mockOffres } from "@/data/mock/offres";
+import { offres } from "@/data/mock/offres";
 import { useToast } from "@/hooks/use-toast";
 
 interface UseDossierFormSubmitProps {
@@ -104,7 +103,7 @@ export const useDossierFormSubmit = ({
       return;
     }
 
-    const offresToAdd = mockOffres.filter(o => selectedOffres.includes(o.id));
+    const offresToAdd = offres.filter(o => selectedOffres.includes(o.id));
     console.log("[DossierFormSubmit] Selected offres:", offresToAdd.map(o => o.nom));
     
     const dossierData = {

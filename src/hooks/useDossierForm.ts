@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useDossierFormState } from "./useDossierFormState";
 import { useDossierFormSubmit } from "./useDossierFormSubmit";
 import { Dossier, UserRole } from "@/types";
-import { mockOffres } from "@/data/mock/offres";
+import { offres } from "@/data/mock/offres";
 
 interface UseDossierFormProps {
   dossier?: Dossier;
@@ -64,7 +64,7 @@ export const useDossierForm = ({ dossier, isEditing = false, userRole }: UseDoss
   // Calculer le montant total en fonction des offres sélectionnées
   useEffect(() => {
     if (hasPermission(['superviseur', 'responsable'])) {
-      const total = mockOffres
+      const total = offres
         .filter(o => selectedOffres.includes(o.id))
         .reduce((sum, offre) => sum + (offre.prix || 0), 0);
       

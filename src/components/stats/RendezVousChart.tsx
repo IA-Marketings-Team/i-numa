@@ -32,7 +32,7 @@ const RendezVousChart: React.FC<RendezVousChartProps> = ({
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="value" name="Nombre" fill={(entry) => entry.fill || "#8884d8"} />
+              <Bar dataKey="value" name="Nombre" fill="#8884d8" getBarProps={(entry) => ({ fill: entry.fill || "#8884d8" })} />
             </BarChart>
           </ResponsiveContainer>
         </div>
