@@ -1,12 +1,10 @@
-
 import React, { createContext, useContext, useState } from "react";
 import { Statistique, Agent, UserRole } from "@/types";
 import { 
   statistiques as mockStatistiques, 
   statistiquesJournalieres,
   statistiquesHebdomadaires,
-  statistiquesMensuelles,
-  agents as mockAgents 
+  statistiquesMensuelles
 } from "@/data/mock/statistiques";
 import { agents as mockAgents } from "@/data/mock/agents";
 import { useAuth } from "./AuthContext";
