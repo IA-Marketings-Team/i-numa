@@ -9,8 +9,8 @@ export const customLogin = async (email: string, password: string): Promise<{ to
   try {
     // Appeler la fonction login personnalisée
     const { data, error } = await supabase.rpc('login', {
-      email,
-      password
+      email: email,
+      password: password
     });
 
     if (error) {
@@ -70,12 +70,12 @@ export const customRegister = async (
   try {
     // Appeler la fonction register_user personnalisée
     const { data, error } = await supabase.rpc('register_user', {
-      nom,
-      prenom,
-      email,
-      telephone,
-      role,
-      password
+      nom: nom,
+      prenom: prenom,
+      email: email,
+      telephone: telephone,
+      role: role,
+      password: password
     });
 
     if (error) {
