@@ -36,7 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setUser(userData);
               setIsAuthenticated(true);
             } else {
-              console.log("Utilisateur authentifié mais non trouvé dans la table users - Cas comptes de démo");
+              console.log("Utilisateur authentifié mais non trouvé dans la table users");
               
               // Pour les comptes de démonstration, créer un profil si nécessaire
               if (isDemoAccount(currentSession.user.email)) {
@@ -59,6 +59,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   });
                   // Déconnexion en cas d'échec
                   await supabase.auth.signOut();
+                  setUser(null);
+                  setIsAuthenticated(false);
+                  setSession(null);
                 }
               } else {
                 console.error("Utilisateur authentifié mais non trouvé dans la table users");
@@ -69,6 +72,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 });
                 // Déconnexion en cas d'échec
                 await supabase.auth.signOut();
+                setUser(null);
+                setIsAuthenticated(false);
+                setSession(null);
               }
             }
           } catch (error) {
@@ -80,6 +86,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
             // Déconnexion en cas d'erreur
             await supabase.auth.signOut();
+            setUser(null);
+            setIsAuthenticated(false);
+            setSession(null);
           }
         } else {
           // Réinitialiser l'état si l'utilisateur est déconnecté
@@ -107,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(userData);
             setIsAuthenticated(true);
           } else {
-            console.log("Session trouvée mais utilisateur non trouvé dans la table users - tentative de création pour démo");
+            console.log("Session trouvée mais utilisateur non trouvé dans la table users");
             
             // Pour les comptes de démonstration, créer un profil si nécessaire
             if (isDemoAccount(currentSession.user.email)) {
@@ -123,13 +132,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setIsAuthenticated(true);
               } else {
                 console.error("Échec de création du profil de démonstration pour session existante");
+                await supabase.auth.signOut();
+                setUser(null);
+                setIsAuthenticated(false);
+                setSession(null);
               }
             } else {
               console.error("Session trouvée mais utilisateur non trouvé dans la table users");
+              await supabase.auth.signOut();
+              setUser(null);
+              setIsAuthenticated(false);
+              setSession(null);
             }
           }
         } catch (error) {
           console.error("Erreur lors de la récupération des données utilisateur:", error);
+          await supabase.auth.signOut();
+          setUser(null);
+          setIsAuthenticated(false);
+          setSession(null);
         }
       } else {
         console.log("Aucune session existante trouvée");

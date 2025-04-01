@@ -13,13 +13,13 @@ export const DEMO_ACCOUNTS = [
 
 export const isDemoAccount = (email: string | null | undefined): boolean => {
   if (!email) return false;
-  return DEMO_ACCOUNTS.includes(email.toLowerCase());
+  return DEMO_ACCOUNTS.includes(email.toLowerCase().trim());
 };
 
 export const getDemoUserRole = (email: string | null | undefined): UserRole => {
   if (!email) return 'client';
   
-  const lowerEmail = email.toLowerCase();
+  const lowerEmail = email.toLowerCase().trim();
   
   if (lowerEmail === 'thomas.leroy@example.com') return 'agent_phoner';
   if (lowerEmail === 'claire.moreau@example.com') return 'agent_visio';
@@ -40,22 +40,23 @@ export const createDemoUserProfile = async (
     const role = getDemoUserRole(email);
     
     // Extraire nom/prénom depuis l'email
-    const names = email.split('@')[0].split('.') || [];
-    const firstName = names[0] ? names[0].charAt(0).toUpperCase() + names[0].slice(1) : '';
-    const lastName = names[1] ? names[1].charAt(0).toUpperCase() + names[1].slice(1) : '';
+    const parts = email.split('@')[0].split('.') || [];
+    const firstName = parts[0] ? parts[0].charAt(0).toUpperCase() + parts[0].slice(1) : '';
+    const lastName = parts[1] ? parts[1].charAt(0).toUpperCase() + parts[1].slice(1) : '';
     
     // Vérifier d'abord si le profil existe déjà
     const { data: existingUsers } = await supabase
       .from('users')
       .select('*')
-      .eq('email', email)
+      .eq('email', email.toLowerCase().trim())
       .limit(1);
       
     if (existingUsers && existingUsers.length > 0) {
-      console.log("Profil utilisateur démo existant trouvé, mise à jour de l'auth_id");
+      console.log("Profil utilisateur démo existant trouvé pour", email);
       
       // Mettre à jour l'auth_id si nécessaire
       if (existingUsers[0].auth_id !== authId) {
+        console.log("Mise à jour de l'auth_id pour", email);
         await supabase
           .from('users')
           .update({ auth_id: authId })
@@ -79,17 +80,47 @@ export const createDemoUserProfile = async (
       };
     }
     
+    // Si le profil n'existe pas encore, le créer
+    console.log("Création d'un nouveau profil utilisateur démo pour", email);
     const newUser = await createUser({
       nom: lastName,
       prenom: firstName,
-      email: email,
+      email: email.toLowerCase().trim(),
       telephone: "0123456789", // Valeur par défaut pour les démos
       role,
       auth_id: authId
     });
     
     if (newUser) {
-      console.log("Profil utilisateur de démo créé avec succès");
+      console.log("Profil utilisateur de démo créé avec succès pour", email);
+      
+      // Si c'est un client, créer aussi l'entrée dans la table clients
+      if (role === 'client') {
+        try {
+          await supabase.from('clients').insert({
+            id: newUser.id,
+            secteur_activite: 'Commerce',
+            type_entreprise: 'PME',
+            besoins: 'Visibilité en ligne'
+          });
+          console.log("Entrée client créée pour", email);
+        } catch (error) {
+          console.error("Erreur lors de la création de l'entrée client:", error);
+        }
+      }
+      
+      // Si c'est un agent, créer aussi l'entrée dans la table agents
+      if (role === 'agent_phoner' || role === 'agent_visio') {
+        try {
+          await supabase.from('agents').insert({
+            id: newUser.id
+          });
+          console.log("Entrée agent créée pour", email);
+        } catch (error) {
+          console.error("Erreur lors de la création de l'entrée agent:", error);
+        }
+      }
+      
       return newUser;
     }
     

@@ -8,7 +8,6 @@ import { useAuth } from "@/contexts/auth";
 import { Link, useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { X } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { isDemoAccount } from "@/contexts/auth/demoUserHandling";
 
 const LoginForm = () => {
@@ -18,66 +17,6 @@ const LoginForm = () => {
   const [error, setError] = useState<string | null>(null);
   const { login } = useAuth();
   const navigate = useNavigate();
-
-  const handleDemoLogin = async (email: string): Promise<boolean> => {
-    // Pour les comptes de démo, on contourne la vérification du mot de passe
-    try {
-      console.log("Tentative de connexion avec compte démo:", email);
-      
-      // Nettoyer l'email (enlever les espaces et convertir en minuscules)
-      const cleanedEmail = email.trim().toLowerCase();
-      
-      // On tente simplement de se connecter directement
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: cleanedEmail,
-        password: password || "demo12345" // Utiliser soit le mot de passe saisi, soit le mot de passe par défaut
-      });
-      
-      if (error) {
-        console.log("Échec de connexion démo, tentative de création de compte", error);
-        
-        // Si l'utilisateur n'existe pas dans auth, on le crée d'abord
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: cleanedEmail,
-          password: "demo12345" // Mot de passe par défaut pour les démos
-        });
-        
-        if (signUpError) {
-          console.error("Erreur lors de la création du compte démo:", signUpError);
-          return false;
-        }
-        
-        if (signUpData.user) {
-          console.log("Compte démo créé avec succès");
-          
-          // On tente à nouveau de se connecter après la création
-          const { error: secondLoginError } = await supabase.auth.signInWithPassword({
-            email: cleanedEmail,
-            password: "demo12345"
-          });
-          
-          if (secondLoginError) {
-            console.error("Échec de connexion après création du compte démo:", secondLoginError);
-            return false;
-          }
-          
-          return true;
-        }
-        
-        return false;
-      }
-      
-      if (data.user) {
-        console.log("Connexion démo réussie");
-        return true;
-      }
-      
-      return false;
-    } catch (error) {
-      console.error("Erreur lors du login démo:", error);
-      return false;
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,32 +30,34 @@ const LoginForm = () => {
     }
     
     try {
-      let success = false;
-      
       // Nettoyer l'email (enlever les espaces et convertir en minuscules)
       const cleanedEmail = email.trim().toLowerCase();
       
-      if (isDemoAccount(cleanedEmail)) {
-        // Logique spéciale pour les comptes de démonstration
-        console.log("Compte de démonstration détecté, tentative de connexion...");
-        success = await handleDemoLogin(cleanedEmail);
-      } else {
-        // Connexion normale pour les autres comptes
-        if (!password) {
-          setError("Veuillez saisir un mot de passe");
-          setIsLoading(false);
-          return;
-        }
-        
-        console.log("Tentative de connexion standard avec", cleanedEmail);
-        success = await login(cleanedEmail, password);
+      // Vérifier si c'est un compte de démonstration
+      const isDemo = isDemoAccount(cleanedEmail);
+      
+      // Pour les comptes non démo, on vérifie que le mot de passe est saisi
+      if (!isDemo && !password) {
+        setError("Veuillez saisir un mot de passe");
+        setIsLoading(false);
+        return;
       }
+      
+      console.log("Tentative de connexion pour:", cleanedEmail, "- Compte de démo:", isDemo);
+      
+      // Effectuer la connexion
+      const success = await login(cleanedEmail, password);
       
       if (success) {
         console.log("Login réussi, redirection vers le tableau de bord...");
         // La redirection sera gérée par les redirections configurées dans les pages
       } else {
-        setError("Identifiants incorrects. Veuillez réessayer.");
+        // Si c'est un compte de démo mais que la connexion a échoué, donner un message spécifique
+        if (isDemo) {
+          setError("La connexion au compte de démonstration a échoué. Veuillez réessayer.");
+        } else {
+          setError("Identifiants incorrects. Veuillez réessayer.");
+        }
       }
     } catch (error) {
       console.error("Erreur de connexion:", error);
@@ -125,6 +66,15 @@ const LoginForm = () => {
       setIsLoading(false);
     }
   };
+
+  // Liste des comptes de démonstration directement depuis demoUserHandling
+  const demoAccounts = [
+    { email: 'jean.dupont@example.com', role: 'client' },
+    { email: 'thomas.leroy@example.com', role: 'agent_phoner' },
+    { email: 'claire.moreau@example.com', role: 'agent_visio' },
+    { email: 'ahmed.tayin@example.com', role: 'superviseur' },
+    { email: 'marie.andy@example.com', role: 'responsable' }
+  ];
 
   return (
     <Card>
@@ -181,6 +131,11 @@ const LoginForm = () => {
               required={!isDemoAccount(email)} // Le mot de passe est facultatif pour les comptes de démo
               placeholder="********"
             />
+            {isDemoAccount(email) && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Pour les comptes de démonstration, le mot de passe est facultatif.
+              </p>
+            )}
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
@@ -200,6 +155,28 @@ const LoginForm = () => {
           </div>
         </CardFooter>
       </form>
+
+      <div className="px-6 pb-6">
+        <div className="mt-4 text-sm bg-muted p-3 rounded-md">
+          <p className="font-medium mb-2">Comptes de démonstration disponibles:</p>
+          <div className="grid gap-1">
+            {demoAccounts.map((account) => (
+              <button 
+                key={account.email} 
+                type="button"
+                onClick={() => setEmail(account.email)}
+                className="text-xs text-left hover:bg-muted-foreground/10 p-1 rounded flex justify-between"
+              >
+                <span>{account.email}</span>
+                <span className="text-muted-foreground">{account.role}</span>
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Cliquez sur un email pour le sélectionner. Le mot de passe est prédéfini.
+          </p>
+        </div>
+      </div>
     </Card>
   );
 };

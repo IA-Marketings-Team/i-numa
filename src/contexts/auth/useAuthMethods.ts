@@ -3,6 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { User, UserRole } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { getUserByAuthId, createUser } from "@/services/supabase/usersService";
+import { isDemoAccount } from "./demoUserHandling";
 
 export const useAuthMethods = (
   user: User | null,
@@ -19,32 +20,63 @@ export const useAuthMethods = (
       // Nettoyer l'email (enlever les espaces et convertir en minuscules)
       const cleanedEmail = email.trim().toLowerCase();
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: cleanedEmail,
-        password
-      });
-
-      if (error) {
-        console.error("Erreur de connexion:", error.message);
-        toast({
-          title: "Échec de connexion",
-          description: error.message,
-          variant: "destructive",
+      // Si c'est un compte de démo, on utilise une logique spéciale
+      if (isDemoAccount(cleanedEmail)) {
+        console.log("Compte de démonstration détecté, utilisation du mot de passe par défaut");
+        // Pour les comptes de démo, on utilise toujours 'demo12345' comme mot de passe
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: cleanedEmail,
+          password: "demo12345" // Mot de passe fixe pour les comptes de démo
         });
+
+        if (error) {
+          console.error("Erreur de connexion avec le compte de démo:", error.message);
+          toast({
+            title: "Échec de connexion",
+            description: "Erreur avec le compte de démonstration. Veuillez réessayer.",
+            variant: "destructive",
+          });
+          return false;
+        }
+
+        if (data.user) {
+          console.log("Authentification réussie pour le compte de démo:", cleanedEmail);
+          toast({
+            title: "Connexion réussie",
+            description: "Vous êtes connecté avec un compte de démonstration",
+          });
+          return true;
+        }
+        
+        return false;
+      } else {
+        // Connexion normale pour les comptes non-démo
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: cleanedEmail,
+          password
+        });
+
+        if (error) {
+          console.error("Erreur de connexion:", error.message);
+          toast({
+            title: "Échec de connexion",
+            description: "Identifiants incorrects. Veuillez réessayer.",
+            variant: "destructive",
+          });
+          return false;
+        }
+
+        if (data.user) {
+          console.log("Authentification réussie pour:", cleanedEmail);
+          toast({
+            title: "Connexion réussie",
+            description: "Vous êtes maintenant connecté",
+          });
+          return true;
+        }
+        
         return false;
       }
-
-      if (data.user) {
-        console.log("Authentification réussie pour:", cleanedEmail);
-        // La mise à jour de l'utilisateur se fait via onAuthStateChange
-        toast({
-          title: "Connexion réussie",
-          description: "Vous êtes maintenant connecté",
-        });
-        return true;
-      }
-      
-      return false;
     } catch (error) {
       console.error("Erreur inattendue lors de la connexion:", error);
       toast({
