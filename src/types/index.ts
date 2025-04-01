@@ -18,7 +18,6 @@ export interface User {
   iban?: string;
   bic?: string;
   nomBanque?: string;
-  authId?: string; // Added authId property to match what's being used in AuthContext
 }
 
 export interface Client extends User {
