@@ -1,13 +1,16 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { useAuth } from "@/contexts/auth";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { X } from "lucide-react";
+import { useAuth } from "@/contexts/auth";
 import { isDemoAccount } from "@/contexts/auth/demoUserHandling";
+
+// Import our new components
+import ErrorAlert from "./ErrorAlert";
+import LoginHeader from "./LoginHeader";
+import LoginCredentialsForm from "./LoginCredentialsForm";
+import DemoAccountsList from "./DemoAccountsList";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -69,67 +72,18 @@ const LoginForm = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Connexion</CardTitle>
-        <CardDescription>
-          Entrez vos identifiants pour accéder à votre compte
-        </CardDescription>
-      </CardHeader>
+      <LoginHeader />
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription className="flex items-center justify-between">
-                {error}
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-8 w-8 p-0" 
-                  onClick={() => setError(null)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </AlertDescription>
-            </Alert>
-          )}
+          <ErrorAlert error={error} onDismiss={() => setError(null)} />
           
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="exemple@domain.com"
-              disabled={isLoading}
-            />
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Mot de passe</Label>
-              <Link
-                to="/reset-password"
-                className="text-sm text-primary hover:underline"
-              >
-                Mot de passe oublié?
-              </Link>
-            </div>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required={!isDemoAccount(email)}
-              placeholder="********"
-              disabled={isLoading}
-            />
-            {isDemoAccount(email) && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Pour les comptes de démonstration, le mot de passe est "demo12345".
-              </p>
-            )}
-          </div>
+          <LoginCredentialsForm
+            email={email}
+            password={password}
+            isLoading={isLoading}
+            onEmailChange={(e) => setEmail(e.target.value)}
+            onPasswordChange={(e) => setPassword(e.target.value)}
+          />
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <Button 
@@ -150,26 +104,11 @@ const LoginForm = () => {
       </form>
 
       <div className="px-6 pb-6">
-        <div className="mt-4 text-sm bg-muted p-3 rounded-md">
-          <p className="font-medium mb-2">Comptes de démonstration disponibles:</p>
-          <div className="grid gap-1">
-            {demoAccounts.map((account) => (
-              <button 
-                key={account.email} 
-                type="button"
-                onClick={() => selectDemoAccount(account.email)}
-                className="text-xs text-left hover:bg-muted-foreground/10 p-1 rounded flex justify-between"
-                disabled={isLoading}
-              >
-                <span>{account.email}</span>
-                <span className="text-muted-foreground">{account.role}</span>
-              </button>
-            ))}
-          </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Cliquez sur un email pour le sélectionner. Le mot de passe "demo12345" est prédéfini.
-          </p>
-        </div>
+        <DemoAccountsList 
+          accounts={demoAccounts} 
+          onSelectAccount={selectDemoAccount}
+          isLoading={isLoading}
+        />
       </div>
     </Card>
   );
