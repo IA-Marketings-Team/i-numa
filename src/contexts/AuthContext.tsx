@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, UserRole } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,14 +47,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 telephone: userData.telephone,
                 role: userData.role,
                 dateCreation: userData.date_creation ? new Date(userData.date_creation) : new Date(),
-                derniereConnexion: userData.derniere_connexion ? new Date(userData.derniere_connexion) : new Date(),
-                authId: userData.auth_id,
                 adresse: userData.adresse || "",
                 ville: userData.ville || "",
                 codePostal: userData.code_postal || "",
                 iban: userData.iban || "",
                 bic: userData.bic || "",
                 nomBanque: userData.nom_banque || "",
+                authId: userData.auth_id,
               };
               setUser(mappedUser);
               setIsAuthenticated(true);
@@ -98,14 +96,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 telephone: userData.telephone,
                 role: userData.role,
                 dateCreation: userData.date_creation ? new Date(userData.date_creation) : new Date(),
-                derniereConnexion: userData.derniere_connexion ? new Date(userData.derniere_connexion) : new Date(),
-                authId: userData.auth_id,
                 adresse: userData.adresse || "",
                 ville: userData.ville || "",
                 codePostal: userData.code_postal || "",
                 iban: userData.iban || "",
                 bic: userData.bic || "",
                 nomBanque: userData.nom_banque || "",
+                authId: userData.auth_id,
               };
               setUser(mappedUser);
               setIsAuthenticated(true);
