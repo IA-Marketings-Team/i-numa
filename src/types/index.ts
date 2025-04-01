@@ -1,6 +1,8 @@
-export type UserRole = 'client' | 'agent_phoner' | 'agent_visio' | 'superviseur' | 'responsable';
+export type UserRole = 'client' | 'agent_phoner' | 'agent_visio' | 'agent_developpeur' | 'agent_marketing' | 'superviseur' | 'responsable';
 
 export type DossierStatus = 'prospect' | 'rdv_en_cours' | 'valide' | 'signe' | 'archive';
+
+export type TaskStatus = 'to_do' | 'in_progress' | 'done';
 
 export interface User {
   id: string;
@@ -27,6 +29,7 @@ export interface Client extends User {
 }
 
 export interface Agent extends User {
+  equipeId?: string;
   statistiques: {
     appelsEmis: number;
     appelsDecroches: number;
@@ -111,4 +114,23 @@ export interface CartItem {
   price: string;
   setupFee?: string;
   quantity: number;
+}
+
+export interface Team {
+  id: string;
+  nom: string;
+  fonction: 'phoning' | 'visio' | 'developpement' | 'marketing' | 'mixte';
+  description?: string;
+  dateCreation: Date;
+}
+
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  agentId: string;
+  status: TaskStatus;
+  dateCreation: Date;
+  dateEcheance?: Date;
+  priority: 'low' | 'medium' | 'high';
 }

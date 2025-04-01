@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,6 +28,7 @@ import { CartProvider } from "./contexts/CartContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import SuperviseurEquipes from "./pages/SuperviseurEquipes";
+import SuperviseurEquipe from "./pages/SuperviseurEquipe";
 
 const queryClient = new QueryClient();
 
@@ -186,6 +188,12 @@ function App() {
                         <Route path="/superviseur/equipes" element={
                           <ProtectedRoute roles={['superviseur', 'responsable']}>
                             <SuperviseurEquipes />
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/superviseur/equipe" element={
+                          <ProtectedRoute roles={['superviseur', 'responsable']}>
+                            <SuperviseurEquipe />
                           </ProtectedRoute>
                         } />
                         

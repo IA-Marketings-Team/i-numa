@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
 
 interface ChartData {
   name: string;
@@ -32,7 +32,11 @@ const RendezVousChart: React.FC<RendezVousChartProps> = ({
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="value" name="Nombre" fill="#8884d8" getBarProps={(entry) => ({ fill: entry.fill || "#8884d8" })} />
+              <Bar dataKey="value" name="Nombre">
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill || "#8884d8"} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>

@@ -26,7 +26,8 @@ import {
   Settings,
   HelpCircle,
   LogOut,
-  UserCog
+  UserCog,
+  UsersRound
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { UserRole } from "@/types";
@@ -48,19 +49,19 @@ export default function Sidebar() {
         name: "Tableau de bord",
         path: "/tableau-de-bord",
         icon: <Home className="size-4" />,
-        roles: ["client", "agent_phoner", "agent_visio", "superviseur", "responsable"] as UserRole[]
+        roles: ["client", "agent_phoner", "agent_visio", "agent_developpeur", "agent_marketing", "superviseur", "responsable"] as UserRole[]
       }, 
       {
         name: "Dossiers",
         path: "/dossiers",
         icon: <FileText className="size-4" />,
-        roles: ["client", "agent_phoner", "agent_visio", "superviseur", "responsable"] as UserRole[]
+        roles: ["client", "agent_phoner", "agent_visio", "agent_developpeur", "agent_marketing", "superviseur", "responsable"] as UserRole[]
       }, 
       {
         name: "Clients",
         path: "/clients",
         icon: <Users className="size-4" />,
-        roles: ["agent_phoner", "agent_visio", "superviseur", "responsable"] as UserRole[]
+        roles: ["agent_phoner", "agent_visio", "agent_developpeur", "agent_marketing", "superviseur", "responsable"] as UserRole[]
       }, 
       {
         name: "Nos offres",
@@ -72,12 +73,18 @@ export default function Sidebar() {
         name: "Statistiques",
         path: "/statistiques",
         icon: <BarChart2 className="size-4" />,
-        roles: ["agent_phoner", "agent_visio", "superviseur", "responsable"] as UserRole[]
+        roles: ["agent_phoner", "agent_visio", "agent_developpeur", "agent_marketing", "superviseur", "responsable"] as UserRole[]
+      },
+      {
+        name: "Anciennes équipes",
+        path: "/superviseur/equipes",
+        icon: <UserCog className="size-4" />,
+        roles: ["superviseur", "responsable"] as UserRole[]
       },
       {
         name: "Gestion d'équipes",
-        path: "/superviseur/equipes",
-        icon: <UserCog className="size-4" />,
+        path: "/superviseur/equipe",
+        icon: <UsersRound className="size-4" />,
         roles: ["superviseur", "responsable"] as UserRole[]
       }
     ];
