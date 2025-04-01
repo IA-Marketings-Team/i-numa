@@ -1,9 +1,9 @@
 
 import { useParams, useNavigate } from "react-router-dom";
-import { clients } from "@/data/mockData";
+import { clients } from "@/data/mock/clients";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronLeft, Mail, Phone, MapPin, Building, Info } from "lucide-react";
+import { ChevronLeft, Mail, Phone, MapPin, Building, Info, FileEdit, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -21,12 +21,14 @@ const ClientPage = () => {
   // État pour les dialogues
   const [isCallingOpen, setIsCallingOpen] = useState(false);
   const [isEmailOpen, setIsEmailOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [callNotes, setCallNotes] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
   
   // Rechercher le client avec l'ID spécifié
-  const client = clients.find((c) => c.id === id);
+  const clientIndex = clients.findIndex((c) => c.id === id);
+  const client = clientIndex !== -1 ? clients[clientIndex] : null;
 
   if (!client) {
     return (
@@ -74,6 +76,18 @@ const ClientPage = () => {
     setIsCallingOpen(false);
   };
 
+  const handleDeleteClient = () => {
+    // Supprimer le client
+    clients.splice(clientIndex, 1);
+    
+    toast({
+      title: "Client supprimé",
+      description: `${client.prenom} ${client.nom} a été supprimé avec succès.`,
+    });
+    
+    navigate("/clients");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -86,11 +100,28 @@ const ClientPage = () => {
           Retour
         </Button>
         
-        {hasPermission(['superviseur', 'responsable']) && (
-          <Button onClick={() => navigate(`/clients/${client.id}/edit`)}>
-            Modifier
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {hasPermission(['superviseur', 'responsable']) && (
+            <>
+              <Button 
+                variant="outline"
+                onClick={() => navigate(`/clients/${client.id}/edit`)}
+                className="flex items-center gap-2"
+              >
+                <FileEdit className="w-4 h-4" />
+                Modifier
+              </Button>
+              <Button 
+                variant="destructive"
+                onClick={() => setIsDeleting(true)}
+                className="flex items-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Supprimer
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow">
@@ -102,7 +133,7 @@ const ClientPage = () => {
             <p className="text-gray-600">Client depuis le {new Date(client.dateCreation).toLocaleDateString("fr-FR")}</p>
           </div>
           
-          <div className="mt-4 md:mt-0 space-x-2">
+          <div className="mt-4 md:mt-0 space-x-2 flex">
             <Button 
               variant="outline" 
               className="flex items-center gap-2"
@@ -263,6 +294,23 @@ const ClientPage = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCallingOpen(false)}>Annuler</Button>
             <Button onClick={handleCallClient}>Terminer l'appel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de confirmation de suppression */}
+      <Dialog open={isDeleting} onOpenChange={setIsDeleting}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmer la suppression</DialogTitle>
+          </DialogHeader>
+          <p className="py-4">
+            Êtes-vous sûr de vouloir supprimer le client {client.prenom} {client.nom} ? 
+            Cette action est irréversible et supprimera également tous les dossiers associés.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleting(false)}>Annuler</Button>
+            <Button variant="destructive" onClick={handleDeleteClient}>Supprimer</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

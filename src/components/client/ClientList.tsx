@@ -45,6 +45,13 @@ const ClientList = () => {
     if (selectedClient) {
       // Mock delete: filter the client out of our local state
       setClientsList(prevClients => prevClients.filter(c => c.id !== selectedClient.id));
+      
+      // Mettre à jour la liste globale des clients
+      const index = clients.findIndex(c => c.id === selectedClient.id);
+      if (index !== -1) {
+        clients.splice(index, 1);
+      }
+      
       toast({
         title: "Client supprimé",
         description: `${selectedClient.prenom} ${selectedClient.nom} a été supprimé avec succès.`

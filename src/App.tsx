@@ -14,6 +14,7 @@ import RendezVousEdit from "./pages/RendezVousEdit";
 import ClientListPage from "./pages/ClientList";
 import ClientPage from "./pages/ClientPage";
 import ClientCreate from "./pages/ClientCreate";
+import ClientEdit from "./pages/ClientEdit";
 import OfferList from "./pages/OfferList";
 import Statistics from "./pages/Statistics";
 import Settings from "./pages/Settings";
@@ -126,6 +127,15 @@ const App = () => {
                           element={
                             <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
                               <ClientPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
+                          path="/clients/:id/edit" 
+                          element={
+                            <ProtectedRoute roles={['superviseur', 'responsable']}>
+                              <ClientEdit />
                             </ProtectedRoute>
                           } 
                         />
