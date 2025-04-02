@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Statistique } from "@/types";
 import {
@@ -107,4 +106,8 @@ const formatDate = (date: Date): string => {
   return d.toLocaleDateString("fr-FR", { day: '2-digit', month: '2-digit' });
 };
 
+// Named export
+export { StatistiqueCharts };
+
+// Default export (optional, but can help with imports)
 export default StatistiqueCharts;
