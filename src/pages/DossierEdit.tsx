@@ -9,8 +9,9 @@ import { ChevronLeft, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Dossier } from "@/types";
+import { DossierProvider } from "@/contexts/DossierContext";
 
-const DossierEdit = () => {
+const DossierEditContent = () => {
   const { id } = useParams<{ id: string }>();
   const { getDossierById, setCurrentDossier, currentDossier, deleteDossier } = useDossier();
   const { user, hasPermission } = useAuth();
@@ -181,6 +182,15 @@ const DossierEdit = () => {
         </DialogContent>
       </Dialog>
     </div>
+  );
+};
+
+// Wrapper component that provides the DossierProvider context
+const DossierEdit = () => {
+  return (
+    <DossierProvider>
+      <DossierEditContent />
+    </DossierProvider>
   );
 };
 
