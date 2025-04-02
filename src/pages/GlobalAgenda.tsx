@@ -10,7 +10,7 @@ import { fr } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { useDossier } from "@/contexts/DossierContext";
 import { Dossier, RendezVous } from "@/types";
-import RendezVousFormDialog from "@/components/stats/RendezVousFormDialog"; // Changed from named import to default import
+import RendezVousFormDialog from "@/components/stats/RendezVousFormDialog";
 import { useToast } from "@/hooks/use-toast";
 import { 
   fetchRendezVous, 
@@ -19,8 +19,10 @@ import {
 import { 
   fetchDossiers 
 } from "@/services/dossierService";
+import { DossierProvider } from "@/contexts/DossierContext";
 
-const GlobalAgenda: React.FC = () => {
+// Create a separate content component that will use the DossierContext
+const GlobalAgendaContent: React.FC = () => {
   const { toast } = useToast();
   const [date, setDate] = useState<Date>(new Date());
   const [view, setView] = useState<"day" | "week" | "month">("week");
@@ -58,7 +60,7 @@ const GlobalAgenda: React.FC = () => {
   }, [toast]);
 
   // Handle adding a new rendez-vous
-  const handleRendezVousAdded = async (newRdv: RendezVous) => {
+  const handleRendezVousAdded = async (newRdv: Omit<RendezVous, "id">) => {
     try {
       const addedRdv = await addRendezVous(newRdv);
       if (addedRdv) {
@@ -445,6 +447,15 @@ const GlobalAgenda: React.FC = () => {
         />
       )}
     </div>
+  );
+};
+
+// Wrapper component with DossierProvider
+const GlobalAgenda: React.FC = () => {
+  return (
+    <DossierProvider>
+      <GlobalAgendaContent />
+    </DossierProvider>
   );
 };
 
