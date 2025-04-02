@@ -2,6 +2,22 @@
 import { Statistique } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
+// Type pour les données brutes de la table statistiques
+type StatistiqueDB = {
+  id: string;
+  periode: string;
+  date_debut: string;
+  date_fin: string;
+  appels_emis: number;
+  appels_decroches: number;
+  appels_transformes: number;
+  rendez_vous_honores: number;
+  rendez_vous_non_honores: number;
+  dossiers_valides: number;
+  dossiers_signe: number;
+  chiffre_affaires: number;
+};
+
 /**
  * Récupère toutes les statistiques depuis Supabase
  */
@@ -195,7 +211,7 @@ export const deleteStatistique = async (id: string): Promise<boolean> => {
 };
 
 // Fonction auxiliaire pour convertir les données de Supabase vers le type Statistique
-const convertDbStatToStatistique = (dbStat: any): Statistique => {
+const convertDbStatToStatistique = (dbStat: StatistiqueDB): Statistique => {
   return {
     id: dbStat.id,
     periode: convertPeriodeType(dbStat.periode),

@@ -1,5 +1,5 @@
 
-import { Agent } from "@/types";
+import { Agent, UserRole } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -27,7 +27,7 @@ export const fetchAgentById = async (id: string): Promise<Agent | undefined> => 
       prenom: data.prenom || '',
       email: data.email || '',
       telephone: data.telephone || '',
-      role: data.role || 'agent_phoner',
+      role: convertToUserRole(data.role),
       equipeId: data.equipe_id || null,
       dateCreation: new Date(data.date_creation),
       appelsEmis: data.appels_emis || 0,
@@ -71,5 +71,103 @@ export const resetAgentStats = async (agentId: string): Promise<boolean> => {
   } catch (error) {
     console.error(`Erreur inattendue lors de la réinitialisation des statistiques de l'agent ${agentId}:`, error);
     return false;
+  }
+};
+
+/**
+ * Helper function to convert string to UserRole type
+ */
+const convertToUserRole = (role: string | null): UserRole => {
+  switch (role) {
+    case 'agent_phoner':
+      return 'agent_phoner';
+    case 'agent_visio':
+      return 'agent_visio';
+    case 'superviseur':
+      return 'superviseur';
+    case 'responsable':
+      return 'responsable';
+    case 'client':
+      return 'client';
+    default:
+      return 'client';
+  }
+};
+
+/**
+ * Récupère tous les agents depuis Supabase
+ */
+export const fetchAgents = async (): Promise<Agent[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .in('role', ['agent_phoner', 'agent_visio', 'superviseur', 'responsable'])
+      .order('nom');
+
+    if (error) {
+      console.error("Erreur lors de la récupération des agents:", error);
+      return [];
+    }
+
+    return data.map(profile => ({
+      id: profile.id,
+      nom: profile.nom || '',
+      prenom: profile.prenom || '',
+      email: profile.email || '',
+      telephone: profile.telephone || '',
+      role: convertToUserRole(profile.role),
+      equipeId: profile.equipe_id || null,
+      dateCreation: new Date(profile.date_creation),
+      appelsEmis: profile.appels_emis || 0,
+      appelsDecroches: profile.appels_decroches || 0,
+      appelsTransformes: profile.appels_transformes || 0,
+      rendezVousHonores: profile.rendez_vous_honores || 0,
+      rendezVousNonHonores: profile.rendez_vous_non_honores || 0,
+      dossiersValides: profile.dossiers_valides || 0,
+      dossiersSigne: profile.dossiers_signe || 0
+    }));
+  } catch (error) {
+    console.error("Erreur inattendue lors de la récupération des agents:", error);
+    return [];
+  }
+};
+
+/**
+ * Récupère tous les agents d'un certain rôle
+ */
+export const fetchAgentsByRole = async (role: UserRole): Promise<Agent[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('role', role)
+      .order('nom');
+
+    if (error) {
+      console.error(`Erreur lors de la récupération des agents avec le rôle ${role}:`, error);
+      return [];
+    }
+
+    return data.map(profile => ({
+      id: profile.id,
+      nom: profile.nom || '',
+      prenom: profile.prenom || '',
+      email: profile.email || '',
+      telephone: profile.telephone || '',
+      role: convertToUserRole(profile.role),
+      equipeId: profile.equipe_id || null,
+      dateCreation: new Date(profile.date_creation),
+      appelsEmis: profile.appels_emis || 0,
+      appelsDecroches: profile.appels_decroches || 0,
+      appelsTransformes: profile.appels_transformes || 0,
+      rendezVousHonores: profile.rendez_vous_honores || 0,
+      rendezVousNonHonores: profile.rendez_vous_non_honores || 0,
+      dossiersValides: profile.dossiers_valides || 0,
+      dossiersSigne: profile.dossiers_signe || 0
+    }));
+  } catch (error) {
+    console.error(`Erreur inattendue lors de la récupération des agents avec le rôle ${role}:`, error);
+    return [];
   }
 };
