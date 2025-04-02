@@ -29,6 +29,10 @@ import AppelsPage from "./pages/AppelsPage";
 import Communications from "./pages/Communications";
 import GlobalAgenda from "./pages/GlobalAgenda";
 import ClientAgenda from "./pages/ClientAgenda";
+import OffresPage from "./pages/OffresPage";
+import DossierCallPage from "./pages/DossierCallPage";
+import DossierMeetingPage from "./pages/DossierMeetingPage";
+import DossierPage from "./pages/DossierPage";
 
 // Configuration des routes
 const App: React.FC = () => {
@@ -60,10 +64,15 @@ const App: React.FC = () => {
               {/* Routes dossiers */}
               <Route path="/dossiers">
                 <Route index element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossiersPage /></DashboardLayout>} />
-                <Route path=":id" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossierDetailsPage /></DashboardLayout>} />
+                <Route path=":id" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossierPage /></DashboardLayout>} />
                 <Route path=":id/modifier" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossierEditPage /></DashboardLayout>} />
+                <Route path=":id/appel" element={<DashboardLayout roles={["agent_phoner", "superviseur", "responsable"]}><DossierCallPage /></DashboardLayout>} />
+                <Route path=":id/rdv" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossierMeetingPage /></DashboardLayout>} />
                 <Route path="nouveau" element={<DashboardLayout roles={["agent_phoner", "superviseur", "responsable"]}><DossierNewPage /></DashboardLayout>} />
               </Route>
+              
+              {/* Routes offres */}
+              <Route path="/offres" element={<DashboardLayout roles={["superviseur", "responsable"]}><OffresPage /></DashboardLayout>} />
               
               {/* Routes agents */}
               <Route path="/agents" element={<DashboardLayout roles={["superviseur", "responsable"]}><AgentsPage /></DashboardLayout>} />
