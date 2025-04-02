@@ -70,7 +70,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
         <div className="flex items-center space-x-2">
           <Clock className="h-4 w-4 text-muted-foreground" />
           <div className="grid grid-cols-2 gap-2 flex-1">
-            <Select value={hours} onValueChange={onHoursChange}>
+            <Select value={hours || "00"} onValueChange={onHoursChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Heure" />
               </SelectTrigger>
@@ -83,7 +83,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
               </SelectContent>
             </Select>
             
-            <Select value={minutes} onValueChange={onMinutesChange}>
+            <Select value={minutes || "00"} onValueChange={onMinutesChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Minutes" />
               </SelectTrigger>

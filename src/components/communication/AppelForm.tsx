@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useCommunication } from '@/contexts/CommunicationContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -281,7 +280,7 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
         <div className="space-y-2">
           <Label htmlFor="statut">Statut d'appel</Label>
           <Select 
-            value={formData.statut}
+            value={formData.statut || "planifie"}
             onValueChange={(value) => handleSelectChange('statut', value)}
           >
             <SelectTrigger>

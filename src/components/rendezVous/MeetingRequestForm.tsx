@@ -135,11 +135,12 @@ const MeetingRequestForm: React.FC<MeetingRequestFormProps> = ({ onComplete }) =
         
         <div className="space-y-2">
           <label className="block text-sm font-medium">Heure du rendez-vous</label>
-          <Select value={timeSlot} onValueChange={setTimeSlot}>
+          <Select value={timeSlot || "default_time"} onValueChange={setTimeSlot}>
             <SelectTrigger>
               <SelectValue placeholder="Sélectionner une heure" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="default_time" disabled>Sélectionner une heure</SelectItem>
               {timeSlots.map((slot) => (
                 <SelectItem key={slot} value={slot}>
                   {slot}

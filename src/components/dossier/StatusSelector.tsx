@@ -10,10 +10,13 @@ interface StatusSelectorProps {
 }
 
 const StatusSelector: React.FC<StatusSelectorProps> = ({ status, onStatusChange }) => {
+  // S'assurer que le statut n'est jamais vide
+  const statusValue = status || "prospect";
+  
   return (
     <div className="space-y-2">
       <Label htmlFor="status">Statut</Label>
-      <Select value={status} onValueChange={(value) => onStatusChange(value as DossierStatus)}>
+      <Select value={statusValue} onValueChange={(value) => onStatusChange(value as DossierStatus)}>
         <SelectTrigger id="status">
           <SelectValue placeholder="Sélectionner un statut" />
         </SelectTrigger>
