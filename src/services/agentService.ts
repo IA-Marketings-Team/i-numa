@@ -1,4 +1,4 @@
-
+import { Agent } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
 export const fetchAgents = async () => {
@@ -13,7 +13,34 @@ export const fetchAgents = async () => {
     throw new Error(error.message);
   }
   
-  return data || [];
+  // Transform the data to match our Agent type
+  const agents: Agent[] = data.map(profile => ({
+    id: profile.id,
+    nom: profile.nom || '',
+    prenom: profile.prenom || '',
+    email: profile.email || '',
+    telephone: profile.telephone || '',
+    role: profile.role as 'agent_phoner' | 'agent_visio',
+    dateCreation: new Date(profile.date_creation || new Date()),
+    adresse: profile.adresse || '',
+    ville: profile.ville || '',
+    codePostal: profile.code_postal || '',
+    iban: profile.iban || '',
+    bic: profile.bic || '',
+    nomBanque: profile.nom_banque || '',
+    equipeId: profile.equipe_id,
+    statistiques: {
+      appelsEmis: profile.appels_emis || 0,
+      appelsDecroches: profile.appels_decroches || 0,
+      appelsTransformes: profile.appels_transformes || 0,
+      rendezVousHonores: profile.rendez_vous_honores || 0,
+      rendezVousNonHonores: profile.rendez_vous_non_honores || 0,
+      dossiersValides: profile.dossiers_valides || 0,
+      dossiersSigne: profile.dossiers_signe || 0
+    }
+  }));
+  
+  return agents;
 };
 
 export const fetchAgentById = async (id: string) => {
@@ -86,7 +113,6 @@ export const updateAgentStats = async (
   return true;
 };
 
-// Add the missing resetAgentStats function
 export const resetAgentStats = async (agentId: string): Promise<boolean> => {
   // Reset all stat fields to 0
   const resetStats = {

@@ -94,7 +94,7 @@ export const createClient = async (clientData: Omit<Client, 'id'>): Promise<Clie
 
   const { data, error } = await supabase
     .from('profiles')
-    .insert(clientForSupabase)  // Remove the array wrapper
+    .insert(clientForSupabase)  // Pass the object directly without array wrapper
     .select()
     .single();
   
