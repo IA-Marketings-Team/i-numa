@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
 import { updateOffre } from "@/services/offreService";
 import { Offre } from "@/types";
+import { useToast } from "@/hooks/use-toast";
 
 interface EditOffreDialogProps {
   open: boolean;
@@ -19,47 +19,57 @@ interface EditOffreDialogProps {
 const EditOffreDialog: React.FC<EditOffreDialogProps> = ({
   open,
   onOpenChange,
-  offre
+  offre,
 }) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // État local pour stocker les valeurs du formulaire
   const [formData, setFormData] = useState({
     nom: offre.nom,
-    description: offre.description || "",
+    description: offre.description,
     type: offre.type,
-    prix: offre.prix !== undefined ? String(offre.prix) : ""
+    prix: offre.prix || 0
   });
-  
-  const offreTypes = ["SEO", "Google Ads", "Email X", "Foner", "Devis"];
 
-  // Mettre à jour le formulaire si l'offre change
+  // Mettre à jour le formulaire lorsque l'offre change
   useEffect(() => {
     setFormData({
       nom: offre.nom,
-      description: offre.description || "",
+      description: offre.description,
       type: offre.type,
-      prix: offre.prix !== undefined ? String(offre.prix) : ""
+      prix: offre.prix || 0
     });
   }, [offre]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  // Gérer les changements dans les champs du formulaire
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData({
+      ...formData,
+      [name]: name === "prix" ? Number(value) : value,
+    });
   };
 
-  const handleTypeChange = (value: string) => {
-    setFormData({ ...formData, type: value });
+  // Gérer le changement du type d'offre
+  const handleTypeChange = (value: "SEO" | "Google Ads" | "Email X" | "Foner" | "Devis") => {
+    setFormData({
+      ...formData,
+      type: value,
+    });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Soumettre le formulaire
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // Validation
-    if (!formData.nom || !formData.type) {
+    if (!formData.nom.trim()) {
       toast({
         variant: "destructive",
-        title: "Champs manquants",
-        description: "Le nom et le type d'offre sont obligatoires."
+        title: "Erreur",
+        description: "Le nom de l'offre est requis."
       });
       return;
     }
@@ -67,112 +77,116 @@ const EditOffreDialog: React.FC<EditOffreDialogProps> = ({
     setIsSubmitting(true);
     
     try {
-      // Préparer les données avec le prix en nombre si présent
-      const offreData = {
+      const success = await updateOffre(offre.id, {
         nom: formData.nom,
         description: formData.description,
         type: formData.type,
-        prix: formData.prix ? parseInt(formData.prix, 10) : undefined
-      };
-      
-      // Mettre à jour l'offre
-      const success = await updateOffre(offre.id, offreData);
+        prix: formData.prix
+      });
       
       if (success) {
+        onOpenChange(false);
+        
         toast({
-          title: "Offre mise à jour",
-          description: "L'offre a été mise à jour avec succès."
+          title: "Succès",
+          description: "L'offre a été mise à jour avec succès.",
         });
         
-        // Mettre à jour l'offre localement
-        Object.assign(offre, offreData);
-        
-        onOpenChange(false);
+        // Recharger la page pour afficher les modifications
+        window.location.reload();
       }
     } catch (error) {
-      console.error("Error updating offre:", error);
+      console.error("Erreur lors de la mise à jour de l'offre:", error);
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de mettre à jour l'offre."
+        description: "Impossible de mettre à jour l'offre. Veuillez réessayer."
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Modifier l'offre</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="nom">Nom de l'offre *</Label>
-            <Input
-              id="nom"
-              name="nom"
-              value={formData.nom}
-              onChange={handleChange}
-              placeholder="Pack SEO Premium"
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="type">Type d'offre *</Label>
-            <Select 
-              value={formData.type} 
-              onValueChange={handleTypeChange}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un type" />
-              </SelectTrigger>
-              <SelectContent>
-                {offreTypes.map(type => (
-                  <SelectItem key={type} value={type}>{type}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Description détaillée de l'offre..."
-              rows={3}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="prix">Prix (€)</Label>
-            <Input
-              id="prix"
-              name="prix"
-              type="number"
-              min="0"
-              value={formData.prix}
-              onChange={handleChange}
-              placeholder="499"
-            />
+        
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="nom" className="text-right">
+                Nom
+              </Label>
+              <Input
+                id="nom"
+                name="nom"
+                value={formData.nom}
+                onChange={handleChange}
+                className="col-span-3"
+                required
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                Description
+              </Label>
+              <Textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                className="col-span-3"
+                rows={3}
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="type" className="text-right">
+                Type
+              </Label>
+              <Select
+                value={formData.type}
+                onValueChange={(value) => handleTypeChange(value as "SEO" | "Google Ads" | "Email X" | "Foner" | "Devis")}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Sélectionner un type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SEO">SEO</SelectItem>
+                  <SelectItem value="Google Ads">Google Ads</SelectItem>
+                  <SelectItem value="Email X">Email X</SelectItem>
+                  <SelectItem value="Foner">Foner</SelectItem>
+                  <SelectItem value="Devis">Devis</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="prix" className="text-right">
+                Prix (€)
+              </Label>
+              <Input
+                id="prix"
+                name="prix"
+                type="number"
+                min="0"
+                value={formData.prix}
+                onChange={handleChange}
+                className="col-span-3"
+              />
+            </div>
           </div>
           
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Annuler
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Mise à jour..." : "Enregistrer"}
+              {isSubmitting ? "Mise à jour en cours..." : "Enregistrer les modifications"}
             </Button>
           </DialogFooter>
         </form>

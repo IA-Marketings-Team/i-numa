@@ -5,6 +5,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { ShoppingBag, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface Offre {
   id: string;
@@ -27,6 +30,7 @@ const OffresSelector: React.FC<OffresSelectorProps> = ({
 }) => {
   const [offres, setOffres] = useState<Offre[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchOffres = async () => {
@@ -48,6 +52,10 @@ const OffresSelector: React.FC<OffresSelectorProps> = ({
     
     fetchOffres();
   }, []);
+
+  const handleBrowseOffres = () => {
+    navigate('/marketplace');
+  };
 
   if (isLoading) {
     return (
@@ -72,12 +80,29 @@ const OffresSelector: React.FC<OffresSelectorProps> = ({
 
   return (
     <div className="space-y-4">
-      <Label>Offres proposées</Label>
+      <div className="flex justify-between items-center">
+        <Label className="text-base">Offres proposées</Label>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleBrowseOffres}
+          className="flex items-center gap-1.5"
+        >
+          <ShoppingBag className="h-4 w-4" />
+          <span className="hidden sm:inline">Parcourir le catalogue</span>
+          <span className="inline sm:hidden">Catalogue</span>
+        </Button>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {Object.entries(offresByType).map(([type, typeOffres]) => (
           <Card key={type} className="overflow-hidden">
-            <div className="bg-muted px-4 py-2 font-medium">{type}</div>
+            <div className="bg-muted px-4 py-2 font-medium flex justify-between items-center">
+              <span>{type}</span>
+              <Button size="sm" variant="ghost" className="h-7 px-2" onClick={handleBrowseOffres}>
+                <Plus className="h-3.5 w-3.5" />
+              </Button>
+            </div>
             <CardContent className="p-4">
               {typeOffres.map((offre) => (
                 <div key={offre.id} className="flex items-start space-x-2 py-2">
@@ -100,7 +125,8 @@ const OffresSelector: React.FC<OffresSelectorProps> = ({
                     </label>
                     {offre.description && (
                       <p className="text-xs text-muted-foreground">
-                        {offre.description}
+                        {offre.description.substring(0, 100)}
+                        {offre.description.length > 100 && "..."}
                       </p>
                     )}
                   </div>
