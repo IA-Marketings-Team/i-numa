@@ -1,4 +1,3 @@
-
 import { type Config } from "tailwindcss";
 
 export default {
@@ -26,14 +25,14 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "#E53E3E",
+          foreground: "#FFFFFF",
           blue: "#4A7CFE",
           purple: "#6E59A5",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "#7E69AB",
+          foreground: "#FFFFFF",
           purple: "#7E69AB",
         },
         destructive: {
@@ -63,13 +62,11 @@ export default {
         "chart-purple": "#8B5CF6",
         "chart-orange": "#F59E0B",
         "dark-card": "#1A1F2C",
-        // Add role-based border colors
-        "client": "#3B82F6",    // Blue for clients
-        "phoner": "#F59E0B",    // Orange for phoners
-        "visio": "#10B981",     // Green for visio
-        "supervisor": "#8B5CF6", // Purple for supervisors
-        "manager": "#EF4444",   // Red for managers
-        // Add light versions of the role colors for gradients
+        "client": "#3B82F6",
+        "phoner": "#F59E0B",
+        "visio": "#10B981",
+        "supervisor": "#8B5CF6",
+        "manager": "#EF4444",
         "inuma-blue": "#3B82F6",
         "inuma-lightBlue": "#93C5FD",
         "inuma-lightRed": "#FCA5A5",

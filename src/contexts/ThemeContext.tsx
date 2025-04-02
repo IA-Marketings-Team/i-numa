@@ -12,28 +12,11 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 // Function to safely get the initial theme
 const getInitialTheme = (): Theme => {
-  // Check if we're in a browser environment
-  if (typeof window === 'undefined') return "light";
-  
-  try {
-    const savedTheme = localStorage.getItem("theme") as Theme;
-    if (savedTheme && (savedTheme === "light" || savedTheme === "dark")) {
-      return savedTheme;
-    }
-    
-    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      return "dark";
-    }
-    
-    return "light";
-  } catch (error) {
-    console.error("Error accessing theme preferences:", error);
-    return "light";
-  }
+  // Default to light mode for i-numa
+  return "light";
 };
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // Using a regular value to initialize state (not a function that could cause errors)
   const [theme, setTheme] = useState<Theme>(getInitialTheme());
 
   // Effect to apply the theme to the document
