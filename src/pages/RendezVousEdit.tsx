@@ -82,9 +82,9 @@ const RendezVousEdit = () => {
     loadData();
   }, [dossierId, id, isCreating, getDossierById, getRendezVousByDossierId, navigate, toast]);
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (id && id !== "nouveau") {
-      deleteRendezVous(id);
+      await deleteRendezVous(id);
       navigate(`/dossiers/${dossierId}`);
       toast({
         title: "Rendez-vous supprimé",
@@ -148,16 +148,16 @@ const RendezVousEdit = () => {
         dossier={dossier}
         rendezVous={rendezVous || undefined}
         isEditing={!isCreating}
-        onRendezVousAdded={(newRdv) => {
-          addRendezVous(newRdv);
+        onRendezVousAdded={async (newRdv) => {
+          await addRendezVous(newRdv);
           navigate(`/dossiers/${dossierId}`);
           toast({
             title: "Rendez-vous créé",
             description: "Le rendez-vous a été créé avec succès."
           });
         }}
-        onRendezVousUpdated={(id, updates) => {
-          updateRendezVous(id, updates);
+        onRendezVousUpdated={async (id, updates) => {
+          await updateRendezVous(id, updates);
           navigate(`/dossiers/${dossierId}`);
           toast({
             title: "Rendez-vous mis à jour",

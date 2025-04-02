@@ -1,5 +1,5 @@
 
-import { Client, User } from "@/types";
+import { Client } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -9,9 +9,21 @@ export const fetchClients = async (): Promise<Client[]> => {
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
-      .eq('role', 'client')
-      .order('nom');
+      .select(`
+        id,
+        nom,
+        prenom,
+        email,
+        telephone,
+        role,
+        date_creation,
+        adresse,
+        iban,
+        secteur_activite,
+        type_entreprise,
+        besoins
+      `)
+      .eq('role', 'client');
 
     if (error) {
       console.error("Erreur lors de la récupération des clients:", error);
@@ -25,12 +37,12 @@ export const fetchClients = async (): Promise<Client[]> => {
       email: client.email,
       telephone: client.telephone || '',
       role: 'client',
-      dateCreation: new Date(client.date_creation || Date.now()),
+      dateCreation: new Date(client.date_creation),
       adresse: client.adresse || '',
+      iban: client.iban,
       secteurActivite: client.secteur_activite || '',
       typeEntreprise: client.type_entreprise || '',
-      besoins: client.besoins || '',
-      iban: client.iban
+      besoins: client.besoins || ''
     }));
   } catch (error) {
     console.error("Erreur inattendue lors de la récupération des clients:", error);
@@ -45,7 +57,20 @@ export const fetchClientById = async (id: string): Promise<Client | null> => {
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select(`
+        id,
+        nom,
+        prenom,
+        email,
+        telephone,
+        role,
+        date_creation,
+        adresse,
+        iban,
+        secteur_activite,
+        type_entreprise,
+        besoins
+      `)
       .eq('id', id)
       .eq('role', 'client')
       .single();
@@ -64,12 +89,12 @@ export const fetchClientById = async (id: string): Promise<Client | null> => {
       email: data.email,
       telephone: data.telephone || '',
       role: 'client',
-      dateCreation: new Date(data.date_creation || Date.now()),
+      dateCreation: new Date(data.date_creation),
       adresse: data.adresse || '',
+      iban: data.iban,
       secteurActivite: data.secteur_activite || '',
       typeEntreprise: data.type_entreprise || '',
-      besoins: data.besoins || '',
-      iban: data.iban
+      besoins: data.besoins || ''
     };
   } catch (error) {
     console.error(`Erreur inattendue lors de la récupération du client ${id}:`, error);
@@ -78,95 +103,125 @@ export const fetchClientById = async (id: string): Promise<Client | null> => {
 };
 
 /**
- * Crée ou met à jour un client
+ * Crée un nouveau client
  */
-export const upsertClient = async (client: Partial<Client>): Promise<Client | null> => {
+export const createClient = async (client: Omit<Client, "id" | "dateCreation">): Promise<Client | null> => {
   try {
-    const updateData = {
+    // Créer un nouvel utilisateur avec authentification
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: client.email,
+      password: "password123", // Mot de passe temporaire, à changer dans une vraie application
+      options: {
+        data: {
+          nom: client.nom,
+          prenom: client.prenom,
+          role: 'client'
+        }
+      }
+    });
+    
+    if (authError) {
+      console.error("Erreur lors de la création de l'utilisateur client:", authError);
+      return null;
+    }
+    
+    if (!authData.user) {
+      console.error("Aucun utilisateur créé");
+      return null;
+    }
+    
+    // Mettre à jour le profil avec les informations supplémentaires
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        nom: client.nom,
+        prenom: client.prenom,
+        telephone: client.telephone,
+        adresse: client.adresse,
+        iban: client.iban,
+        secteur_activite: client.secteurActivite,
+        type_entreprise: client.typeEntreprise,
+        besoins: client.besoins
+      })
+      .eq('id', authData.user.id);
+    
+    if (profileError) {
+      console.error("Erreur lors de la mise à jour du profil client:", profileError);
+      return null;
+    }
+    
+    return {
+      id: authData.user.id,
       nom: client.nom,
       prenom: client.prenom,
       email: client.email,
       telephone: client.telephone,
       role: 'client',
+      dateCreation: new Date(),
       adresse: client.adresse,
-      secteur_activite: client.secteurActivite,
-      type_entreprise: client.typeEntreprise,
-      besoins: client.besoins,
-      iban: client.iban
-    };
-
-    let result;
-    
-    if (client.id) {
-      // Mise à jour d'un client existant
-      result = await supabase
-        .from('profiles')
-        .update(updateData)
-        .eq('id', client.id)
-        .select()
-        .single();
-    } else {
-      // Création d'un nouveau client (nécessite généralement un auth.signup préalable)
-      throw new Error("La création de client nécessite une inscription utilisateur préalable");
-    }
-
-    if (result.error) {
-      console.error("Erreur lors de la mise à jour du client:", result.error);
-      return null;
-    }
-
-    const data = result.data;
-    
-    return {
-      id: data.id,
-      nom: data.nom || '',
-      prenom: data.prenom || '',
-      email: data.email,
-      telephone: data.telephone || '',
-      role: 'client',
-      dateCreation: new Date(data.date_creation || Date.now()),
-      adresse: data.adresse || '',
-      secteurActivite: data.secteur_activite || '',
-      typeEntreprise: data.type_entreprise || '',
-      besoins: data.besoins || '',
-      iban: data.iban
+      iban: client.iban,
+      secteurActivite: client.secteurActivite,
+      typeEntreprise: client.typeEntreprise,
+      besoins: client.besoins
     };
   } catch (error) {
-    console.error("Erreur inattendue lors de l'opération client:", error);
+    console.error("Erreur inattendue lors de la création du client:", error);
     return null;
   }
 };
 
 /**
- * Met à jour un profil client
+ * Met à jour un client existant
  */
-export const updateClientProfile = async (id: string, updates: Partial<Client>): Promise<boolean> => {
+export const updateClient = async (id: string, updates: Partial<Client>): Promise<boolean> => {
   try {
     const updateData: any = {};
+    
     if (updates.nom !== undefined) updateData.nom = updates.nom;
     if (updates.prenom !== undefined) updateData.prenom = updates.prenom;
-    if (updates.email !== undefined) updateData.email = updates.email;
     if (updates.telephone !== undefined) updateData.telephone = updates.telephone;
     if (updates.adresse !== undefined) updateData.adresse = updates.adresse;
+    if (updates.iban !== undefined) updateData.iban = updates.iban;
     if (updates.secteurActivite !== undefined) updateData.secteur_activite = updates.secteurActivite;
     if (updates.typeEntreprise !== undefined) updateData.type_entreprise = updates.typeEntreprise;
     if (updates.besoins !== undefined) updateData.besoins = updates.besoins;
-    if (updates.iban !== undefined) updateData.iban = updates.iban;
-
+    
     const { error } = await supabase
       .from('profiles')
       .update(updateData)
       .eq('id', id)
       .eq('role', 'client');
-
+    
     if (error) {
       console.error(`Erreur lors de la mise à jour du client ${id}:`, error);
       return false;
     }
-
+    
     return true;
   } catch (error) {
     console.error(`Erreur inattendue lors de la mise à jour du client ${id}:`, error);
+    return false;
+  }
+};
+
+/**
+ * Supprime un client (désactive le compte plutôt que de supprimer complètement)
+ */
+export const deleteClient = async (id: string): Promise<boolean> => {
+  try {
+    // La suppression d'un utilisateur devrait être gérée avec précaution.
+    // Dans un environnement de production, vous pourriez vouloir simplement le désactiver
+    // ou conserver les données pour des raisons légales.
+    const { error } = await supabase.auth.admin.deleteUser(id);
+    
+    if (error) {
+      console.error(`Erreur lors de la suppression du client ${id}:`, error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Erreur inattendue lors de la suppression du client ${id}:`, error);
     return false;
   }
 };

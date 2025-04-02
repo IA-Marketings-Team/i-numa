@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
@@ -78,20 +79,20 @@ const DossierPage = () => {
     };
   }, [id, getDossierById, setCurrentDossier, navigate, toast]);
 
-  const handleAddRdv = () => {
-    if (!currentDossier) return;
+  const handleAddRdv = async () => {
+    if (!dossier) return;
     
     const dateTime = new Date(`${rdvForm.date}T${rdvForm.time}`);
     
     const newRdv = {
-      dossierId: currentDossier.id,
+      dossierId: dossier.id,
       date: dateTime,
       honore: true,
       notes: rdvForm.notes,
-      dossier: currentDossier
+      dossier: dossier
     };
     
-    addRendezVous(newRdv);
+    await addRendezVous(newRdv);
     setIsAddRdvOpen(false);
     
     toast({
@@ -100,16 +101,16 @@ const DossierPage = () => {
     });
   };
   
-  const handleAddCallNote = () => {
-    if (!currentDossier) return;
+  const handleAddCallNote = async () => {
+    if (!dossier) return;
     
     // Simuler la mise à jour des notes du dossier
-    const updatedNotes = currentDossier.notes 
-      ? `${currentDossier.notes}\n\nAppel (${format(new Date(), "dd/MM/yyyy HH:mm")}):\n${callNote}`
+    const updatedNotes = dossier.notes 
+      ? `${dossier.notes}\n\nAppel (${format(new Date(), "dd/MM/yyyy HH:mm")}):\n${callNote}`
       : `Appel (${format(new Date(), "dd/MM/yyyy HH:mm")}):\n${callNote}`;
     
     // Mettre à jour le dossier
-    updateDossierStatus(currentDossier.id, currentDossier.status);
+    await updateDossierStatus(dossier.id, dossier.status);
     
     setIsCallNoteOpen(false);
     setCallNote("");
@@ -120,10 +121,10 @@ const DossierPage = () => {
     });
   };
   
-  const handleValidateDossier = () => {
-    if (!currentDossier) return;
+  const handleValidateDossier = async () => {
+    if (!dossier) return;
     
-    updateDossierStatus(currentDossier.id, 'valide');
+    await updateDossierStatus(dossier.id, 'valide');
     
     toast({
       title: "Dossier validé",
@@ -158,7 +159,7 @@ const DossierPage = () => {
               Retour à la liste
             </Button>
             
-            {currentDossier.status === 'rdv_en_cours' && (
+            {dossier.status === 'rdv_en_cours' && (
               <Button 
                 onClick={handleValidateDossier}
                 className="flex items-center gap-2 bg-green-600 hover:bg-green-700"

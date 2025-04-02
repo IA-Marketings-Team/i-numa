@@ -1,348 +1,367 @@
-import { useState, useEffect } from "react";
+
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDossier } from "@/contexts/DossierContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Dossier, DossierStatus, RendezVous } from "@/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import DossierStatusBadge from "./DossierStatusBadge";
-import RendezVousCard from "@/components/rendezVous/RendezVousCard";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { Dossier, RendezVous } from "@/types";
 import { 
-  ChevronLeft, 
-  FileEdit, 
-  Calendar, 
-  CheckSquare, 
-  FileCheck, 
-  Archive, 
-  Users, 
-  Mail, 
-  Phone
-} from "lucide-react";
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ChevronLeft, Calendar, PenSquare, FileCheck, CheckCircle2, AlertCircle } from "lucide-react";
+import { useDossier } from "@/contexts/DossierContext";
+
+// Fonction pour formater une date en français
+const formatDate = (date?: Date) => {
+  if (!date) return "Non définie";
+  return format(new Date(date), "d MMMM yyyy", { locale: fr });
+};
+
+// Fonction pour formater une date et heure en français
+const formatDateTime = (date?: Date) => {
+  if (!date) return "Non définie";
+  return format(new Date(date), "d MMMM yyyy à HH:mm", { locale: fr });
+};
+
+// Mapping des statuts pour l'affichage
+const statusLabels: Record<string, { label: string; color: string }> = {
+  prospect: { label: "Prospect", color: "bg-blue-100 text-blue-800" },
+  rdv_en_cours: { label: "RDV en cours", color: "bg-yellow-100 text-yellow-800" },
+  valide: { label: "Validé", color: "bg-green-100 text-green-800" },
+  signe: { label: "Signé", color: "bg-purple-100 text-purple-800" },
+  archive: { label: "Archivé", color: "bg-gray-100 text-gray-800" },
+};
 
 interface DossierDetailProps {
   dossier: Dossier;
 }
 
 const DossierDetail: React.FC<DossierDetailProps> = ({ dossier }) => {
-  const [activeTab, setActiveTab] = useState("informations");
-  const [rendezVousList, setRendezVousList] = useState<RendezVous[]>([]);
-  const { updateDossierStatus, getRendezVousByDossierId } = useDossier();
-  const { hasPermission } = useAuth();
   const navigate = useNavigate();
+  const { hasPermission } = useAuth();
+  const { getRendezVousByDossierId } = useDossier();
+  const [rendezVous, setRendezVous] = useState<RendezVous[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  // Charger les rendez-vous associés à ce dossier
   useEffect(() => {
     const loadRendezVous = async () => {
-      const rdvList = await getRendezVousByDossierId(dossier.id);
-      setRendezVousList(rdvList);
+      try {
+        setLoading(true);
+        const rdvs = await getRendezVousByDossierId(dossier.id);
+        setRendezVous(rdvs);
+      } catch (error) {
+        console.error("Erreur lors du chargement des rendez-vous:", error);
+      } finally {
+        setLoading(false);
+      }
     };
-    
+
     loadRendezVous();
   }, [dossier.id, getRendezVousByDossierId]);
-
-  const handleStatusChange = (newStatus: DossierStatus) => {
-    if (window.confirm(`Êtes-vous sûr de vouloir changer le statut en "${newStatus}" ?`)) {
-      updateDossierStatus(dossier.id, newStatus);
-    }
-  };
-
-  const formatDate = (date: Date | undefined) => {
-    if (!date) return "Non défini";
-    return new Date(date).toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-  };
-
-  const getAvailableActions = () => {
-    if (!hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable'])) {
-      return [];
-    }
-    
-    const actions = [];
-    
-    switch (dossier.status) {
-      case "prospect":
-        actions.push({
-          label: "Planifier RDV",
-          icon: <Calendar className="w-4 h-4 mr-2" />,
-          action: () => handleStatusChange("rdv_en_cours"),
-          color: "bg-blue-500 hover:bg-blue-600"
-        });
-        break;
-      case "rdv_en_cours":
-        actions.push({
-          label: "Valider",
-          icon: <CheckSquare className="w-4 h-4 mr-2" />,
-          action: () => handleStatusChange("valide"),
-          color: "bg-teal-500 hover:bg-teal-600"
-        });
-        break;
-      case "valide":
-        actions.push({
-          label: "Marquer comme signé",
-          icon: <FileCheck className="w-4 h-4 mr-2" />,
-          action: () => handleStatusChange("signe"),
-          color: "bg-green-500 hover:bg-green-600"
-        });
-        break;
-      case "signe":
-        actions.push({
-          label: "Archiver",
-          icon: <Archive className="w-4 h-4 mr-2" />,
-          action: () => handleStatusChange("archive"),
-          color: "bg-gray-500 hover:bg-gray-600"
-        });
-        break;
-    }
-    
-    return actions;
-  };
-
-  const canShowMontant = hasPermission(['superviseur', 'responsable']);
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          Retour
-        </Button>
-        
-        {hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable']) && (
+        <h1 className="text-3xl font-bold">Détails du dossier</h1>
+        <div className="flex gap-2">
           <Button 
-            onClick={() => navigate(`/dossiers/${dossier.id}/edit`)}
+            onClick={() => navigate("/dossiers")}
+            variant="outline"
             className="flex items-center gap-2"
           >
-            <FileEdit className="w-4 h-4" />
-            Modifier
+            <ChevronLeft className="w-4 h-4" />
+            Retour à la liste
           </Button>
-        )}
-      </div>
-
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-gray-50 rounded-lg">
-        <div>
-          <h1 className="text-2xl font-bold">
-            Dossier de {dossier.client.nom} {dossier.client.prenom}
-          </h1>
-          <div className="flex items-center gap-3 mt-2">
-            <DossierStatusBadge status={dossier.status} />
-            <span className="text-sm text-gray-600">
-              Créé le {formatDate(dossier.dateCreation)}
-            </span>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {getAvailableActions().map((action, index) => (
-            <Button
-              key={index}
-              onClick={action.action}
-              className={`flex items-center ${action.color}`}
+          {hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable']) && (
+            <Button 
+              onClick={() => navigate(`/dossiers/${dossier.id}/edit`)}
+              className="flex items-center gap-2"
             >
-              {action.icon}
-              {action.label}
+              <PenSquare className="w-4 h-4" />
+              Modifier
             </Button>
-          ))}
+          )}
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-4 mb-4">
-          <TabsTrigger value="informations">Informations</TabsTrigger>
-          <TabsTrigger value="contacts">Contacts</TabsTrigger>
-          <TabsTrigger value="rendezVous">Rendez-vous</TabsTrigger>
-          <TabsTrigger value="historique">Historique</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="informations" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Informations client</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p><strong>Secteur d'activité:</strong> {dossier.client.secteurActivite}</p>
-                <p><strong>Type d'entreprise:</strong> {dossier.client.typeEntreprise}</p>
-                <p><strong>Besoins:</strong> {dossier.client.besoins}</p>
-                {dossier.client.adresse && (
-                  <p><strong>Adresse:</strong> {dossier.client.adresse}</p>
-                )}
-                {hasPermission(['responsable']) && dossier.client.iban && (
-                  <p><strong>IBAN:</strong> {dossier.client.iban}</p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Offres proposées</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {dossier.offres.length > 0 ? (
-                  <ul className="space-y-2">
-                    {dossier.offres.map((offre) => (
-                      <li key={offre.id} className="border-b pb-2 last:border-b-0 last:pb-0">
-                        <div className="font-medium">{offre.nom}</div>
-                        <div className="text-sm text-gray-600">{offre.description}</div>
-                        {canShowMontant && offre.prix !== undefined && (
-                          <div className="text-right font-semibold">{offre.prix} €</div>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-gray-500">Aucune offre associée à ce dossier</p>
-                )}
-                
-                {canShowMontant && dossier.montant && (
-                  <div className="mt-4 pt-2 border-t">
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold">Montant total:</span>
-                      <span className="font-bold text-lg">{dossier.montant} €</span>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="contacts" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Coordonnées client</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-blue-500" />
-                <span>{dossier.client.email}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-blue-500" />
-                <span>{dossier.client.telephone}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {(dossier.agentPhonerId || dossier.agentVisioId) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Agents assignés</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {dossier.agentPhonerId && (
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-orange-500" />
-                    <span>Agent Phoner: {dossier.agentPhonerId}</span>
-                  </div>
-                )}
-                {dossier.agentVisioId && (
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-green-500" />
-                    <span>Agent Visio: {dossier.agentVisioId}</span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="rendezVous" className="space-y-4">
-          {rendezVousList.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              {rendezVousList.map((rdv) => (
-                <RendezVousCard 
-                  key={rdv.id} 
-                  rendezVous={rdv} 
-                />
-              ))}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Informations client */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex justify-between items-center">
+              <span>Informations client</span>
+              <Badge className={statusLabels[dossier.status]?.color || "bg-gray-100"}>
+                {statusLabels[dossier.status]?.label || dossier.status}
+              </Badge>
+            </CardTitle>
+            <CardDescription>Détails du client associé à ce dossier</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div>
+              <span className="font-medium">Nom :</span> {dossier.client.nom}
             </div>
+            <div>
+              <span className="font-medium">Prénom :</span> {dossier.client.prenom}
+            </div>
+            <div>
+              <span className="font-medium">Email :</span> {dossier.client.email}
+            </div>
+            <div>
+              <span className="font-medium">Téléphone :</span> {dossier.client.telephone}
+            </div>
+            {dossier.client.adresse && (
+              <div>
+                <span className="font-medium">Adresse :</span> {dossier.client.adresse}
+              </div>
+            )}
+            <div>
+              <span className="font-medium">Secteur d'activité :</span> {dossier.client.secteurActivite}
+            </div>
+            <div>
+              <span className="font-medium">Type d'entreprise :</span> {dossier.client.typeEntreprise}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Détails du dossier */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Suivi du dossier</CardTitle>
+            <CardDescription>Étapes et dates clés</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div>
+              <span className="font-medium">Date de création :</span> {formatDate(dossier.dateCreation)}
+            </div>
+            <div>
+              <span className="font-medium">Dernière mise à jour :</span> {formatDate(dossier.dateMiseAJour)}
+            </div>
+            {dossier.dateRdv && (
+              <div>
+                <span className="font-medium">Date de rendez-vous :</span> {formatDate(dossier.dateRdv)}
+              </div>
+            )}
+            {dossier.dateValidation && (
+              <div>
+                <span className="font-medium">Date de validation :</span> {formatDate(dossier.dateValidation)}
+              </div>
+            )}
+            {dossier.dateSignature && (
+              <div>
+                <span className="font-medium">Date de signature :</span> {formatDate(dossier.dateSignature)}
+              </div>
+            )}
+            {dossier.dateArchivage && (
+              <div>
+                <span className="font-medium">Date d'archivage :</span> {formatDate(dossier.dateArchivage)}
+              </div>
+            )}
+          </CardContent>
+          <CardFooter>
+            {dossier.status === "rdv_en_cours" && hasPermission(['agent_phoner', 'agent_visio']) && (
+              <Button 
+                className="w-full flex items-center justify-center gap-2"
+                variant="outline"
+                onClick={() => navigate(`/dossiers/${dossier.id}/rendez-vous/nouveau`)}
+              >
+                <Calendar className="w-4 h-4" />
+                Planifier un rendez-vous
+              </Button>
+            )}
+          </CardFooter>
+        </Card>
+
+        {/* Offres et montant */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Offres et détails financiers</CardTitle>
+            <CardDescription>Services souscrits et montant</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div>
+              <span className="font-medium">Offres souscrites :</span>
+              {dossier.offres && dossier.offres.length > 0 ? (
+                <ul className="list-disc pl-5 mt-2">
+                  {dossier.offres.map((offre, index) => (
+                    <li key={index}>{offre.nom} - {offre.type}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500 mt-2">Aucune offre sélectionnée</p>
+              )}
+            </div>
+            
+            <Separator className="my-2" />
+            
+            {hasPermission(['superviseur', 'responsable']) && (
+              <div>
+                <span className="font-medium">Montant total :</span>{" "}
+                {dossier.montant ? `${dossier.montant.toLocaleString()} €` : "Non défini"}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Notes */}
+      {dossier.notes && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Notes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="whitespace-pre-line">{dossier.notes}</div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Rendez-vous associés */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex justify-between items-center">
+            <span>Rendez-vous</span>
+            {hasPermission(['agent_phoner', 'agent_visio']) && (
+              <Button 
+                onClick={() => navigate(`/dossiers/${dossier.id}/rendez-vous/nouveau`)}
+                className="flex items-center gap-2"
+                size="sm"
+              >
+                <Calendar className="w-4 h-4" />
+                Nouveau rendez-vous
+              </Button>
+            )}
+          </CardTitle>
+          <CardDescription>Historique des rendez-vous pour ce dossier</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-4">Chargement des rendez-vous...</div>
+          ) : rendezVous.length === 0 ? (
+            <div className="text-center py-4 text-gray-500">Aucun rendez-vous planifié</div>
           ) : (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-8">
-                <p className="text-center text-muted-foreground mb-4">
-                  Aucun rendez-vous planifié pour ce dossier.
-                </p>
-                {hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable']) && (
-                  <Button 
-                    onClick={() => navigate(`/dossiers/${dossier.id}/rendez-vous/nouveau`)}
-                    className="flex items-center gap-2"
-                  >
-                    <Calendar className="w-4 h-4" />
-                    Planifier un rendez-vous
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+            <Table>
+              <TableCaption>Liste des rendez-vous pour ce dossier.</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date et heure</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Notes</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rendezVous.map((rdv) => (
+                  <TableRow key={rdv.id}>
+                    <TableCell>{formatDateTime(rdv.date)}</TableCell>
+                    <TableCell>
+                      {rdv.honore ? (
+                        <span className="flex items-center text-green-600">
+                          <CheckCircle2 className="w-4 h-4 mr-1" />
+                          Honoré
+                        </span>
+                      ) : (
+                        <span className="flex items-center text-red-600">
+                          <AlertCircle className="w-4 h-4 mr-1" />
+                          Non honoré
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="max-w-xs truncate">{rdv.notes || "—"}</TableCell>
+                    <TableCell className="text-right">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => navigate(`/dossiers/${dossier.id}/rendez-vous/${rdv.id}`)}
+                      >
+                        Détails
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
-        </TabsContent>
-        
-        <TabsContent value="historique" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Historique du dossier</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-4">
-                <li className="flex items-start gap-4">
-                  <div className="w-2 h-2 rounded-full bg-blue-500 mt-2"></div>
-                  <div>
-                    <div className="font-medium">Création du dossier</div>
-                    <div className="text-sm text-gray-600">{formatDate(dossier.dateCreation)}</div>
+        </CardContent>
+      </Card>
+
+      {/* Agents assignés */}
+      {hasPermission(['superviseur', 'responsable']) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Agents assignés</CardTitle>
+            <CardDescription>Agents assignés à ce dossier</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h3 className="font-medium mb-2">Agent Phoner</h3>
+                {dossier.agentPhonerId ? (
+                  <div className="rounded-md border p-4">
+                    {dossier.agentPhonerId}
+                    {/* À compléter avec les informations de l'agent Phoner une fois disponibles */}
                   </div>
-                </li>
-                
-                {dossier.dateRdv && (
-                  <li className="flex items-start gap-4">
-                    <div className="w-2 h-2 rounded-full bg-blue-500 mt-2"></div>
-                    <div>
-                      <div className="font-medium">Rendez-vous planifié</div>
-                      <div className="text-sm text-gray-600">{formatDate(dossier.dateRdv)}</div>
-                    </div>
-                  </li>
+                ) : (
+                  <div className="text-gray-500">Aucun agent Phoner assigné</div>
                 )}
-                
-                {dossier.dateValidation && (
-                  <li className="flex items-start gap-4">
-                    <div className="w-2 h-2 rounded-full bg-teal-500 mt-2"></div>
-                    <div>
-                      <div className="font-medium">Dossier validé</div>
-                      <div className="text-sm text-gray-600">{formatDate(dossier.dateValidation)}</div>
-                    </div>
-                  </li>
+              </div>
+              
+              <div>
+                <h3 className="font-medium mb-2">Agent Visio</h3>
+                {dossier.agentVisioId ? (
+                  <div className="rounded-md border p-4">
+                    {dossier.agentVisioId}
+                    {/* À compléter avec les informations de l'agent Visio une fois disponibles */}
+                  </div>
+                ) : (
+                  <div className="text-gray-500">Aucun agent Visio assigné</div>
                 )}
-                
-                {dossier.dateSignature && (
-                  <li className="flex items-start gap-4">
-                    <div className="w-2 h-2 rounded-full bg-green-500 mt-2"></div>
-                    <div>
-                      <div className="font-medium">Contrat signé</div>
-                      <div className="text-sm text-gray-600">{formatDate(dossier.dateSignature)}</div>
-                    </div>
-                  </li>
-                )}
-                
-                {dossier.dateArchivage && (
-                  <li className="flex items-start gap-4">
-                    <div className="w-2 h-2 rounded-full bg-gray-500 mt-2"></div>
-                    <div>
-                      <div className="font-medium">Dossier archivé</div>
-                      <div className="text-sm text-gray-600">{formatDate(dossier.dateArchivage)}</div>
-                    </div>
-                  </li>
-                )}
-              </ul>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
+      {dossier.status !== 'archive' && hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable']) && (
+        <div className="flex justify-center mt-6">
+          <Button 
+            onClick={() => navigate(`/dossiers/${dossier.id}/edit`)}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <PenSquare className="w-4 h-4" />
+            Modifier ce dossier
+          </Button>
+        </div>
+      )}
+      
+      {dossier.status === 'valide' && hasPermission(['superviseur', 'responsable']) && (
+        <div className="flex justify-center mt-6">
+          <Button 
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+          >
+            <FileCheck className="w-4 h-4" />
+            Marquer comme signé
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

@@ -19,6 +19,7 @@ const DossierEdit = () => {
   const isCreating = id === "nouveau" || window.location.pathname.includes("/dossiers/nouveau");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [dossier, setDossier] = useState<Dossier | null>(null);
 
   // Log component initialization with more details
   useEffect(() => {
@@ -39,14 +40,16 @@ const DossierEdit = () => {
       if (isCreating) {
         console.log("[DossierEdit] Creating new dossier mode - setting currentDossier to null");
         setCurrentDossier(null);
+        setIsLoading(false);
       } else if (id) {
         // Sinon charger le dossier existant
         console.log("[DossierEdit] Loading existing dossier:", id);
         try {
-          const dossier = await getDossierById(id);
-          if (dossier) {
-            console.log("[DossierEdit] Dossier found:", dossier.id);
-            setCurrentDossier(dossier);
+          const dossierData = await getDossierById(id);
+          if (dossierData) {
+            console.log("[DossierEdit] Dossier found:", dossierData.id);
+            setDossier(dossierData);
+            setCurrentDossier(dossierData);
           } else {
             console.error("[DossierEdit] Dossier not found:", id);
             navigate("/dossiers");
@@ -65,8 +68,8 @@ const DossierEdit = () => {
             description: "Erreur lors du chargement du dossier."
           });
         }
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
     
     loadDossier();
@@ -96,10 +99,10 @@ const DossierEdit = () => {
     }
   }, [hasPermission, navigate, toast, user]);
 
-  const handleDelete = () => {
-    if (id && id !== "nouveau" && currentDossier) {
+  const handleDelete = async () => {
+    if (id && id !== "nouveau" && dossier) {
       console.log("[DossierEdit] Deleting dossier:", id);
-      deleteDossier(id);
+      await deleteDossier(id);
       navigate("/dossiers");
       toast({
         title: "Dossier supprimé",
@@ -158,7 +161,7 @@ const DossierEdit = () => {
       
       {!isLoading && (
         <DossierForm 
-          dossier={currentDossier} 
+          dossier={dossier} 
           isEditing={!isCreating} 
           userRole={user?.role}
         />
