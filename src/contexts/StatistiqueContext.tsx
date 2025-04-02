@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Statistique, Agent, UserRole } from "@/types";
 import { useAuth } from "./AuthContext";
@@ -28,10 +27,13 @@ interface StatistiqueContextType {
   removeStatistique: (id: string) => Promise<boolean>;
 }
 
+// Extend the Statistique type to ensure it has an id
+type StatistiqueWithId = Statistique & { id: string };
+
 const StatistiqueContext = createContext<StatistiqueContextType | undefined>(undefined);
 
 export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [statistiques, setStatistiques] = useState<Statistique[]>([]);
+  const [statistiques, setStatistiques] = useState<StatistiqueWithId[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
   const { user } = useAuth();
@@ -41,7 +43,16 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       setIsLoading(true);
       const data = await fetchStatistiques();
-      setStatistiques(data);
+      // Ensure all statistics have an id
+      const statsWithId = data.map(stat => {
+        if (!stat.id) {
+          console.warn("Statistique without id detected, generating random id");
+          return { ...stat, id: `stat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` };
+        }
+        return stat as StatistiqueWithId;
+      });
+      
+      setStatistiques(statsWithId);
       setError(null);
     } catch (err) {
       console.error("Error loading statistiques:", err);
@@ -154,7 +165,7 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       const newStat = await createStatistique(data);
       if (newStat) {
-        setStatistiques(prev => [...prev, newStat]);
+        setStatistiques(prev => [...prev, newStat as StatistiqueWithId]);
         toast({
           title: "Succès",
           description: "La statistique a été ajoutée avec succès",
@@ -177,7 +188,7 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const success = await updateStatistique(id, data);
       if (success) {
         setStatistiques(prev => prev.map(stat => 
-          stat.id === id ? { ...stat, ...data } : stat
+          stat.id === id ? { ...stat, ...data } as StatistiqueWithId : stat
         ));
         toast({
           title: "Succès",
