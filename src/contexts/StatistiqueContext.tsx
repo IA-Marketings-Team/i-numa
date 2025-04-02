@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Statistique, Agent, UserRole } from "@/types";
 import { useAuth } from "./AuthContext";
@@ -106,7 +107,31 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const getAgentStatistics = async (agentId: string): Promise<Agent | undefined> => {
     try {
-      return await fetchAgentById(agentId);
+      const agentData = await fetchAgentById(agentId);
+      
+      if (!agentData) return undefined;
+      
+      // Transform to Agent type
+      const agent: Agent = {
+        id: agentData.id,
+        nom: agentData.nom || '',
+        prenom: agentData.prenom || '',
+        email: agentData.email || '',
+        telephone: agentData.telephone || '',
+        role: agentData.role as UserRole,
+        dateCreation: new Date(),
+        statistiques: {
+          appelsEmis: agentData.appels_emis || 0,
+          appelsDecroches: agentData.appels_decroches || 0,
+          appelsTransformes: agentData.appels_transformes || 0,
+          rendezVousHonores: agentData.rendez_vous_honores || 0,
+          rendezVousNonHonores: agentData.rendez_vous_non_honores || 0,
+          dossiersValides: agentData.dossiers_valides || 0,
+          dossiersSigne: agentData.dossiers_signe || 0,
+        }
+      };
+      
+      return agent;
     } catch (err) {
       console.error(`Error fetching agent statistics for ${agentId}:`, err);
       toast({

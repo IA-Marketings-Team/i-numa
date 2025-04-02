@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Statistique } from "@/types";
 import {
@@ -109,5 +110,5 @@ const formatDate = (date: Date): string => {
 // Named export
 export { StatistiqueCharts };
 
-// Default export (optional, but can help with imports)
+// Default export
 export default StatistiqueCharts;

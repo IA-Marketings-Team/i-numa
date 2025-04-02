@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,6 @@ import TaskFormDialog from "@/components/tasks/TaskFormDialog";
 import { Task, TaskStatus } from "@/types";
 import { fetchTasks, createTask, updateTask, deleteTask, fetchTasksByAgent } from "@/services/taskService";
 import { useToast } from "@/hooks/use-toast";
-import { fetchAgentById } from "@/services/agentService";
 
 const TasksPage: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -29,10 +27,8 @@ const TasksPage: React.FC = () => {
       let loadedTasks;
       
       if (user && (user.role === 'agent_phoner' || user.role === 'agent_visio')) {
-        // Agents should only see their own tasks
         loadedTasks = await fetchTasksByAgent(user.id);
       } else {
-        // Supervisors and responsables see all tasks
         loadedTasks = await fetchTasks();
       }
       
@@ -57,7 +53,6 @@ const TasksPage: React.FC = () => {
   
   const handleAddTask = async (taskData: Omit<Task, "id" | "dateCreation">) => {
     try {
-      // If no agentId was provided but the user is an agent, assign to self
       let assignedAgentId = taskData.agentId;
       if (!assignedAgentId && user && (user.role === 'agent_phoner' || user.role === 'agent_visio')) {
         assignedAgentId = user.id;

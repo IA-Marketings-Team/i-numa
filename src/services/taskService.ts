@@ -1,5 +1,4 @@
-
-import { Task, TaskPriority, TaskStatus } from "@/types";
+import { Task, TaskStatus, TaskPriority } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
 export const fetchTasks = async (): Promise<Task[]> => {
@@ -20,8 +19,8 @@ export const fetchTasks = async (): Promise<Task[]> => {
     agentId: item.agent_id || '',
     status: (item.status || 'to_do') as TaskStatus,
     priority: (item.priority || 'medium') as TaskPriority,
-    dateCreation: new Date(item.date_creation).toISOString(),
-    dateEcheance: item.date_echeance ? new Date(item.date_echeance).toISOString() : undefined
+    dateCreation: new Date(item.date_creation),
+    dateEcheance: item.date_echeance ? new Date(item.date_echeance) : undefined
   }));
   
   return tasks;
@@ -49,8 +48,8 @@ export const fetchTaskById = async (id: string): Promise<Task | null> => {
     agentId: item.agent_id || '',
     status: (item.status || 'to_do') as TaskStatus,
     priority: (item.priority || 'medium') as TaskPriority,
-    dateCreation: new Date(item.date_creation).toISOString(),
-    dateEcheance: item.date_echeance ? new Date(item.date_echeance).toISOString() : undefined
+    dateCreation: new Date(item.date_creation),
+    dateEcheance: item.date_echeance ? new Date(item.date_echeance) : undefined
   };
   
   return task;
@@ -64,7 +63,7 @@ export const createTask = async (taskData: Omit<Task, "id" | "dateCreation">): P
     agent_id: taskData.agentId || null,
     status: taskData.status || 'to_do',
     priority: taskData.priority || 'medium',
-    date_echeance: taskData.dateEcheance ? new Date(taskData.dateEcheance).toISOString() : null
+    date_echeance: taskData.dateEcheance ? taskData.dateEcheance.toISOString() : null
   };
   
   // Insert task
@@ -87,8 +86,8 @@ export const createTask = async (taskData: Omit<Task, "id" | "dateCreation">): P
     agentId: newTask.agent_id || '',
     status: (newTask.status || 'to_do') as TaskStatus,
     priority: (newTask.priority || 'medium') as TaskPriority,
-    dateCreation: new Date(newTask.date_creation).toISOString(),
-    dateEcheance: newTask.date_echeance ? new Date(newTask.date_echeance).toISOString() : undefined
+    dateCreation: new Date(newTask.date_creation),
+    dateEcheance: newTask.date_echeance ? new Date(newTask.date_echeance) : undefined
   };
   
   return task;
@@ -156,8 +155,8 @@ export const fetchTasksByAgent = async (agentId: string): Promise<Task[]> => {
     agentId: item.agent_id || '',
     status: (item.status || 'to_do') as TaskStatus,
     priority: (item.priority || 'medium') as TaskPriority,
-    dateCreation: new Date(item.date_creation).toISOString(),
-    dateEcheance: item.date_echeance ? new Date(item.date_echeance).toISOString() : undefined
+    dateCreation: new Date(item.date_creation),
+    dateEcheance: item.date_echeance ? new Date(item.date_echeance) : undefined
   }));
   
   return tasks;

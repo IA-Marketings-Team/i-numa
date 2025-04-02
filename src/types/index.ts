@@ -1,9 +1,10 @@
-
 export type UserRole = 'client' | 'agent_phoner' | 'agent_visio' | 'agent_developpeur' | 'agent_marketing' | 'superviseur' | 'responsable';
 
 export type DossierStatus = 'prospect' | 'rdv_en_cours' | 'valide' | 'signe' | 'archive';
 
 export type TaskStatus = 'to_do' | 'in_progress' | 'done';
+
+export type TaskPriority = 'low' | 'medium' | 'high';
 
 export interface User {
   id: string;
@@ -134,7 +135,7 @@ export interface Task {
   status: TaskStatus;
   dateCreation: Date;
   dateEcheance?: Date;
-  priority: 'low' | 'medium' | 'high';
+  priority: TaskPriority;
 }
 
 export interface Appel {

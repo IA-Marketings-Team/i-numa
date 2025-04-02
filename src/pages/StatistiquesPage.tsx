@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { StatistiqueTable } from "@/components/stats/StatistiqueTable";
 import { StatistiqueCharts } from "@/components/stats/StatistiqueCharts";
@@ -15,10 +14,8 @@ const StatistiquesPage: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  // Filtrer par période
   const [activeTab, setActiveTab] = useState<"jour" | "semaine" | "mois">("mois");
   
-  // Déterminer si les statistiques monétaires peuvent être affichées
   const showMonetaryStats = user?.role === "responsable";
 
   useEffect(() => {
@@ -42,7 +39,6 @@ const StatistiquesPage: React.FC = () => {
     loadStatistiques();
   }, [toast]);
 
-  // Filtrer les statistiques selon la période active
   const filteredStats = statistiques.filter(stat => stat.periode === activeTab);
 
   return (
@@ -83,8 +79,7 @@ const StatistiquesPage: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     <StatistiqueCharts 
-                      statistiques={filteredStats} 
-                      periode="jour"
+                      statistiques={filteredStats}
                       showMonetaryStats={showMonetaryStats}
                     />
                   </CardContent>
@@ -113,8 +108,7 @@ const StatistiquesPage: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     <StatistiqueCharts 
-                      statistiques={filteredStats} 
-                      periode="semaine"
+                      statistiques={filteredStats}
                       showMonetaryStats={showMonetaryStats}
                     />
                   </CardContent>
@@ -143,8 +137,7 @@ const StatistiquesPage: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     <StatistiqueCharts 
-                      statistiques={filteredStats} 
-                      periode="mois"
+                      statistiques={filteredStats}
                       showMonetaryStats={showMonetaryStats}
                     />
                   </CardContent>
