@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Statistique } from "@/types";
 import {
@@ -99,4 +98,8 @@ const getPeriodeLabel = (periode: "jour" | "semaine" | "mois"): string => {
   }
 };
 
+// Named export
+export { StatistiqueTable };
+
+// Default export
 export default StatistiqueTable;
