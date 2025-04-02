@@ -1,7 +1,15 @@
 
 import { useState, useEffect } from "react";
 import { Dossier, DossierStatus } from "@/types";
-import { agents } from "@/data/mockData";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+
+interface Agent {
+  id: string;
+  nom: string;
+  prenom: string;
+  role: string;
+}
 
 interface UseDossierFormStateProps {
   dossier?: Dossier;
@@ -14,6 +22,7 @@ export const useDossierFormState = ({
   userRole,
   isEditing = false
 }: UseDossierFormStateProps) => {
+  const { user } = useAuth();
   const [selectedClient, setSelectedClient] = useState<string>(dossier?.clientId || "");
   const [selectedAgentPhoner, setSelectedAgentPhoner] = useState<string>(dossier?.agentPhonerId || "none");
   const [selectedAgentVisio, setSelectedAgentVisio] = useState<string>(dossier?.agentVisioId || "none");
@@ -26,9 +35,8 @@ export const useDossierFormState = ({
   const [dateRdv, setDateRdv] = useState<string>("");
   const [formError, setFormError] = useState<string>("");
   const [clientError, setClientError] = useState<string>("");
-
-  const phonerAgents = agents.filter(a => a.role === "agent_phoner");
-  const visioAgents = agents.filter(a => a.role === "agent_visio");
+  const [phonerAgents, setPhonerAgents] = useState<Agent[]>([]);
+  const [visioAgents, setVisioAgents] = useState<Agent[]>([]);
 
   // Log initial component state
   useEffect(() => {
@@ -40,16 +48,44 @@ export const useDossierFormState = ({
     });
   }, [dossier, isEditing, userRole]);
 
+  // Charger les agents depuis Supabase
   useEffect(() => {
-    if (!isEditing && userRole === 'agent_phoner' && selectedAgentPhoner === "none") {
-      const currentAgent = agents.find(a => a.role === 'agent_phoner');
-      if (currentAgent) {
-        console.log("[DossierFormState] Auto-assigning phoner agent:", currentAgent.id);
-        setSelectedAgentPhoner(currentAgent.id);
+    const fetchAgents = async () => {
+      try {
+        // Récupérer les agents phoner
+        const { data: phonerData, error: phonerError } = await supabase
+          .from('profiles')
+          .select('id, nom, prenom, role')
+          .eq('role', 'agent_phoner');
+        
+        if (phonerError) throw phonerError;
+        setPhonerAgents(phonerData || []);
+        
+        // Récupérer les agents visio
+        const { data: visioData, error: visioError } = await supabase
+          .from('profiles')
+          .select('id, nom, prenom, role')
+          .eq('role', 'agent_visio');
+        
+        if (visioError) throw visioError;
+        setVisioAgents(visioData || []);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des agents:", error);
       }
-    }
-  }, [isEditing, userRole, selectedAgentPhoner]);
+    };
+    
+    fetchAgents();
+  }, []);
 
+  // Auto-assigner l'agent phoner si l'utilisateur est un agent phoner
+  useEffect(() => {
+    if (!isEditing && userRole === 'agent_phoner' && selectedAgentPhoner === "none" && user?.id) {
+      console.log("[DossierFormState] Auto-assigning phoner agent:", user.id);
+      setSelectedAgentPhoner(user.id);
+    }
+  }, [isEditing, userRole, selectedAgentPhoner, user?.id]);
+
+  // Formater la date de RDV
   useEffect(() => {
     if (dossier?.dateRdv) {
       const date = new Date(dossier.dateRdv);

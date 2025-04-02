@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Client, DossierStatus, Offre } from "@/types";
-import { clients } from "@/data/mockData";
-import { offres } from "@/data/mock/offres";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 interface UseDossierFormSubmitProps {
@@ -34,7 +33,7 @@ export const useDossierFormSubmit = ({
 }: UseDossierFormSubmitProps) => {
   const navigate = useNavigate();
   const { addDossier, updateDossier } = useDossier();
-  const { hasPermission } = useAuth();
+  const { user, hasPermission } = useAuth();
   const { toast } = useToast();
   
   const { 
@@ -58,7 +57,7 @@ export const useDossierFormSubmit = ({
     return newSelectedOffres;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
     setClientError("");
@@ -91,47 +90,85 @@ export const useDossierFormSubmit = ({
       return;
     }
 
-    const client = clients.find(c => c.id === selectedClient);
-    if (!client) {
-      console.error("[DossierFormSubmit] Client not found for ID:", selectedClient);
-      setClientError("Client non trouvé");
-      setFormError("Client non trouvé");
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Client non trouvé"
-      });
-      return;
-    }
-
-    const offresToAdd = offres.filter(o => selectedOffres.includes(o.id));
-    console.log("[DossierFormSubmit] Selected offres:", offresToAdd.map(o => o.nom));
-    
-    const dossierData = {
-      clientId: selectedClient,
-      client: client as Client,
-      agentPhonerId: selectedAgentPhoner !== "none" ? selectedAgentPhoner : undefined,
-      agentVisioId: selectedAgentVisio !== "none" ? selectedAgentVisio : undefined,
-      status: status as DossierStatus,
-      offres: offresToAdd as Offre[],
-      dateRdv: dateRdv ? new Date(dateRdv) : undefined,
-      notes,
-      montant
-    };
-    
-    console.log("[DossierFormSubmit] Dossier data prepared:", dossierData);
-    
     try {
+      // Récupérer les informations du client
+      const { data: clientData, error: clientError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', selectedClient)
+        .single();
+      
+      if (clientError || !clientData) {
+        console.error("[DossierFormSubmit] Client not found for ID:", selectedClient);
+        setClientError("Client non trouvé");
+        setFormError("Client non trouvé");
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Client non trouvé"
+        });
+        return;
+      }
+
+      // Récupérer les offres sélectionnées
+      const { data: offresData, error: offresError } = await supabase
+        .from('offres')
+        .select('*')
+        .in('id', selectedOffres);
+      
+      if (offresError) {
+        console.error("[DossierFormSubmit] Error fetching offres:", offresError);
+        throw offresError;
+      }
+      
+      const client: Client = {
+        id: clientData.id,
+        nom: clientData.nom || "",
+        prenom: clientData.prenom || "",
+        email: clientData.email || "",
+        telephone: clientData.telephone || "",
+        adresse: clientData.adresse || "",
+        role: 'client',
+        dateCreation: new Date(clientData.date_creation),
+        secteurActivite: clientData.secteur_activite || "",
+        typeEntreprise: clientData.type_entreprise || "",
+        besoins: clientData.besoins || ""
+      };
+      
+      const offres = offresData.map(o => ({
+        id: o.id,
+        nom: o.nom || "",
+        description: o.description || "",
+        type: (o.type || 'SEO') as "SEO" | "Google Ads" | "Email X" | "Foner" | "Devis",
+        prix: o.prix
+      }));
+      
+      console.log("[DossierFormSubmit] Selected offres:", offres.map(o => o.nom));
+      
+      const dossierData = {
+        clientId: selectedClient,
+        client,
+        agentPhonerId: selectedAgentPhoner !== "none" ? selectedAgentPhoner : undefined,
+        agentVisioId: selectedAgentVisio !== "none" ? selectedAgentVisio : undefined,
+        status: status as DossierStatus,
+        offres: offres as Offre[],
+        dateRdv: dateRdv ? new Date(dateRdv) : undefined,
+        notes,
+        montant
+      };
+      
+      console.log("[DossierFormSubmit] Dossier data prepared:", dossierData);
+      
       if (isEditing && dossierID) {
         console.log("[DossierFormSubmit] Updating existing dossier:", dossierID);
-        updateDossier(dossierID, dossierData);
+        await updateDossier(dossierID, dossierData);
         toast({
           title: "Succès",
           description: "Le dossier a été mis à jour avec succès",
         });
       } else {
         console.log("[DossierFormSubmit] Creating new dossier");
-        addDossier(dossierData);
+        await addDossier(dossierData);
         toast({
           title: "Succès",
           description: "Le dossier a été créé avec succès",
