@@ -21,17 +21,22 @@ const StatistiquesDashboard: React.FC<StatistiquesDashboardProps> = ({
 
   useEffect(() => {
     // Trouver la statistique la plus récente pour cette période
-    if (statistiques.length > 0) {
+    if (statistiques && statistiques.length > 0) {
       const latestStat = statistiques.reduce((prev, current) => {
         return new Date(prev.dateFin) > new Date(current.dateFin) ? prev : current;
-      });
+      }, statistiques[0]);
       setPeriodStats(latestStat);
+    } else {
+      setPeriodStats(null);
     }
   }, [statistiques]);
 
   useEffect(() => {
     const loadAgentData = async () => {
-      if (!periodStats) return;
+      if (!periodStats) {
+        setIsLoading(false);
+        return;
+      }
       
       try {
         setIsLoading(true);
@@ -47,12 +52,24 @@ const StatistiquesDashboard: React.FC<StatistiquesDashboardProps> = ({
     loadAgentData();
   }, [periodStats]);
 
-  if (!periodStats || isLoading) {
+  if (isLoading) {
     return (
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">
             Chargement des statistiques {getPeriodeLabel(periode)}...
+          </CardTitle>
+        </CardHeader>
+      </Card>
+    );
+  }
+
+  if (!periodStats) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium">
+            Aucune statistique {getPeriodeLabel(periode)} disponible
           </CardTitle>
         </CardHeader>
       </Card>
@@ -88,10 +105,10 @@ const StatistiquesDashboard: React.FC<StatistiquesDashboardProps> = ({
             label="Dossiers validés"
             value={periodStats.dossiersValides}
           />
-          {showMonetaryStats && (
+          {showMonetaryStats && periodStats.chiffreAffaires !== undefined && (
             <StatsItem
               label="Chiffre d'affaires"
-              value={`${periodStats.chiffreAffaires?.toLocaleString()} €`}
+              value={`${periodStats.chiffreAffaires.toLocaleString()} €`}
               isMonetary
             />
           )}

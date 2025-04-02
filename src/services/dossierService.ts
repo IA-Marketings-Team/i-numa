@@ -40,7 +40,7 @@ export const fetchDossiers = async (): Promise<Dossier[]> => {
         }
 
         // Récupérer les offres associées à ce dossier
-        const dossierOffres = dossierOffresData?.filter(do => do.dossier_id === dossier.id) || [];
+        const dossierOffres = dossierOffresData?.filter(item => item.dossier_id === dossier.id) || [];
         const offres: Offre[] = [];
 
         for (const dossierOffre of dossierOffres) {
