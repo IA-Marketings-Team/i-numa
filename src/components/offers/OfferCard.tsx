@@ -6,6 +6,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useCart } from "@/contexts/CartContext";
 import { CheckCircle2, ShoppingCart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface OfferCardProps {
   category: string;
@@ -27,6 +28,7 @@ const OfferCard: React.FC<OfferCardProps> = ({
 }) => {
   const { addToCart, isInCart } = useCart();
   const { user } = useAuth();
+  const { toast } = useToast();
   const isClient = user?.role === 'client';
 
   const handleAddToCart = () => {
@@ -40,6 +42,11 @@ const OfferCard: React.FC<OfferCardProps> = ({
       category,
       price,
       setupFee,
+    });
+    
+    toast({
+      title: "Offre ajoutée",
+      description: `${title} a été ajouté à votre panier.`
     });
   };
 
@@ -84,9 +91,10 @@ const OfferCard: React.FC<OfferCardProps> = ({
             onClick={handleAddToCart}
             variant="default"
             size="sm"
+            disabled={isInCart(randomOffreId)}
           >
             <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
-            Ajouter au panier
+            {isInCart(randomOffreId) ? "Déjà dans le panier" : "Ajouter au panier"}
           </Button>
         )}
       </CardFooter>

@@ -9,11 +9,14 @@ import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2, FileText, ArrowLeft, ShoppingCart } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const ContractAcceptance: React.FC = () => {
   const navigate = useNavigate();
   const { cart, clearCart } = useCart();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,6 +36,85 @@ const ContractAcceptance: React.FC = () => {
     }, 0);
   };
 
+  // Function to create a new dossier and rendez-vous when a contract is signed
+  const createDossierAndRendezVous = async () => {
+    if (!user) return;
+    
+    try {
+      // 1. Create a new dossier
+      const now = new Date();
+      const oneWeekLater = new Date();
+      oneWeekLater.setDate(oneWeekLater.getDate() + 7);
+      
+      // Get agent phoner (select a random one for now - in a real app, you'd implement a more sophisticated selection)
+      const { data: phonerAgents } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('role', 'agent_phoner');
+      
+      let agentPhonerId = null;
+      if (phonerAgents && phonerAgents.length > 0) {
+        // Randomly select a phoner agent
+        const randomIndex = Math.floor(Math.random() * phonerAgents.length);
+        agentPhonerId = phonerAgents[randomIndex].id;
+      }
+      
+      // Create the dossier
+      const { data: dossier, error: dossierError } = await supabase
+        .from('dossiers')
+        .insert({
+          client_id: user.id,
+          agent_phoner_id: agentPhonerId,
+          status: 'signe',
+          date_creation: now.toISOString(),
+          date_mise_a_jour: now.toISOString(),
+          date_signature: now.toISOString(),
+          montant: getCartTotal()
+        })
+        .select()
+        .single();
+      
+      if (dossierError) {
+        throw dossierError;
+      }
+      
+      // 2. Link the offres to the dossier
+      for (const item of cart) {
+        if (item.offreId) {
+          await supabase
+            .from('dossier_offres')
+            .insert({
+              dossier_id: dossier.id,
+              offre_id: item.offreId
+            });
+        }
+      }
+      
+      // 3. Create a rendez-vous with the phoner
+      if (agentPhonerId) {
+        const { error: rdvError } = await supabase
+          .from('rendez_vous')
+          .insert({
+            dossier_id: dossier.id,
+            date: oneWeekLater.toISOString(),
+            honore: false,
+            notes: "Rendez-vous automatique suite à la signature du contrat",
+            location: "Téléphonique",
+            meeting_link: ""
+          });
+        
+        if (rdvError) {
+          console.error("Erreur lors de la création du rendez-vous:", rdvError);
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Erreur lors de la création du dossier et du rendez-vous:", error);
+      return false;
+    }
+  };
+
   const handleSubmit = async () => {
     if (!acceptTerms || !acceptPrivacy) {
       toast({
@@ -46,8 +128,8 @@ const ContractAcceptance: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulation d'une requête API pour créer une commande
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Créer le dossier et le rendez-vous
+      await createDossierAndRendezVous();
       
       // Effacer le panier
       clearCart();
@@ -57,7 +139,7 @@ const ContractAcceptance: React.FC = () => {
       
       toast({
         title: "Commande confirmée",
-        description: "Votre commande a été traitée avec succès. Merci pour votre achat!",
+        description: "Votre commande a été traitée avec succès. Un rendez-vous avec un agent a été programmé.",
       });
     } catch (error) {
       console.error("Erreur lors de la confirmation de la commande:", error);
@@ -215,6 +297,11 @@ const ContractAcceptance: React.FC = () => {
               <div className="flex justify-between font-bold">
                 <span>Total</span>
                 <span>{getCartTotal()} €</span>
+              </div>
+              
+              <div className="text-xs text-muted-foreground mt-2">
+                <p className="mb-1">✓ Un rendez-vous sera automatiquement planifié avec un agent phoner suite à votre commande.</p>
+                <p>✓ Vous recevrez une confirmation par email avec les détails de votre commande.</p>
               </div>
             </CardContent>
             <CardFooter>
