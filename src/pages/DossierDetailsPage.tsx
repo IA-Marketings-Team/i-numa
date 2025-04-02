@@ -9,8 +9,9 @@ import DossierDetail from "@/components/dossier/DossierDetail";
 import { useToast } from "@/hooks/use-toast";
 import { Dossier, DossierStatus } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DossierProvider } from "@/contexts/DossierContext";
 
-const DossierDetailsPage: React.FC = () => {
+const DossierDetailsContent: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { getDossierById, updateDossierStatus, deleteDossier } = useDossier();
   const { user } = useAuth();
@@ -152,6 +153,15 @@ const DossierDetailsPage: React.FC = () => {
         userRole={user?.role}
       />
     </div>
+  );
+};
+
+// Wrapper component that provides the DossierProvider context
+const DossierDetailsPage: React.FC = () => {
+  return (
+    <DossierProvider>
+      <DossierDetailsContent />
+    </DossierProvider>
   );
 };
 
