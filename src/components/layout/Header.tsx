@@ -1,3 +1,4 @@
+
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -139,42 +140,44 @@ const Header = () => {
   };
 
   return (
-    <header className="border-b sticky top-0 z-40 w-full bg-card">
+    <header className="border-b sticky top-0 z-40 w-full bg-header-gradient text-white">
       <div className="flex h-16 px-4 items-center justify-between">
         <div className="flex items-center gap-3">
-          <SidebarTrigger className="md:hidden mr-2" />
+          <SidebarTrigger className="md:hidden mr-2 text-white hover:bg-white/10" />
           {shouldShowBackButton() && (
             <Button 
               variant="ghost" 
               size="icon"
               onClick={() => navigate(-1)}
-              className="mr-2"
+              className="mr-2 text-white hover:bg-white/10"
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
           )}
           <div className="flex flex-col">
-            <h1 className="text-lg font-semibold">
+            <h1 className="text-lg font-semibold text-white">
               {getPageTitle()}
             </h1>
-            {getBreadcrumbs()}
+            <div className="text-white/70">
+              {getBreadcrumbs()}
+            </div>
           </div>
         </div>
         
         <div className="flex items-center gap-3">
           <div className="relative w-60 hidden md:block">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/70 h-4 w-4" />
             <Input
               type="text"
               placeholder="Rechercher..."
-              className="pl-10 h-9 bg-muted/50 border-muted"
+              className="pl-10 h-9 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/20"
             />
           </div>
           
           <Button 
             variant="outline"
             size="sm"
-            className="hidden md:flex items-center gap-1"
+            className="hidden md:flex items-center gap-1 border-white/20 text-white hover:bg-white/10 hover:text-white"
             onClick={handleCreateButtonClick}
           >
             <Plus className="h-4 w-4" />
@@ -184,7 +187,7 @@ const Header = () => {
           <Button
             variant="outline"
             size="sm"
-            className="hidden md:flex items-center gap-1"
+            className="hidden md:flex items-center gap-1 border-white/20 text-white hover:bg-white/10 hover:text-white"
             onClick={handleMarketplaceClick}
           >
             <ShoppingCart className="h-4 w-4" />
@@ -193,9 +196,9 @@ const Header = () => {
           
           <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative">
+              <Button variant="ghost" size="icon" className="relative text-white hover:bg-white/10">
                 <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-destructive-foreground">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-inuma-red text-[10px] text-white">
                   2
                 </span>
               </Button>
@@ -207,6 +210,7 @@ const Header = () => {
             variant="ghost" 
             size="icon" 
             onClick={() => setHelpDialogOpen(true)}
+            className="text-white hover:bg-white/10"
           >
             <HelpCircle className="h-5 w-5" />
           </Button>
@@ -215,9 +219,9 @@ const Header = () => {
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="relative h-8 flex items-center gap-2 font-normal">
+              <Button variant="ghost" size="sm" className="relative h-8 flex items-center gap-2 font-normal text-white hover:bg-white/10">
                 <Avatar>
-                  <AvatarFallback>
+                  <AvatarFallback className="bg-inuma-red text-white">
                     {user?.prenom?.charAt(0) ?? ''}{user?.nom?.charAt(0) ?? ''}
                   </AvatarFallback>
                 </Avatar>

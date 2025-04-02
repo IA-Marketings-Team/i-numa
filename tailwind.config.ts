@@ -53,6 +53,12 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				inuma: {
+					red: '#a90532',
+					blue: '#252f59',
+					lightRed: '#e63e6d',
+					lightBlue: '#4c5c96',
+				},
 				client: '#0074D9',
 				phoner: '#FF851B',
 				visio: '#2ECC40',
@@ -112,6 +118,12 @@ export default {
 			},
 			boxShadow: {
 				'custom': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+			},
+			backgroundImage: {
+				'header-gradient': 'linear-gradient(to right, #252f59, #4c5c96)',
+				'sidebar-gradient': 'linear-gradient(to bottom, #252f59, #4c5c96)',
+				'card-gradient': 'linear-gradient(to bottom right, #f8f9fa, #e9ecef)',
+				'red-gradient': 'linear-gradient(to right, #a90532, #e63e6d)'
 			}
 		}
 	},

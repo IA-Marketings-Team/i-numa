@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAuth } from "@/contexts/AuthContext";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useRoleBasedNavigation } from "@/hooks/useRoleBasedNavigation";
 
@@ -47,12 +46,12 @@ export function Sidebar({ className, isOpen, onClose, ...props }: SidebarProps) 
   };
 
   return (
-    <div className={cn("flex flex-col h-full bg-background", className)} {...props}>
+    <div className={cn("flex flex-col h-full bg-sidebar-gradient text-white", className)} {...props}>
       <ScrollArea className="flex-1">
         <div className="flex flex-col gap-2 p-4">
           {mainMenuItems.length > 0 && (
             <>
-              <div className="text-muted-foreground text-sm font-medium px-2 py-1">
+              <div className="text-white/70 text-sm font-medium px-2 py-1">
                 Menu principal
               </div>
               
@@ -60,7 +59,11 @@ export function Sidebar({ className, isOpen, onClose, ...props }: SidebarProps) 
                 <Button
                   key={item.id}
                   variant={activeItem === item.id ? 'default' : 'ghost'}
-                  className={`w-full justify-start ${activeItem === item.id ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground' : ''}`}
+                  className={`w-full justify-start ${
+                    activeItem === item.id 
+                      ? 'bg-inuma-red text-white hover:bg-inuma-lightRed hover:text-white' 
+                      : 'text-white hover:bg-white/10'
+                  }`}
                   asChild
                   onClick={handleItemClick}
                 >
@@ -75,7 +78,7 @@ export function Sidebar({ className, isOpen, onClose, ...props }: SidebarProps) 
 
           {accountMenuItems.length > 0 && (
             <>
-              <div className="mt-6 text-muted-foreground text-sm font-medium px-2 py-1">
+              <div className="mt-6 text-white/70 text-sm font-medium px-2 py-1">
                 Mon compte
               </div>
               
@@ -83,7 +86,11 @@ export function Sidebar({ className, isOpen, onClose, ...props }: SidebarProps) 
                 <Button
                   key={item.id}
                   variant={activeItem === item.id ? 'default' : 'ghost'}
-                  className={`w-full justify-start ${activeItem === item.id ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground' : ''}`}
+                  className={`w-full justify-start ${
+                    activeItem === item.id 
+                      ? 'bg-inuma-red text-white hover:bg-inuma-lightRed hover:text-white' 
+                      : 'text-white hover:bg-white/10'
+                  }`}
                   asChild
                   onClick={handleItemClick}
                 >
