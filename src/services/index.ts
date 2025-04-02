@@ -8,3 +8,6 @@ export * from './rendezVousService';
 export * from './taskService';
 export * from './statistiqueService';
 export * from './notificationService';
+export * from './appelService';
+export * from './meetingService';
+export * from './emailService';

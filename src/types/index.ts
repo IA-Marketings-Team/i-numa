@@ -1,3 +1,4 @@
+
 export type UserRole = 'client' | 'agent_phoner' | 'agent_visio' | 'agent_developpeur' | 'agent_marketing' | 'superviseur' | 'responsable';
 
 export type DossierStatus = 'prospect' | 'rdv_en_cours' | 'valide' | 'signe' | 'archive';
@@ -133,4 +134,41 @@ export interface Task {
   dateCreation: Date;
   dateEcheance?: Date;
   priority: 'low' | 'medium' | 'high';
+}
+
+export interface Appel {
+  id: string;
+  clientId: string;
+  agentId: string;
+  date: Date;
+  duree: number; // en minutes
+  notes: string;
+  statut: 'planifie' | 'effectue' | 'manque';
+}
+
+export interface Meeting {
+  id: string;
+  titre: string;
+  description: string;
+  date: Date;
+  duree: number; // en minutes
+  lien: string;
+  type: 'visio' | 'presentiel' | 'telephonique';
+  statut: 'planifie' | 'en_cours' | 'termine' | 'annule';
+  participants: string[]; // IDs des participants
+}
+
+export interface Email {
+  id: string;
+  expediteurId: string;
+  destinataireIds: string[];
+  destinatairesCc?: string[];
+  destinatairesBcc?: string[];
+  sujet: string;
+  contenu: string;
+  dateEnvoi: Date;
+  pieceJointes?: string[]; // URLs des pièces jointes
+  lu: boolean;
+  dossierLie?: string; // ID du dossier lié
+  clientLie?: string; // ID du client lié
 }
