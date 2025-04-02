@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -63,7 +62,6 @@ const MarketplacePage = () => {
   useEffect(() => {
     let result = [...offres];
     
-    // Filter by search query
     if (searchQuery) {
       result = result.filter(offre => 
         offre.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -71,12 +69,10 @@ const MarketplacePage = () => {
       );
     }
     
-    // Filter by category
     if (selectedCategory) {
       result = result.filter(offre => offre.type === selectedCategory);
     }
     
-    // Sort by name
     result.sort((a, b) => {
       return sortOrder === 'asc' 
         ? a.nom.localeCompare(b.nom)
@@ -87,16 +83,13 @@ const MarketplacePage = () => {
   }, [offres, searchQuery, selectedCategory, sortOrder]);
 
   const handleAddToCart = (offre: Offre) => {
-    // Remove the id property from the spread object to avoid errors
     addToCart({
-      offre: {
-        nom: offre.nom,
-        description: offre.description,
-        type: offre.type,
-        prix: offre.prix
-      },
-      offreId: offre.id, // Use offreId instead of id
-      quantity: 1
+      offreId: offre.id,
+      quantity: 1,
+      nom: offre.nom,
+      description: offre.description,
+      type: offre.type,
+      prix: offre.prix
     });
     
     toast({
@@ -126,7 +119,6 @@ const MarketplacePage = () => {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-[250px_1fr] gap-6 mt-6">
-        {/* Filters sidebar */}
         <div className="space-y-6">
           <div>
             <h3 className="text-lg font-medium mb-3 flex items-center">
@@ -134,7 +126,6 @@ const MarketplacePage = () => {
               Filtres
             </h3>
             <div className="space-y-4">
-              {/* Search */}
               <div>
                 <label className="text-sm font-medium mb-1 block">Recherche</label>
                 <div className="relative">
@@ -148,7 +139,6 @@ const MarketplacePage = () => {
                 </div>
               </div>
               
-              {/* Categories */}
               <div>
                 <label className="text-sm font-medium mb-1 block">Catégorie</label>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -166,7 +156,6 @@ const MarketplacePage = () => {
                 </Select>
               </div>
               
-              {/* Sort */}
               <div>
                 <label className="text-sm font-medium mb-1 block">Trier par</label>
                 <Select value={sortOrder} onValueChange={setSortOrder}>
@@ -183,7 +172,6 @@ const MarketplacePage = () => {
           </div>
         </div>
         
-        {/* Offres grid */}
         <div>
           {isLoading ? (
             <div className="flex justify-center items-center h-64">

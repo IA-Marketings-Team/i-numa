@@ -70,7 +70,8 @@ const App: React.FC = () => {
                 {/* Routes dossiers */}
                 <Route path="/dossiers">
                   <Route index element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossiersPage /></DashboardLayout>} />
-                  <Route path=":id" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossierPage /></DashboardLayout>} />
+                  <Route path=":id" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossierDetailsPage /></DashboardLayout>} />
+                  <Route path=":id/details" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossierDetailsPage /></DashboardLayout>} />
                   <Route path=":id/modifier" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossierEditPage /></DashboardLayout>} />
                   <Route path=":id/appel" element={<DashboardLayout roles={["agent_phoner", "superviseur", "responsable"]}><DossierCallPage /></DashboardLayout>} />
                   <Route path=":id/rdv" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossierMeetingPage /></DashboardLayout>} />
@@ -81,6 +82,7 @@ const App: React.FC = () => {
                 <Route path="/offres" element={<DashboardLayout roles={["superviseur", "responsable"]}><OffresPage /></DashboardLayout>} />
                 <Route path="/marketplace" element={<DashboardLayout><MarketplacePage /></DashboardLayout>} />
                 <Route path="/catalogue" element={<DashboardLayout><OfferList /></DashboardLayout>} />
+                <Route path="/mes-offres" element={<DashboardLayout roles={["client"]}><OfferList /></DashboardLayout>} />
                 
                 {/* Routes agents */}
                 <Route path="/agents" element={<DashboardLayout roles={["superviseur", "responsable"]}><AgentsPage /></DashboardLayout>} />

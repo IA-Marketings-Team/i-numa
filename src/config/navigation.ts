@@ -12,7 +12,8 @@ import {
   Mail,
   MessageSquare,
   ListChecks,
-  Calendar
+  Calendar,
+  ShoppingCart
 } from "lucide-react";
 import { UserRole } from "@/types";
 
@@ -52,6 +53,13 @@ export const navigationConfig: NavigationItem[] = [
     path: '/mes-offres',
     icon: Package,
     permissions: ['client']
+  },
+  {
+    id: 'marketplace',
+    title: 'Marketplace',
+    path: '/marketplace',
+    icon: ShoppingCart,
+    permissions: ['client', 'agent_phoner', 'agent_visio', 'superviseur', 'responsable']
   },
   {
     id: 'agenda-global',

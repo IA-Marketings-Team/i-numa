@@ -1,10 +1,9 @@
-
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { useAuth } from "@/contexts/AuthContext";
-import { User, LogOut, Search, Plus, ChevronLeft, Bell, Settings, HelpCircle, UserCircle, CreditCard } from "lucide-react";
+import { User, LogOut, Search, Plus, ChevronLeft, Bell, Settings, HelpCircle, UserCircle, CreditCard, ShoppingCart } from "lucide-react";
 import CartDrawer from "@/components/cart/CartDrawer";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
@@ -34,6 +33,7 @@ const Header = () => {
     if (path.includes('/dossiers')) return 'Dossiers';
     if (path.includes('/clients')) return 'Clients';
     if (path.includes('/mes-offres')) return 'Nos offres';
+    if (path.includes('/marketplace')) return 'Marketplace';
     if (path.includes('/statistiques')) return 'Statistiques';
     if (path.includes('/parametres')) return 'Paramètres';
     if (path.includes('/agenda-global')) return 'Agenda global';
@@ -48,6 +48,7 @@ const Header = () => {
            location.pathname !== '/dossiers' && 
            location.pathname !== '/clients' && 
            location.pathname !== '/mes-offres' && 
+           location.pathname !== '/marketplace' && 
            location.pathname !== '/statistiques' && 
            location.pathname !== '/parametres' &&
            location.pathname !== '/agenda-global' &&
@@ -68,6 +69,7 @@ const Header = () => {
       'dossiers': 'Dossiers',
       'clients': 'Clients',
       'mes-offres': 'Nos offres',
+      'marketplace': 'Marketplace',
       'statistiques': 'Statistiques',
       'parametres': 'Paramètres',
       'nouveau': 'Nouveau',
@@ -78,7 +80,6 @@ const Header = () => {
       'communications': 'Communications'
     };
     
-    // Track processed IDs to avoid duplicates in breadcrumbs
     const processedIds = new Set<string>();
     
     return (
@@ -88,7 +89,6 @@ const Header = () => {
         </Link>
         
         {pathSegments.map((segment, index) => {
-          // Skip if this segment is an ID and we've already processed an ID
           const isId = !segmentLabels[segment] && segment !== 'tableau-de-bord';
           
           if (isId && processedIds.has('detail')) {
@@ -121,6 +121,10 @@ const Header = () => {
         })}
       </nav>
     );
+  };
+
+  const handleMarketplaceClick = () => {
+    navigate("/marketplace");
   };
 
   const handleCreateButtonClick = () => {
@@ -177,6 +181,16 @@ const Header = () => {
             <span>Créer</span>
           </Button>
           
+          <Button
+            variant="outline"
+            size="sm"
+            className="hidden md:flex items-center gap-1"
+            onClick={handleMarketplaceClick}
+          >
+            <ShoppingCart className="h-4 w-4" />
+            <span>Marketplace</span>
+          </Button>
+          
           <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
             <PopoverTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
@@ -229,6 +243,10 @@ const Header = () => {
                   <span>Mes offres</span>
                 </DropdownMenuItem>
               )}
+              <DropdownMenuItem onClick={() => navigate("/marketplace")}>
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                <span>Marketplace</span>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />

@@ -1,10 +1,8 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Phone, Video, Edit, Archive, Trash2, ShoppingCart, Calendar } from "lucide-react";
 import { Dossier, DossierStatus } from "@/types";
-// Fix the import statement for StatusSelector
 import StatusSelector from "@/components/dossier/StatusSelector";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -74,7 +72,6 @@ const DossierDetail: React.FC<DossierDetailProps> = ({
         </CardHeader>
         
         <CardContent className="space-y-6">
-          {/* Informations client */}
           <div>
             <h3 className="text-lg font-semibold mb-3">Informations client</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -97,7 +94,6 @@ const DossierDetail: React.FC<DossierDetailProps> = ({
             </div>
           </div>
           
-          {/* Rendez-vous */}
           {dossier.dateRdv && (
             <div>
               <h3 className="text-lg font-semibold mb-3">Rendez-vous</h3>
@@ -110,7 +106,6 @@ const DossierDetail: React.FC<DossierDetailProps> = ({
             </div>
           )}
           
-          {/* Offres */}
           <div>
             <h3 className="text-lg font-semibold mb-3 flex justify-between items-center">
               <span>Offres sélectionnées</span>
@@ -139,7 +134,6 @@ const DossierDetail: React.FC<DossierDetailProps> = ({
             )}
           </div>
           
-          {/* Notes */}
           {dossier.notes && (
             <div>
               <h3 className="text-lg font-semibold mb-3">Notes</h3>
@@ -149,7 +143,6 @@ const DossierDetail: React.FC<DossierDetailProps> = ({
             </div>
           )}
           
-          {/* Changement de statut */}
           {canModify && (
             <div className="pt-4">
               <h3 className="text-lg font-semibold mb-3">Modifier le statut</h3>
