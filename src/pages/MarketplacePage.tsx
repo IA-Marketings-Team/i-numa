@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from "@/contexts/CartContext";
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import CartDrawer, { FixedCartDrawer } from "@/components/cart/CartDrawer";
@@ -8,6 +12,26 @@ import EmailOfferDialog from "@/components/offers/EmailOfferDialog";
 import OffreDetailCard from "@/components/offers/OffreDetailCard";
 import SectorsHorizontalNav from "@/components/marketplace/SectorsHorizontalNav";
 import { Offre } from "@/types";
+import { offerCategories } from "@/data/offerData";
+import { 
+  Mail, 
+  ShoppingCart, 
+  Building, 
+  MessageCircle, 
+  Star, 
+  Globe, 
+  ThumbsUp, 
+  Gauge, 
+  Gift, 
+  Cloud, 
+  TrendingUp, 
+  CandlestickChart, 
+  TrendingDown,
+  Filter,
+  Search,
+  Tags
+} from 'lucide-react';
+import { offreService } from '@/services';
 
 const MarketplacePage = () => {
   const [offres, setOffres] = useState<Offre[]>([]);
@@ -29,7 +53,8 @@ const MarketplacePage = () => {
     const loadOffres = async () => {
       setIsLoading(true);
       try {
-        const data = await fetchOffres();
+        // Use the offreService instead of a non-existent fetchOffres function
+        const data = await offreService.fetchOffres();
         setOffres(data);
         setFilteredOffres(data);
       } catch (error) {
@@ -70,11 +95,12 @@ const MarketplacePage = () => {
     setFilteredOffres(result);
   }, [offres, searchQuery, selectedSecteur, sortOrder]);
 
-  const handleAddToCart = (offre: any) => {
+  const handleAddToCart = (offre: Offre) => {
     addToCart({
+      offreId: offre.id,
       title: offre.nom,
       category: offre.type,
-      price: offre.prix.toString(),
+      price: offre.prix?.toString() || "0",
       quantity: 1
     });
     
@@ -242,7 +268,16 @@ const MarketplacePage = () => {
           ) : filteredOffres.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredOffres.map(offre => (
-                <OffreDetailCard key={offre.id} offre={offre} />
+                <OffreDetailCard 
+                  key={offre.id} 
+                  offreId={offre.id}
+                  nom={offre.nom}
+                  description={offre.description}
+                  type={offre.type}
+                  prix={offre.prix || 0}
+                  prixMensuel={offre.prixMensuel || ""}
+                  fraisCreation={offre.fraisCreation || ""}
+                />
               ))}
             </div>
           ) : (

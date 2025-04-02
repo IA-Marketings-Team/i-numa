@@ -17,14 +17,14 @@ export const fetchAuthLogs = async (): Promise<AuthLog[]> => {
       return [];
     }
 
-    return (data || []).map((log: any) => ({
+    return data ? data.map((log: any) => ({
       id: log.id,
       userId: log.user_id,
       action: log.action,
       timestamp: new Date(log.timestamp),
       userAgent: log.user_agent,
       ipAddress: log.ip_address
-    }));
+    })) : [];
   } catch (error) {
     console.error("Erreur inattendue lors de la récupération des journaux d'authentification:", error);
     return [];
@@ -45,14 +45,14 @@ export const fetchAuthLogsByUser = async (userId: string): Promise<AuthLog[]> =>
       return [];
     }
 
-    return (data || []).map((log: any) => ({
+    return data ? data.map((log: any) => ({
       id: log.id,
       userId: log.user_id,
       action: log.action,
       timestamp: new Date(log.timestamp),
       userAgent: log.user_agent,
       ipAddress: log.ip_address
-    }));
+    })) : [];
   } catch (error) {
     console.error(`Erreur inattendue lors de la récupération des journaux pour l'utilisateur ${userId}:`, error);
     return [];

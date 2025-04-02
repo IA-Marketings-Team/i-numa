@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ const OffreDetailCard: React.FC<OffreDetailCardProps> = ({
 
   const handleAddToCart = () => {
     addToCart({
+      offreId: offreId,
       title: nom,
       category: type,
       price: prix.toString(),

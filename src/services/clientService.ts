@@ -87,9 +87,11 @@ export const fetchClientById = async (id: string): Promise<Client | null> => {
  */
 export const createClient = async (clientData: Omit<Client, 'id' | 'dateCreation' | 'role'>): Promise<Client | null> => {
   try {
+    // Fix the data structure to match what Supabase expects
     const { data, error } = await supabase
       .from('profiles')
       .insert({
+        id: undefined, // Let Supabase generate the ID
         nom: clientData.nom,
         prenom: clientData.prenom,
         email: clientData.email,
