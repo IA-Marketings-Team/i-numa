@@ -5,18 +5,19 @@ import { useDossier } from "@/contexts/DossierContext";
 import { useAuth } from "@/contexts/AuthContext";
 import DossierForm from "@/components/dossier/DossierForm";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Trash2 } from "lucide-react";
+import { ChevronLeft, Trash2, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 const DossierEdit = () => {
   const { id } = useParams<{ id: string }>();
-  const { getDossierById, setCurrentDossier, currentDossier, deleteDossier } = useDossier();
+  const { getDossierById, setCurrentDossier, currentDossier, deleteDossier, fetchDossierById } = useDossier();
   const { user, hasPermission } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const isCreating = id === "nouveau" || window.location.pathname.includes("/dossiers/nouveau");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Log component initialization with more details
   useEffect(() => {
@@ -35,28 +36,44 @@ const DossierEdit = () => {
       console.log("[DossierEdit] Creating new dossier mode - setting currentDossier to null");
       setCurrentDossier(null);
     } else if (id) {
-      // Sinon charger le dossier existant
+      // Sinon charger le dossier existant depuis l'API
       console.log("[DossierEdit] Loading existing dossier:", id);
-      const dossier = getDossierById(id);
-      if (dossier) {
-        console.log("[DossierEdit] Dossier found:", dossier.id);
-        setCurrentDossier(dossier);
-      } else {
-        console.error("[DossierEdit] Dossier not found:", id);
-        navigate("/dossiers");
-        toast({
-          variant: "destructive",
-          title: "Erreur",
-          description: "Le dossier demandé n'existe pas."
+      setIsLoading(true);
+      
+      fetchDossierById(id)
+        .then(dossier => {
+          if (dossier) {
+            console.log("[DossierEdit] Dossier found:", dossier.id);
+            setCurrentDossier(dossier);
+          } else {
+            console.error("[DossierEdit] Dossier not found:", id);
+            navigate("/dossiers");
+            toast({
+              variant: "destructive",
+              title: "Erreur",
+              description: "Le dossier demandé n'existe pas."
+            });
+          }
+        })
+        .catch(error => {
+          console.error("[DossierEdit] Error fetching dossier:", error);
+          toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Impossible de charger le dossier"
+          });
+          navigate("/dossiers");
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
-      }
     }
     
     return () => {
       console.log("[DossierEdit] Cleanup - setting currentDossier to null");
       setCurrentDossier(null);
     };
-  }, [id, isCreating, getDossierById, setCurrentDossier, navigate, toast]);
+  }, [id, isCreating, fetchDossierById, setCurrentDossier, navigate, toast]);
 
   // Vérifier que l'utilisateur a les permissions nécessaires pour cette page
   useEffect(() => {
@@ -77,15 +94,24 @@ const DossierEdit = () => {
     }
   }, [hasPermission, navigate, toast, user]);
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (id && id !== "nouveau" && currentDossier) {
       console.log("[DossierEdit] Deleting dossier:", id);
-      deleteDossier(id);
-      navigate("/dossiers");
-      toast({
-        title: "Dossier supprimé",
-        description: "Le dossier a été supprimé avec succès."
-      });
+      try {
+        await deleteDossier(id);
+        navigate("/dossiers");
+        toast({
+          title: "Dossier supprimé",
+          description: "Le dossier a été supprimé avec succès."
+        });
+      } catch (error) {
+        console.error("[DossierEdit] Error deleting dossier:", error);
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Impossible de supprimer le dossier"
+        });
+      }
     }
     setIsDeleting(false);
   };
@@ -108,6 +134,15 @@ const DossierEdit = () => {
     isCreating, 
     currentDossier: currentDossier?.id
   });
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <span className="ml-2">Chargement du dossier...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

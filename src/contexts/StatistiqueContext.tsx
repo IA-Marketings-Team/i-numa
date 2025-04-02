@@ -1,29 +1,65 @@
-import React, { createContext, useContext, useState } from "react";
+
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { Statistique, Agent, UserRole } from "@/types";
-import { 
-  statistiques as mockStatistiques, 
-  statistiquesJournalieres,
-  statistiquesHebdomadaires,
-  statistiquesMensuelles
-} from "@/data/mock/statistiques";
-import { agents as mockAgents } from "@/data/mock/agents";
 import { useAuth } from "./AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface StatistiqueContextType {
   statistiques: Statistique[];
+  isLoading: boolean;
+  error: string | null;
   getStatistiquesForPeriod: (debut: Date, fin: Date) => Statistique[];
-  getStatistiquesByPeriodeType: (periode: "jour" | "semaine" | "mois") => Statistique[];
-  getAgentStatistics: (agentId: string) => Agent | undefined;
-  resetAgentStatistics: (agentId: string) => void;
+  getStatistiquesByPeriodeType: (periode: "jour" | "semaine" | "mois") => Promise<Statistique[]>;
+  getAgentStatistics: (agentId: string) => Promise<Agent | undefined>;
+  resetAgentStatistics: (agentId: string) => Promise<void>;
   getAuthorizedStatistics: (userRole: UserRole) => Partial<Statistique>[];
 }
 
 const StatistiqueContext = createContext<StatistiqueContextType | undefined>(undefined);
 
 export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [statistiques, setStatistiques] = useState<Statistique[]>(mockStatistiques);
-  const [agents, setAgents] = useState<Agent[]>(mockAgents);
-  const { user } = useAuth();
+  const [statistiques, setStatistiques] = useState<Statistique[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { user, getToken } = useAuth();
+  const { toast } = useToast();
+
+  // Chargement initial des statistiques
+  useEffect(() => {
+    const fetchStatistiques = async () => {
+      if (!user) return;
+      
+      setIsLoading(true);
+      try {
+        const token = await getToken();
+        const response = await fetch('/api/statistiques', {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-token': token || ''
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Erreur lors du chargement des statistiques');
+        }
+        
+        const data = await response.json();
+        setStatistiques(data);
+      } catch (err) {
+        console.error('Erreur lors du chargement des statistiques:', err);
+        setError(err instanceof Error ? err.message : 'Erreur inconnue');
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Impossible de charger les statistiques",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchStatistiques();
+  }, [user, getToken, toast]);
 
   const getStatistiquesForPeriod = (debut: Date, fin: Date): Statistique[] => {
     return statistiques.filter(stat => 
@@ -31,42 +67,76 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
     );
   };
 
-  const getStatistiquesByPeriodeType = (periode: "jour" | "semaine" | "mois"): Statistique[] => {
-    switch (periode) {
-      case "jour":
-        return statistiquesJournalieres;
-      case "semaine":
-        return statistiquesHebdomadaires;
-      case "mois":
-        return statistiquesMensuelles;
-      default:
-        return [];
+  const getStatistiquesByPeriodeType = async (periode: "jour" | "semaine" | "mois"): Promise<Statistique[]> => {
+    try {
+      const token = await getToken();
+      const response = await fetch(`/api/statistiques/periode/${periode}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token || ''
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Erreur lors du chargement des statistiques par période: ${periode}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Erreur lors du chargement des statistiques par période:', error);
+      return [];
     }
   };
 
-  const getAgentStatistics = (agentId: string): Agent | undefined => {
-    return agents.find(agent => agent.id === agentId);
+  const getAgentStatistics = async (agentId: string): Promise<Agent | undefined> => {
+    try {
+      const token = await getToken();
+      const response = await fetch(`/api/users/${agentId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token || ''
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erreur lors du chargement des statistiques de l\'agent');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Erreur lors du chargement des statistiques de l\'agent:', error);
+      return undefined;
+    }
   };
 
-  const resetAgentStatistics = (agentId: string) => {
-    setAgents(prevAgents => 
-      prevAgents.map(agent => 
-        agent.id === agentId
-          ? {
-              ...agent,
-              statistiques: {
-                appelsEmis: 0,
-                appelsDecroches: 0,
-                appelsTransformes: 0,
-                rendezVousHonores: 0,
-                rendezVousNonHonores: 0,
-                dossiersValides: 0,
-                dossiersSigne: 0
-              }
-            }
-          : agent
-      )
-    );
+  const resetAgentStatistics = async (agentId: string): Promise<void> => {
+    try {
+      const token = await getToken();
+      const response = await fetch(`/api/users/${agentId}/reset-stats`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token || ''
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erreur lors de la réinitialisation des statistiques');
+      }
+      
+      // Mettre à jour les statistiques locales
+      toast({
+        title: "Succès",
+        description: "Les statistiques de l'agent ont été réinitialisées."
+      });
+    } catch (error) {
+      console.error('Erreur lors de la réinitialisation des statistiques:', error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de réinitialiser les statistiques de l'agent"
+      });
+    }
   };
 
   const getAuthorizedStatistics = (userRole: UserRole): Partial<Statistique>[] => {
@@ -95,6 +165,8 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
   return (
     <StatistiqueContext.Provider value={{
       statistiques,
+      isLoading,
+      error,
       getStatistiquesForPeriod,
       getStatistiquesByPeriodeType,
       getAgentStatistics,

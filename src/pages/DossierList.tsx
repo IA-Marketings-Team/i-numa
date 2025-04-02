@@ -10,12 +10,37 @@ import { DossierStatus } from "@/types";
 import { Plus, Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 
 const DossierListPage = () => {
-  const { filteredDossiers, setStatusFilter, statusFilter } = useDossier();
+  const { filteredDossiers, setStatusFilter, statusFilter, fetchDossiers } = useDossier();
   const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { hasPermission, user } = useAuth();
+  const { toast } = useToast();
+
+  // Chargement initial des dossiers depuis l'API
+  useEffect(() => {
+    if (user) {
+      setIsLoading(true);
+      fetchDossiers()
+        .then(() => {
+          console.log("[DossierListPage] Dossiers chargés avec succès");
+        })
+        .catch((error) => {
+          console.error("[DossierListPage] Erreur lors du chargement des dossiers:", error);
+          toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Impossible de charger les dossiers"
+          });
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
+  }, [user, fetchDossiers, toast]);
 
   // Log component initialization
   useEffect(() => {
@@ -30,10 +55,10 @@ const DossierListPage = () => {
   // Filtrer les dossiers en fonction du terme de recherche
   const searchFilteredDossiers = filteredDossiers.filter(
     (dossier) =>
-      dossier.client.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      dossier.client.prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      dossier.client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      dossier.client.secteurActivite.toLowerCase().includes(searchTerm.toLowerCase())
+      (dossier.client?.nom || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (dossier.client?.prenom || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (dossier.client?.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (dossier.client?.secteurActivite || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleStatusChange = (status: string) => {
@@ -100,7 +125,13 @@ const DossierListPage = () => {
         </div>
         
         <div className="bg-background rounded-md border p-1 overflow-auto">
-          <DossierList dossiers={searchFilteredDossiers} />
+          {isLoading ? (
+            <div className="flex justify-center items-center p-8">
+              <p>Chargement des dossiers...</p>
+            </div>
+          ) : (
+            <DossierList dossiers={searchFilteredDossiers} />
+          )}
         </div>
       </CardContent>
     </Card>

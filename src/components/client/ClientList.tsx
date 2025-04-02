@@ -1,12 +1,11 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Client } from "@/types";
-import { clients } from "@/data/mock/clients";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, UserPlus } from "lucide-react";
+import { Search, UserPlus, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -18,14 +17,49 @@ import ClientCard from "./ClientCard";
 const ClientList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
-  const { hasPermission } = useAuth();
+  const { hasPermission, getToken } = useAuth();
   const { toast } = useToast();
   
-  const [clientsList, setClientsList] = useState([...clients]);
+  const [clientsList, setClientsList] = useState<Client[]>([]);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCalling, setIsCalling] = useState(false);
   const [callNotes, setCallNotes] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Chargement des clients depuis l'API MongoDB
+  useEffect(() => {
+    const fetchClients = async () => {
+      setIsLoading(true);
+      try {
+        const token = await getToken();
+        const response = await fetch('/api/users/clients', {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-token': token || ''
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error("Erreur lors du chargement des clients");
+        }
+
+        const data = await response.json();
+        setClientsList(data);
+      } catch (error) {
+        console.error("Erreur lors du chargement des clients:", error);
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Impossible de charger la liste des clients"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchClients();
+  }, [getToken, toast]);
 
   // Filtrer les clients en fonction du terme de recherche
   const filteredClients = clientsList.filter(
@@ -33,7 +67,7 @@ const ClientList = () => {
       client.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.secteurActivite.toLowerCase().includes(searchTerm.toLowerCase())
+      (client.secteurActivite && client.secteurActivite.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleViewClient = (clientId: string) => {
@@ -54,35 +88,79 @@ const ClientList = () => {
     setIsCalling(true);
   };
 
-  const handleDeleteClient = () => {
+  const handleDeleteClient = async () => {
     if (selectedClient) {
-      // Mock delete: filter the client out of our local state
-      setClientsList(prevClients => prevClients.filter(c => c.id !== selectedClient.id));
-      
-      // Mettre à jour la liste globale des clients
-      const index = clients.findIndex(c => c.id === selectedClient.id);
-      if (index !== -1) {
-        clients.splice(index, 1);
+      try {
+        setIsLoading(true);
+        const token = await getToken();
+        const response = await fetch(`/api/users/${selectedClient.id}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-token': token || ''
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error("Erreur lors de la suppression du client");
+        }
+
+        // Mettre à jour la liste locale des clients
+        setClientsList(prevClients => prevClients.filter(c => c.id !== selectedClient.id));
+        
+        toast({
+          title: "Client supprimé",
+          description: `${selectedClient.prenom} ${selectedClient.nom} a été supprimé avec succès.`
+        });
+      } catch (error) {
+        console.error("Erreur lors de la suppression:", error);
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Impossible de supprimer le client"
+        });
+      } finally {
+        setIsLoading(false);
+        setIsDeleting(false);
+        setSelectedClient(null);
       }
-      
-      toast({
-        title: "Client supprimé",
-        description: `${selectedClient.prenom} ${selectedClient.nom} a été supprimé avec succès.`
-      });
-      setIsDeleting(false);
-      setSelectedClient(null);
     }
   };
 
-  const handleCallClient = () => {
+  const handleCallClient = async () => {
     if (selectedClient) {
-      toast({
-        title: "Appel terminé",
-        description: `Les notes de l'appel avec ${selectedClient.prenom} ${selectedClient.nom} ont été enregistrées.`
-      });
-      setIsCalling(false);
-      setSelectedClient(null);
-      setCallNotes("");
+      try {
+        // Enregistrer les notes d'appel
+        const token = await getToken();
+        const response = await fetch(`/api/users/${selectedClient.id}/call-notes`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-token': token || ''
+          },
+          body: JSON.stringify({ notes: callNotes })
+        });
+
+        if (!response.ok) {
+          throw new Error("Erreur lors de l'enregistrement des notes d'appel");
+        }
+
+        toast({
+          title: "Appel terminé",
+          description: `Les notes de l'appel avec ${selectedClient.prenom} ${selectedClient.nom} ont été enregistrées.`
+        });
+      } catch (error) {
+        console.error("Erreur lors de l'enregistrement des notes:", error);
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Impossible d'enregistrer les notes d'appel"
+        });
+      } finally {
+        setIsCalling(false);
+        setSelectedClient(null);
+        setCallNotes("");
+      }
     }
   };
 
@@ -114,7 +192,12 @@ const ClientList = () => {
       </div>
 
       <div className="space-y-4">
-        {filteredClients.length > 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center items-center p-8">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <span className="ml-2">Chargement des clients...</span>
+          </div>
+        ) : filteredClients.length > 0 ? (
           filteredClients.map((client) => (
             <Card key={client.id} className="shadow-sm hover:shadow transition-shadow">
               <ClientCard 
