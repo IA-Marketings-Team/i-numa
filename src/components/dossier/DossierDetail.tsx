@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Phone, Video, Edit, Archive, Trash2, ShoppingCart, Calendar } from "lucide-react";
 import { Dossier, DossierStatus } from "@/types";
-import { StatusSelector } from "@/components/dossier/StatusSelector";
+// Fix the import statement for StatusSelector
+import StatusSelector from "@/components/dossier/StatusSelector";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";

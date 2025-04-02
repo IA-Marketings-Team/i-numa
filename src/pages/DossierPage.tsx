@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
@@ -20,11 +19,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import { Dossier } from "@/types";
+import { Dossier, DossierStatus } from "@/types";
 
 const DossierPage = () => {
   const { id } = useParams<{ id: string }>();
-  const { getDossierById, setCurrentDossier, currentDossier, addRendezVous, updateDossierStatus } = useDossier();
+  const { getDossierById, setCurrentDossier, currentDossier, addRendezVous, updateDossierStatus, deleteDossier } = useDossier();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -130,6 +129,59 @@ const DossierPage = () => {
       title: "Dossier validé",
       description: "Le dossier a été validé avec succès.",
     });
+  };
+
+  const handleStatusChange = async (status: DossierStatus) => {
+    if (!dossier) return;
+    
+    try {
+      setIsLoading(true);
+      await updateDossierStatus(dossier.id, status);
+      
+      // Update local state
+      setDossier({
+        ...dossier,
+        status: status
+      });
+      
+      toast({
+        title: "Statut mis à jour",
+        description: `Le statut du dossier a été modifié avec succès.`,
+      });
+    } catch (error) {
+      console.error("Error updating dossier status:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la mise à jour du statut."
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleDeleteDossier = async () => {
+    if (!dossier) return;
+    
+    try {
+      setIsLoading(true);
+      await deleteDossier(dossier.id);
+      
+      toast({
+        title: "Dossier supprimé",
+        description: "Le dossier a été supprimé avec succès.",
+      });
+      
+      navigate("/dossiers");
+    } catch (error) {
+      console.error("Error deleting dossier:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la suppression du dossier."
+      });
+      setIsLoading(false);
+    }
   };
 
   if (isLoading || !dossier) {
@@ -265,13 +317,40 @@ const DossierPage = () => {
         
         <div className="mt-6">
           <h2 className="text-xl font-bold mb-4">Rendez-vous</h2>
-          <DossierDetail dossier={dossier} />
+          <DossierDetail 
+            dossier={dossier} 
+            onStatusChange={handleStatusChange}
+            onDelete={handleDeleteDossier}
+            loading={isLoading}
+            userRole={user?.role}
+          />
         </div>
       </div>
     );
   }
 
-  return <DossierDetail dossier={dossier} />;
+  return (
+    <div className="container mx-auto px-4 py-6">
+      <div className="flex items-center justify-between mb-6">
+        <Button 
+          variant="outline" 
+          onClick={() => navigate("/dossiers")}
+          className="flex items-center gap-2"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Retour à la liste
+        </Button>
+      </div>
+      
+      <DossierDetail 
+        dossier={dossier} 
+        onStatusChange={handleStatusChange}
+        onDelete={handleDeleteDossier}
+        loading={isLoading}
+        userRole={user?.role}
+      />
+    </div>
+  );
 };
 
 export default DossierPage;
