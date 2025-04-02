@@ -85,3 +85,34 @@ export const updateAgentStats = async (
   
   return true;
 };
+
+// Add the missing resetAgentStats function
+export const resetAgentStats = async (agentId: string): Promise<boolean> => {
+  // Reset all stat fields to 0
+  const resetStats = {
+    appels_emis: 0,
+    appels_decroches: 0,
+    appels_transformes: 0,
+    rendez_vous_honores: 0,
+    rendez_vous_non_honores: 0,
+    dossiers_valides: 0,
+    dossiers_signe: 0
+  };
+  
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update(resetStats)
+      .eq('id', agentId);
+    
+    if (error) {
+      console.error(`Error resetting stats for agent ${agentId}:`, error);
+      throw new Error(error.message);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Failed to reset stats for agent ${agentId}:`, error);
+    return false;
+  }
+};
