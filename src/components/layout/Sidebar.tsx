@@ -18,13 +18,23 @@ export function Sidebar({ className, isOpen, onClose, ...props }: SidebarProps) 
   const { mainMenuItems, accountMenuItems } = useRoleBasedNavigation();
   const path = location.pathname;
   
-  // Find active item based on current path
+  // Improved active item detection to handle nested paths better
   const getActiveItem = (path: string) => {
+    // First check for exact matches
     for (const item of [...mainMenuItems, ...accountMenuItems]) {
-      if (path === item.path || (path.startsWith(item.path) && item.path !== '/')) {
+      if (path === item.path) {
         return item.id;
       }
     }
+    
+    // Then check for parent paths
+    for (const item of [...mainMenuItems, ...accountMenuItems]) {
+      // Skip root path to avoid it being active for all paths
+      if (item.path !== '/' && path.startsWith(item.path + '/')) {
+        return item.id;
+      }
+    }
+    
     return '';
   };
   

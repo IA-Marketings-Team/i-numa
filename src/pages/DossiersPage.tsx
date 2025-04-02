@@ -11,12 +11,12 @@ const DossiersPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Dossiers</h1>
-        <Button onClick={() => navigate("/dashboard/dossiers/nouveau")}>
-          <Plus className="mr-2 h-4 w-4" /> Add Dossier
+        <Button onClick={() => navigate("/dossiers/nouveau")}>
+          <Plus className="mr-2 h-4 w-4" /> Ajouter un dossier
         </Button>
       </div>
       <p className="text-muted-foreground">
-        This page will display dossiers fetched from Supabase.
+        Cette page affichera les dossiers depuis Supabase.
       </p>
     </div>
   );

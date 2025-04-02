@@ -1,3 +1,4 @@
+
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -35,6 +36,10 @@ const Header = () => {
     if (path.includes('/mes-offres')) return 'Nos offres';
     if (path.includes('/statistiques')) return 'Statistiques';
     if (path.includes('/parametres')) return 'Paramètres';
+    if (path.includes('/agenda-global')) return 'Agenda global';
+    if (path.includes('/agenda')) return 'Mes rendez-vous';
+    if (path.includes('/appels')) return 'Appels';
+    if (path.includes('/communications')) return 'Communications';
     return '';
   };
 
@@ -44,7 +49,11 @@ const Header = () => {
            location.pathname !== '/clients' && 
            location.pathname !== '/mes-offres' && 
            location.pathname !== '/statistiques' && 
-           location.pathname !== '/parametres';
+           location.pathname !== '/parametres' &&
+           location.pathname !== '/agenda-global' &&
+           location.pathname !== '/agenda' &&
+           location.pathname !== '/appels' &&
+           location.pathname !== '/communications';
   };
 
   const getBreadcrumbs = () => {
@@ -58,12 +67,19 @@ const Header = () => {
       'tableau-de-bord': 'Tableau de bord',
       'dossiers': 'Dossiers',
       'clients': 'Clients',
-      'mes-offres': 'Mes offres',
+      'mes-offres': 'Nos offres',
       'statistiques': 'Statistiques',
       'parametres': 'Paramètres',
       'nouveau': 'Nouveau',
-      'edit': 'Modifier'
+      'modifier': 'Modifier',
+      'agenda-global': 'Agenda global',
+      'agenda': 'Mes rendez-vous',
+      'appels': 'Appels',
+      'communications': 'Communications'
     };
+    
+    // Track processed IDs to avoid duplicates in breadcrumbs
+    const processedIds = new Set<string>();
     
     return (
       <nav className="flex items-center text-sm text-muted-foreground">
@@ -72,21 +88,32 @@ const Header = () => {
         </Link>
         
         {pathSegments.map((segment, index) => {
+          // Skip if this segment is an ID and we've already processed an ID
+          const isId = !segmentLabels[segment] && segment !== 'tableau-de-bord';
+          
+          if (isId && processedIds.has('detail')) {
+            return null;
+          }
+          
+          if (isId) {
+            processedIds.add('detail');
+          }
+          
           const path = `/${pathSegments.slice(0, index + 1).join('/')}`;
           const isLast = index === pathSegments.length - 1;
           
-          const isId = !segmentLabels[segment] && segment !== 'tableau-de-bord';
+          const label = segmentLabels[segment] || (isId ? 'Détail' : segment);
           
           return (
             <span key={path}>
               <span className="mx-2">/</span>
               {!isLast ? (
                 <Link to={path} className="hover:text-foreground">
-                  {segmentLabels[segment] || (isId ? 'Détail' : segment)}
+                  {label}
                 </Link>
               ) : (
                 <span className="text-foreground font-medium">
-                  {segmentLabels[segment] || (isId ? 'Détail' : segment)}
+                  {label}
                 </span>
               )}
             </span>
@@ -105,11 +132,6 @@ const Header = () => {
     console.log("[Header] Logging out user");
     await logout();
     navigate("/connexion");
-  };
-
-  const getInitials = () => {
-    if (!user) return "?";
-    return `${user.prenom?.charAt(0) || ""}${user.nom?.charAt(0) || ""}`.toUpperCase();
   };
 
   return (
