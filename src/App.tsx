@@ -25,6 +25,10 @@ import StatistiquesPage from "./pages/StatistiquesPage";
 import TasksPage from "./pages/TasksPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ProfilePage from "./pages/ProfilePage";
+import AppelsPage from "./pages/AppelsPage";
+import Communications from "./pages/Communications";
+import GlobalAgenda from "./pages/GlobalAgenda";
+import ClientAgenda from "./pages/ClientAgenda";
 
 // Configuration des routes
 const App: React.FC = () => {
@@ -75,6 +79,16 @@ const App: React.FC = () => {
               
               {/* Routes de gestion d'équipe */}
               <Route path="/superviseur/equipes" element={<DashboardLayout roles={["superviseur", "responsable"]}><AgentsPage /></DashboardLayout>} />
+              
+              {/* Route agenda */}
+              <Route path="/agenda-global" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><GlobalAgenda /></DashboardLayout>} />
+              <Route path="/agenda" element={<DashboardLayout roles={["client"]}><ClientAgenda /></DashboardLayout>} />
+              
+              {/* Route appels */}
+              <Route path="/appels" element={<DashboardLayout roles={["agent_phoner", "superviseur", "responsable"]}><AppelsPage /></DashboardLayout>} />
+              
+              {/* Route communications */}
+              <Route path="/communications" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><Communications /></DashboardLayout>} />
               
               {/* Routes pour la compatibilité avec les anciens chemins */}
               <Route path="/dashboard/*" element={<Navigate to="/tableau-de-bord" replace />} />
