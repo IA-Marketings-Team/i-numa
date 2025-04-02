@@ -94,7 +94,7 @@ export const createClient = async (clientData: Omit<Client, 'id'>): Promise<Clie
 
   const { data, error } = await supabase
     .from('profiles')
-    .insert([clientForSupabase])  // Wrap in array to match the expected format
+    .insert(clientForSupabase)  // Remove the array wrapper
     .select()
     .single();
   

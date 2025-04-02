@@ -1,24 +1,27 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import KanbanBoard from "@/components/tasks/KanbanBoard";
 import TaskFormDialog from "@/components/tasks/TaskFormDialog";
-import { Task, TaskStatus } from "@/types";
+import { Task, TaskStatus, Agent } from "@/types";
 import { fetchTasks, createTask, updateTask, deleteTask, fetchTasksByAgent } from "@/services/taskService";
+import { fetchAgents } from "@/services/agentService";
 import { useToast } from "@/hooks/use-toast";
 
 const TasksPage: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const { user, hasPermission } = useAuth();
   const { toast } = useToast();
   
   useEffect(() => {
     loadTasks();
+    loadAgents();
   }, [user]);
   
   const loadTasks = async () => {
@@ -45,9 +48,22 @@ const TasksPage: React.FC = () => {
     }
   };
   
+  const loadAgents = async () => {
+    try {
+      const loadedAgents = await fetchAgents();
+      setAgents(loadedAgents);
+    } catch (error) {
+      console.error("Error loading agents:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les agents. Veuillez réessayer.",
+        variant: "destructive",
+      });
+    }
+  };
+  
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
-    setIsEditMode(true);
     setIsFormOpen(true);
   };
   
@@ -158,7 +174,7 @@ const TasksPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Tâches</h1>
-        <Button onClick={() => { setIsEditMode(false); setSelectedTask(null); setIsFormOpen(true); }}>
+        <Button onClick={() => { setSelectedTask(null); setIsFormOpen(true); }}>
           <Plus className="mr-2 h-4 w-4" /> Ajouter une tâche
         </Button>
       </div>
@@ -176,11 +192,11 @@ const TasksPage: React.FC = () => {
       )}
       
       <TaskFormDialog 
-        isOpen={isFormOpen}
+        open={isFormOpen}
         onOpenChange={setIsFormOpen}
-        task={selectedTask}
-        isEditMode={isEditMode}
-        onSubmit={isEditMode ? handleUpdateTask : handleAddTask}
+        initialData={selectedTask || undefined}
+        agents={agents}
+        onSubmit={selectedTask ? handleUpdateTask : handleAddTask}
         onDelete={handleDeleteTask}
       />
     </div>
