@@ -1,4 +1,3 @@
-
 export type UserRole = 'client' | 'agent_phoner' | 'agent_visio' | 'agent_developpeur' | 'agent_marketing' | 'superviseur' | 'responsable';
 
 export type DossierStatus = 'prospect' | 'rdv_en_cours' | 'valide' | 'signe' | 'archive';
@@ -48,16 +47,19 @@ export interface Offre {
   id: string;
   nom: string;
   description: string;
-  type: 'SEO' | 'Google Ads' | 'Email X' | 'Foner' | 'Devis';
-  prix?: number; // Accessible uniquement aux superviseurs et responsables
-  secteurs?: SecteurActivite[]; // Secteurs d'activité associés
+  type: 'SEO' | 'Google Ads' | 'Email X' | 'Foner' | 'Devis' | 'E-réputation' | 'Deliver' | 'Facebook/Instagram Ads';
+  prix?: number;
+  prixMensuel?: string;
+  fraisCreation?: string;
+  secteurs?: SecteurActivite[];
+  sections?: OffreSection[];
 }
 
 export interface SecteurActivite {
   id: string;
   nom: string;
   description?: string;
-  disponible?: boolean; // Added for use in the join table context
+  disponible?: boolean;
 }
 
 export interface OffreSecteur {
@@ -82,7 +84,7 @@ export interface Dossier {
   dateSignature?: Date;
   dateArchivage?: Date;
   notes?: string;
-  montant?: number; // Accessible uniquement aux superviseurs et responsables
+  montant?: number;
 }
 
 export interface RendezVous {
@@ -92,12 +94,12 @@ export interface RendezVous {
   date: Date;
   honore: boolean;
   notes?: string;
-  meetingLink?: string; // Lien vers la réunion (Google Meet, Zoom, etc.)
-  location?: string; // Emplacement physique ou virtuel
+  meetingLink?: string;
+  location?: string;
 }
 
 export interface Statistique {
-  id?: string; // Adding optional id field to match Supabase data
+  id?: string;
   periode: 'jour' | 'semaine' | 'mois';
   dateDebut: Date;
   dateFin: Date;
@@ -108,7 +110,7 @@ export interface Statistique {
   rendezVousNonHonores: number;
   dossiersValides: number;
   dossiersSigne: number;
-  chiffreAffaires?: number; // Accessible uniquement aux superviseurs et responsables
+  chiffreAffaires?: number;
 }
 
 export interface OfferCategory {
@@ -159,7 +161,7 @@ export interface Appel {
   clientId: string;
   agentId: string;
   date: Date;
-  duree: number; // en minutes
+  duree: number;
   notes: string;
   statut: 'RDV' | 'Vente' | 'Répondeur' | 'Injoignable' | 'Refus argumentaire' | 'Refus intro' | 'Rappel' | 'Hors cible' | 'planifie' | 'effectue' | 'manque';
   entreprise?: string;
@@ -176,11 +178,11 @@ export interface Meeting {
   titre: string;
   description: string;
   date: Date;
-  duree: number; // en minutes
+  duree: number;
   lien: string;
   type: 'visio' | 'presentiel' | 'telephonique';
   statut: 'planifie' | 'en_cours' | 'termine' | 'annule';
-  participants: string[]; // IDs des participants
+  participants: string[];
 }
 
 export interface Email {
@@ -192,8 +194,16 @@ export interface Email {
   sujet: string;
   contenu: string;
   dateEnvoi: Date;
-  pieceJointes?: string[]; // URLs des pièces jointes
+  pieceJointes?: string[];
   lu: boolean;
-  dossierLie?: string; // ID du dossier lié
-  clientLie?: string; // ID du client lié
+  dossierLie?: string;
+  clientLie?: string;
+}
+
+export interface OffreSection {
+  id: string;
+  titre: string;
+  offreId: string;
+  estOuvertParDefaut?: boolean;
+  items: string[];
 }

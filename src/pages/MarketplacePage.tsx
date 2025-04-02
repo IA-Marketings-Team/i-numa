@@ -27,14 +27,8 @@ import { offerCategories } from "@/data/offerData";
 import { useAuth } from "@/contexts/AuthContext";
 import CartDrawer from "@/components/cart/CartDrawer";
 import EmailOfferDialog from "@/components/offers/EmailOfferDialog";
-
-interface Offre {
-  id: string;
-  nom: string;
-  description: string;
-  type: string;
-  prix?: number;
-}
+import OffreDetailCard from "@/components/offers/OffreDetailCard";
+import { Offre } from "@/types";
 
 const MarketplacePage = () => {
   const [offres, setOffres] = useState<Offre[]>([]);
@@ -302,48 +296,9 @@ const MarketplacePage = () => {
               <p>Chargement des offres...</p>
             </div>
           ) : filteredOffres.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredOffres.map(offre => (
-                <Card key={offre.id} className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-md border border-gray-200 dark:border-gray-800 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
-                  <CardHeader className="pb-3 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950">
-                    <div className="flex justify-between items-start">
-                      <Badge className={`${getBadgeColor(offre.type)}`}>
-                        {offre.type}
-                      </Badge>
-                      {offre.prix && <span className="font-semibold">{offre.prix} €</span>}
-                    </div>
-                    <CardTitle className="text-xl mt-2">{offre.nom}</CardTitle>
-                    <CardDescription className="line-clamp-2">
-                      {offre.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
-                      {offre.description}
-                    </p>
-                  </CardContent>
-                  <CardFooter className="border-t pt-4 flex justify-between bg-gradient-to-b from-transparent to-indigo-50 dark:to-indigo-950">
-                    <Button 
-                      variant={isInCart(offre.id) ? "outline" : "default"}
-                      size="sm" 
-                      onClick={() => handleAddToCart(offre)}
-                      disabled={isInCart(offre.id)}
-                      className={`w-full ${!isInCart(offre.id) ? "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700" : ""}`}
-                    >
-                      {isInCart(offre.id) ? (
-                        <>
-                          <Check className="mr-2 h-4 w-4" />
-                          Dans le panier
-                        </>
-                      ) : (
-                        <>
-                          <ShoppingCart className="mr-2 h-4 w-4" />
-                          Ajouter au panier
-                        </>
-                      )}
-                    </Button>
-                  </CardFooter>
-                </Card>
+                <OffreDetailCard key={offre.id} offre={offre} />
               ))}
             </div>
           ) : (

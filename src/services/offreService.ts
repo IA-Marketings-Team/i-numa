@@ -1,25 +1,67 @@
-
-import { Offre, SecteurActivite, OffreSecteur } from "@/types";
+import { Offre, SecteurActivite, OffreSection } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
 export const fetchOffres = async (): Promise<Offre[]> => {
-  const { data, error } = await supabase
+  // Fetch offers
+  const { data: offresData, error: offresError } = await supabase
     .from('offres')
     .select('*');
   
-  if (error) {
-    console.error("Error fetching offres:", error);
-    throw new Error(error.message);
+  if (offresError) {
+    console.error("Error fetching offres:", offresError);
+    throw new Error(offresError.message);
   }
   
   // Transform Supabase data to match our Offre type
-  const offres: Offre[] = data.map(item => ({
+  const offres: Offre[] = offresData.map(item => ({
     id: item.id,
     nom: item.nom || '',
     description: item.description || '',
-    type: (item.type || 'SEO') as "SEO" | "Google Ads" | "Email X" | "Foner" | "Devis",
-    prix: item.prix || 0
+    type: item.type || 'SEO',
+    prix: item.prix || 0,
+    prixMensuel: item.prix_mensuel || '',
+    fraisCreation: item.frais_creation || '',
+    sections: []
   }));
+  
+  // Fetch sections for all offers
+  const { data: sectionsData, error: sectionsError } = await supabase
+    .from('offre_sections')
+    .select('*');
+    
+  if (sectionsError) {
+    console.error("Error fetching sections:", sectionsError);
+  } else if (sectionsData) {
+    // Fetch section items for all sections
+    const { data: itemsData, error: itemsError } = await supabase
+      .from('offre_section_items')
+      .select('*');
+      
+    if (itemsError) {
+      console.error("Error fetching section items:", itemsError);
+    } else if (itemsData) {
+      // For each offer, find its associated sections and items
+      offres.forEach(offre => {
+        const offreSections = sectionsData.filter(section => section.offre_id === offre.id);
+        
+        if (offreSections.length > 0) {
+          offre.sections = offreSections.map(section => {
+            const sectionItems = itemsData
+              .filter(item => item.section_id === section.id)
+              .map(item => item.texte);
+              
+            return {
+              id: section.id,
+              titre: section.titre,
+              offreId: section.offre_id,
+              estOuvertParDefaut: section.est_ouvert_par_defaut,
+              items: sectionItems
+            };
+          });
+        }
+      });
+    }
+  }
   
   return offres;
 };
@@ -110,7 +152,10 @@ export const fetchOffreById = async (id: string): Promise<Offre | null> => {
     nom: data.nom || '',
     description: data.description || '',
     type: (data.type || 'SEO') as "SEO" | "Google Ads" | "Email X" | "Foner" | "Devis",
-    prix: data.prix || 0
+    prix: data.prix || 0,
+    prixMensuel: data.prix_mensuel || '',
+    fraisCreation: data.frais_creation || '',
+    sections: []
   };
   
   // Now let's fetch all secteurs_activite
@@ -160,7 +205,9 @@ export const createOffre = async (offreData: Omit<Offre, 'id'>): Promise<Offre |
       nom: offreData.nom,
       description: offreData.description,
       type: offreData.type,
-      prix: offreData.prix
+      prix: offreData.prix,
+      prix_mensuel: offreData.prixMensuel,
+      frais_creation: offreData.fraisCreation
     }])
     .select()
     .single();
@@ -174,27 +221,46 @@ export const createOffre = async (offreData: Omit<Offre, 'id'>): Promise<Offre |
     id: data.id,
     nom: data.nom || '',
     description: data.description || '',
-    type: (data.type || 'SEO') as "SEO" | "Google Ads" | "Email X" | "Foner" | "Devis",
-    prix: data.prix || 0
+    type: data.type,
+    prix: data.prix || 0,
+    prixMensuel: data.prix_mensuel || '',
+    fraisCreation: data.frais_creation || '',
+    sections: []
   };
   
-  // If sectors were provided, link them to the offer
-  if (offreData.secteurs && offreData.secteurs.length > 0) {
-    // Create array of records for the join table
-    const secteurInserts = offreData.secteurs.map(secteur => ({
-      offre_id: offre.id,
-      secteur_id: secteur.id,
-      disponible: true
-    }));
-    
-    // Insert all the join records
-    for (const insert of secteurInserts) {
-      const { error: insertError } = await supabase
-        .from('offres_secteurs')
-        .insert(insert);
+  // Add sections if provided
+  if (offreData.sections && offreData.sections.length > 0) {
+    for (const section of offreData.sections) {
+      // Insert section
+      const { data: sectionData, error: sectionError } = await supabase
+        .from('offre_sections')
+        .insert({
+          offre_id: offre.id,
+          titre: section.titre,
+          est_ouvert_par_defaut: section.estOuvertParDefaut
+        })
+        .select()
+        .single();
+        
+      if (sectionError) {
+        console.error("Error creating section:", sectionError);
+        continue;
+      }
       
-      if (insertError) {
-        console.error("Error linking sector to offre:", insertError);
+      // Insert section items
+      if (section.items && section.items.length > 0) {
+        const itemInserts = section.items.map(item => ({
+          section_id: sectionData.id,
+          texte: item
+        }));
+        
+        const { error: itemsError } = await supabase
+          .from('offre_section_items')
+          .insert(itemInserts);
+          
+        if (itemsError) {
+          console.error("Error creating section items:", itemsError);
+        }
       }
     }
   }
@@ -209,6 +275,8 @@ export const updateOffre = async (id: string, updates: Partial<Offre>): Promise<
   if (updates.description !== undefined) updateData.description = updates.description;
   if (updates.type !== undefined) updateData.type = updates.type;
   if (updates.prix !== undefined) updateData.prix = updates.prix;
+  if (updates.prixMensuel !== undefined) updateData.prix_mensuel = updates.prixMensuel;
+  if (updates.fraisCreation !== undefined) updateData.frais_creation = updates.fraisCreation;
   
   const { error } = await supabase
     .from('offres')
@@ -220,48 +288,120 @@ export const updateOffre = async (id: string, updates: Partial<Offre>): Promise<
     throw new Error(error.message);
   }
   
-  // If sectors were provided, update them
-  if (updates.secteurs) {
-    // First, get current sectors join records
-    const { data: currentJoins, error: fetchError } = await supabase
-      .from('offres_secteurs')
+  // Update sections if provided
+  if (updates.sections) {
+    // Get existing sections
+    const { data: existingSections, error: fetchError } = await supabase
+      .from('offre_sections')
       .select('*')
       .eq('offre_id', id);
-    
+      
     if (fetchError) {
-      console.error("Error fetching current sectors:", fetchError);
+      console.error("Error fetching existing sections:", fetchError);
     } else {
-      // For each provided sector, update or insert
-      for (const secteur of updates.secteurs) {
-        const existingJoin = currentJoins?.find(j => j.secteur_id === secteur.id);
-        
-        if (existingJoin) {
-          // Update existing join record if disponible has changed
-          if (existingJoin.disponible !== (secteur.disponible !== false)) {
-            const { error: updateError } = await supabase
-              .from('offres_secteurs')
-              .update({
-                disponible: secteur.disponible !== false
-              })
-              .eq('id', existingJoin.id);
+      // For each provided section
+      for (const section of updates.sections) {
+        if (section.id) {
+          // Update existing section
+          const { error: updateError } = await supabase
+            .from('offre_sections')
+            .update({
+              titre: section.titre,
+              est_ouvert_par_defaut: section.estOuvertParDefaut
+            })
+            .eq('id', section.id);
             
-            if (updateError) {
-              console.error("Error updating sector link:", updateError);
+          if (updateError) {
+            console.error(`Error updating section ${section.id}:`, updateError);
+            continue;
+          }
+          
+          // Update section items (delete existing and insert new)
+          const { error: deleteError } = await supabase
+            .from('offre_section_items')
+            .delete()
+            .eq('section_id', section.id);
+            
+          if (deleteError) {
+            console.error(`Error deleting items for section ${section.id}:`, deleteError);
+          }
+          
+          if (section.items && section.items.length > 0) {
+            const itemInserts = section.items.map(item => ({
+              section_id: section.id,
+              texte: item
+            }));
+            
+            const { error: insertError } = await supabase
+              .from('offre_section_items')
+              .insert(itemInserts);
+              
+            if (insertError) {
+              console.error(`Error inserting items for section ${section.id}:`, insertError);
             }
           }
         } else {
-          // Insert new join record
-          const { error: insertError } = await supabase
-            .from('offres_secteurs')
+          // Create new section
+          const { data: newSection, error: createError } = await supabase
+            .from('offre_sections')
             .insert({
               offre_id: id,
-              secteur_id: secteur.id,
-              disponible: secteur.disponible !== false
-            });
-          
-          if (insertError) {
-            console.error("Error inserting sector link:", insertError);
+              titre: section.titre,
+              est_ouvert_par_defaut: section.estOuvertParDefaut
+            })
+            .select()
+            .single();
+            
+          if (createError) {
+            console.error("Error creating new section:", createError);
+            continue;
           }
+          
+          // Insert section items
+          if (section.items && section.items.length > 0) {
+            const itemInserts = section.items.map(item => ({
+              section_id: newSection.id,
+              texte: item
+            }));
+            
+            const { error: insertError } = await supabase
+              .from('offre_section_items')
+              .insert(itemInserts);
+              
+            if (insertError) {
+              console.error(`Error inserting items for new section:`, insertError);
+            }
+          }
+        }
+      }
+      
+      // Delete sections that were not included in the update
+      const sectionIdsToKeep = updates.sections
+        .filter(s => s.id)
+        .map(s => s.id);
+        
+      const sectionsToDelete = existingSections
+        .filter(s => !sectionIdsToKeep.includes(s.id));
+        
+      for (const section of sectionsToDelete) {
+        // Delete section items first
+        const { error: deleteItemsError } = await supabase
+          .from('offre_section_items')
+          .delete()
+          .eq('section_id', section.id);
+          
+        if (deleteItemsError) {
+          console.error(`Error deleting items for section ${section.id}:`, deleteItemsError);
+        }
+        
+        // Delete section
+        const { error: deleteSectionError } = await supabase
+          .from('offre_sections')
+          .delete()
+          .eq('id', section.id);
+          
+        if (deleteSectionError) {
+          console.error(`Error deleting section ${section.id}:`, deleteSectionError);
         }
       }
     }
