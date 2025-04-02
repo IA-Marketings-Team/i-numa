@@ -49,6 +49,11 @@ const DossierForm: React.FC<DossierFormProps> = ({ dossier, isEditing = false, u
     clientError
   } = useDossierForm({ dossier, isEditing, userRole });
 
+  // Convertir la fonction hasPermission pour qu'elle accepte des UserRole[] en entrée
+  const checkPermission = (roles: UserRole[]): boolean => {
+    return hasPermission(roles);
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
@@ -102,11 +107,11 @@ const DossierForm: React.FC<DossierFormProps> = ({ dossier, isEditing = false, u
           <OffresSelector 
             selectedOffres={selectedOffres}
             onOffreChange={handleOffreChange}
-            hasPermission={hasPermission}
+            hasPermission={checkPermission}
           />
 
           {/* Montant (visible uniquement pour superviseur et responsable) */}
-          {hasPermission(['superviseur', 'responsable']) && (
+          {checkPermission(['superviseur', 'responsable']) && (
             <MontantInput 
               montant={montant} 
               onMontantChange={setMontant}

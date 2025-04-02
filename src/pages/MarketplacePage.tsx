@@ -96,10 +96,10 @@ const MarketplacePage = () => {
     addToCart({
       offreId: offre.id,
       quantity: 1,
-      nom: offre.nom,
-      description: offre.description,
-      type: offre.type,
-      prix: offre.prix
+      title: offre.nom,
+      category: offre.type,
+      price: offre.prix || 0,
+      description: offre.description
     });
     
     toast({

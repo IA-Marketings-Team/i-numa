@@ -8,24 +8,23 @@ import { AuthLog } from "@/types";
  */
 export const fetchAuthLogs = async (): Promise<AuthLog[]> => {
   try {
-    // Pour l'instant, nous devons utiliser une requête SQL brute
-    // car la table auth_logs n'est pas dans le type généré
+    // Utilisez la fonction RPC définie dans Supabase au lieu d'accéder directement à la table
     const { data, error } = await supabase
-      .rpc('get_auth_logs', {});
+      .rpc('get_auth_logs');
 
     if (error) {
       console.error("Erreur lors de la récupération des journaux d'authentification:", error);
       return [];
     }
 
-    return data.map((log: any) => ({
+    return (data || []).map((log: any) => ({
       id: log.id,
       userId: log.user_id,
       action: log.action,
       timestamp: new Date(log.timestamp),
       userAgent: log.user_agent,
       ipAddress: log.ip_address
-    })) || [];
+    }));
   } catch (error) {
     console.error("Erreur inattendue lors de la récupération des journaux d'authentification:", error);
     return [];
@@ -37,7 +36,7 @@ export const fetchAuthLogs = async (): Promise<AuthLog[]> => {
  */
 export const fetchAuthLogsByUser = async (userId: string): Promise<AuthLog[]> => {
   try {
-    // Utiliser une requête SQL brute avec un paramètre
+    // Utilisez la fonction RPC définie dans Supabase avec paramètre
     const { data, error } = await supabase
       .rpc('get_user_auth_logs', { user_id_param: userId });
 
@@ -46,14 +45,14 @@ export const fetchAuthLogsByUser = async (userId: string): Promise<AuthLog[]> =>
       return [];
     }
 
-    return data.map((log: any) => ({
+    return (data || []).map((log: any) => ({
       id: log.id,
       userId: log.user_id,
       action: log.action,
       timestamp: new Date(log.timestamp),
       userAgent: log.user_agent,
       ipAddress: log.ip_address
-    })) || [];
+    }));
   } catch (error) {
     console.error(`Erreur inattendue lors de la récupération des journaux pour l'utilisateur ${userId}:`, error);
     return [];
@@ -65,7 +64,7 @@ export const fetchAuthLogsByUser = async (userId: string): Promise<AuthLog[]> =>
  */
 export const createAuthLog = async (log: Omit<AuthLog, "id">): Promise<AuthLog | null> => {
   try {
-    // Utiliser une procédure stockée pour insérer dans auth_logs
+    // Utilisez la procédure stockée pour insérer dans auth_logs
     const { data, error } = await supabase
       .rpc('create_auth_log', {
         user_id_param: log.userId,
@@ -80,15 +79,15 @@ export const createAuthLog = async (log: Omit<AuthLog, "id">): Promise<AuthLog |
     }
 
     // Retourner un objet AuthLog à partir des données de réponse
-    // (en supposant que la procédure renvoie l'enregistrement créé)
-    if (data && data[0]) {
+    if (data && data.length > 0) {
+      const createdLog = data[0];
       return {
-        id: data[0].id,
-        userId: data[0].user_id,
-        action: data[0].action,
-        timestamp: new Date(data[0].timestamp),
-        userAgent: data[0].user_agent,
-        ipAddress: data[0].ip_address
+        id: createdLog.id,
+        userId: createdLog.user_id,
+        action: createdLog.action,
+        timestamp: new Date(createdLog.timestamp),
+        userAgent: createdLog.user_agent,
+        ipAddress: createdLog.ip_address
       };
     }
 

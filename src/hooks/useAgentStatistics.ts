@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Agent } from "@/types";
+import { Agent, UserRole } from "@/types";
 import { fetchAgentById, resetAgentStats } from "@/services/agentService";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,7 +20,7 @@ export function useAgentStatistics() {
         prenom: agentData.prenom || '',
         email: agentData.email || '',
         telephone: agentData.telephone || '',
-        role: agentData.role,
+        role: agentData.role as UserRole,
         dateCreation: new Date(),
         statistiques: {
           appelsEmis: agentData.appels_emis || 0,

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,15 +26,14 @@ const OffreDetailCard: React.FC<OffreDetailCardProps> = ({ offre }) => {
   const sections = offre.sections || [];
 
   const handleAddToCart = () => {
+    // Convert offre to CartItem format
     addToCart({
       offreId: offre.id,
       quantity: 1,
-      nom: offre.nom,
-      description: offre.description,
-      type: offre.type,
-      prix: offre.prix,
-      prixMensuel: offre.prixMensuel,
-      fraisCreation: offre.fraisCreation
+      title: offre.nom,
+      category: offre.type,
+      price: offre.prix || 0,
+      description: offre.description
     });
     
     toast({

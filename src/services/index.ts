@@ -1,5 +1,5 @@
 
-export * from './userService';
+export * from './clientService';
 export * from './dossierService';
 export * from './offreService';
 export * from './statistiqueService';
