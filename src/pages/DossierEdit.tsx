@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dossier } from "@/types";
 
 const DossierEdit = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +18,7 @@ const DossierEdit = () => {
   const { toast } = useToast();
   const isCreating = id === "nouveau" || window.location.pathname.includes("/dossiers/nouveau");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Log component initialization with more details
   useEffect(() => {
@@ -30,27 +32,44 @@ const DossierEdit = () => {
   }, [id, isCreating, user, hasPermission]);
 
   useEffect(() => {
-    // Si nous sommes en mode création, initialiser un dossier vide
-    if (isCreating) {
-      console.log("[DossierEdit] Creating new dossier mode - setting currentDossier to null");
-      setCurrentDossier(null);
-    } else if (id) {
-      // Sinon charger le dossier existant
-      console.log("[DossierEdit] Loading existing dossier:", id);
-      const dossier = getDossierById(id);
-      if (dossier) {
-        console.log("[DossierEdit] Dossier found:", dossier.id);
-        setCurrentDossier(dossier);
-      } else {
-        console.error("[DossierEdit] Dossier not found:", id);
-        navigate("/dossiers");
-        toast({
-          variant: "destructive",
-          title: "Erreur",
-          description: "Le dossier demandé n'existe pas."
-        });
+    // Function to load dossier data
+    const loadDossier = async () => {
+      setIsLoading(true);
+      // Si nous sommes en mode création, initialiser un dossier vide
+      if (isCreating) {
+        console.log("[DossierEdit] Creating new dossier mode - setting currentDossier to null");
+        setCurrentDossier(null);
+      } else if (id) {
+        // Sinon charger le dossier existant
+        console.log("[DossierEdit] Loading existing dossier:", id);
+        try {
+          const dossier = await getDossierById(id);
+          if (dossier) {
+            console.log("[DossierEdit] Dossier found:", dossier.id);
+            setCurrentDossier(dossier);
+          } else {
+            console.error("[DossierEdit] Dossier not found:", id);
+            navigate("/dossiers");
+            toast({
+              variant: "destructive",
+              title: "Erreur",
+              description: "Le dossier demandé n'existe pas."
+            });
+          }
+        } catch (error) {
+          console.error("[DossierEdit] Error fetching dossier:", error);
+          navigate("/dossiers");
+          toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Erreur lors du chargement du dossier."
+          });
+        }
       }
-    }
+      setIsLoading(false);
+    };
+    
+    loadDossier();
     
     return () => {
       console.log("[DossierEdit] Cleanup - setting currentDossier to null");
@@ -99,9 +118,9 @@ const DossierEdit = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  if (!isReady) {
+  if (!isReady || isLoading) {
     console.log("[DossierEdit] Component not ready yet, waiting...");
-    return null;
+    return <div>Chargement...</div>;
   }
 
   console.log("[DossierEdit] Rendering form with:", { 
@@ -137,11 +156,13 @@ const DossierEdit = () => {
         </div>
       </div>
       
-      <DossierForm 
-        dossier={currentDossier} 
-        isEditing={!isCreating} 
-        userRole={user?.role}
-      />
+      {!isLoading && (
+        <DossierForm 
+          dossier={currentDossier} 
+          isEditing={!isCreating} 
+          userRole={user?.role}
+        />
+      )}
 
       {/* Dialog de confirmation de suppression */}
       <Dialog open={isDeleting} onOpenChange={setIsDeleting}>

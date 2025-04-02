@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Dossier, DossierStatus } from "@/types";
+import { Dossier, DossierStatus, RendezVous } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,11 +26,19 @@ interface DossierDetailProps {
 
 const DossierDetail: React.FC<DossierDetailProps> = ({ dossier }) => {
   const [activeTab, setActiveTab] = useState("informations");
+  const [rendezVousList, setRendezVousList] = useState<RendezVous[]>([]);
   const { updateDossierStatus, getRendezVousByDossierId } = useDossier();
   const { hasPermission } = useAuth();
   const navigate = useNavigate();
 
-  const rendezVousList = getRendezVousByDossierId(dossier.id);
+  useEffect(() => {
+    const loadRendezVous = async () => {
+      const rdvList = await getRendezVousByDossierId(dossier.id);
+      setRendezVousList(rdvList);
+    };
+    
+    loadRendezVous();
+  }, [dossier.id, getRendezVousByDossierId]);
 
   const handleStatusChange = (newStatus: DossierStatus) => {
     if (window.confirm(`Êtes-vous sûr de vouloir changer le statut en "${newStatus}" ?`)) {
@@ -49,7 +57,6 @@ const DossierDetail: React.FC<DossierDetailProps> = ({ dossier }) => {
     });
   };
 
-  // Détermine les actions disponibles en fonction du statut actuel
   const getAvailableActions = () => {
     if (!hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable'])) {
       return [];

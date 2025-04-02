@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dossier, RendezVous } from "@/types";
 
 const RendezVousEdit = () => {
   const { dossierId, id } = useParams<{ dossierId: string; id: string }>();
@@ -15,29 +16,71 @@ const RendezVousEdit = () => {
   const { toast } = useToast();
   const isCreating = id === "nouveau";
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const dossier = dossierId ? getDossierById(dossierId) : undefined;
-  const rendezVous = !isCreating && id && dossierId 
-    ? getRendezVousByDossierId(dossierId).find(rdv => rdv.id === id)
-    : undefined;
+  const [isLoading, setIsLoading] = useState(true);
+  const [dossier, setDossier] = useState<Dossier | null>(null);
+  const [rendezVous, setRendezVous] = useState<RendezVous | null>(null);
 
   useEffect(() => {
-    if (!dossier) {
-      navigate("/dossiers");
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Le dossier demandé n'existe pas."
-      });
-    } else if (!isCreating && !rendezVous) {
-      navigate(`/dossiers/${dossierId}`);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Le rendez-vous demandé n'existe pas."
-      });
-    }
-  }, [dossier, rendezVous, isCreating, dossierId, navigate, toast]);
+    const loadData = async () => {
+      setIsLoading(true);
+      
+      if (!dossierId) {
+        navigate("/dossiers");
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Paramètres manquants."
+        });
+        return;
+      }
+      
+      try {
+        // Charger le dossier
+        const loadedDossier = await getDossierById(dossierId);
+        if (!loadedDossier) {
+          navigate("/dossiers");
+          toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Le dossier demandé n'existe pas."
+          });
+          return;
+        }
+        
+        setDossier(loadedDossier);
+        
+        // Si on est en mode édition, charger le RDV
+        if (!isCreating && id) {
+          const rdvs = await getRendezVousByDossierId(dossierId);
+          const rdv = rdvs.find(r => r.id === id);
+          
+          if (!rdv) {
+            navigate(`/dossiers/${dossierId}`);
+            toast({
+              variant: "destructive",
+              title: "Erreur",
+              description: "Le rendez-vous demandé n'existe pas."
+            });
+            return;
+          }
+          
+          setRendezVous(rdv);
+        }
+      } catch (error) {
+        console.error("Error loading data:", error);
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Erreur lors du chargement des données."
+        });
+        navigate("/dossiers");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
+  }, [dossierId, id, isCreating, getDossierById, getRendezVousByDossierId, navigate, toast]);
 
   const handleDelete = () => {
     if (id && id !== "nouveau") {
@@ -51,10 +94,22 @@ const RendezVousEdit = () => {
     setIsDeleting(false);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <p className="text-gray-600 mb-4">Chargement des données...</p>
+        <Button variant="outline" onClick={() => navigate("/dossiers")} className="flex items-center gap-2">
+          <ChevronLeft className="w-4 h-4" />
+          Retour à la liste
+        </Button>
+      </div>
+    );
+  }
+
   if (!dossier) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
-        <p className="text-gray-600 mb-4">Chargement du dossier...</p>
+        <p className="text-gray-600 mb-4">Dossier non trouvé</p>
         <Button variant="outline" onClick={() => navigate("/dossiers")} className="flex items-center gap-2">
           <ChevronLeft className="w-4 h-4" />
           Retour à la liste
@@ -91,7 +146,7 @@ const RendezVousEdit = () => {
       
       <RendezVousForm 
         dossier={dossier}
-        rendezVous={rendezVous}
+        rendezVous={rendezVous || undefined}
         isEditing={!isCreating}
         onRendezVousAdded={(newRdv) => {
           addRendezVous(newRdv);

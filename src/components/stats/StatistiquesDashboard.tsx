@@ -1,10 +1,9 @@
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStatistique } from "@/contexts/StatistiqueContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Statistique } from "@/types";
+import { Statistique, Agent } from "@/types";
 import {
   BarChart,
   Bar,
@@ -31,17 +30,19 @@ const StatistiquesDashboard = () => {
   const [statData, setStatData] = useState<Statistique[]>([]);
   
   useEffect(() => {
-    // Charger les statistiques selon la période
-    const stats = getStatistiquesByPeriodeType(period);
-    setStatData(stats);
-    
-    // Si c'est un agent, charger ses statistiques personnelles
-    if (user && (user.role === 'agent_phoner' || user.role === 'agent_visio')) {
-      const agentData = getAgentStatistics(user.id);
-      if (agentData) {
-        setAgentStats(agentData.statistiques);
+    const loadData = async () => {
+      const stats = await getStatistiquesByPeriodeType(period);
+      setStatData(stats);
+      
+      if (user && (user.role === 'agent_phoner' || user.role === 'agent_visio')) {
+        const agentData = await getAgentStatistics(user.id);
+        if (agentData) {
+          setAgentStats(agentData.statistiques);
+        }
       }
-    }
+    };
+    
+    loadData();
   }, [user, period, getStatistiquesByPeriodeType, getAgentStatistics]);
 
   // Couleurs pour les graphiques

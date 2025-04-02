@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
@@ -20,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { Dossier } from "@/types";
 
 const DossierPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,6 +28,8 @@ const DossierPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isAgentVisio = user?.role === 'agent_visio';
+  const [isLoading, setIsLoading] = useState(true);
+  const [dossier, setDossier] = useState<Dossier | null>(null);
   
   // States for modals
   const [isAddRdvOpen, setIsAddRdvOpen] = useState(false);
@@ -40,21 +42,42 @@ const DossierPage = () => {
   const [callNote, setCallNote] = useState("");
 
   useEffect(() => {
-    if (id) {
-      const dossier = getDossierById(id);
-      if (dossier) {
-        setCurrentDossier(dossier);
-      } else {
-        navigate("/dossiers");
+    const loadDossier = async () => {
+      setIsLoading(true);
+      if (id) {
+        try {
+          const loadedDossier = await getDossierById(id);
+          if (loadedDossier) {
+            setDossier(loadedDossier);
+            setCurrentDossier(loadedDossier);
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Erreur",
+              description: "Le dossier demandé n'existe pas."
+            });
+            navigate("/dossiers");
+          }
+        } catch (error) {
+          console.error("Error fetching dossier:", error);
+          toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Erreur lors du chargement du dossier."
+          });
+          navigate("/dossiers");
+        }
       }
-    }
+      setIsLoading(false);
+    };
+    
+    loadDossier();
     
     return () => {
       setCurrentDossier(null);
     };
-  }, [id, getDossierById, setCurrentDossier, navigate]);
+  }, [id, getDossierById, setCurrentDossier, navigate, toast]);
 
-  // Handle form submissions
   const handleAddRdv = () => {
     if (!currentDossier) return;
     
@@ -108,7 +131,7 @@ const DossierPage = () => {
     });
   };
 
-  if (!currentDossier) {
+  if (isLoading || !dossier) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <p className="text-gray-600 mb-4">Chargement du dossier...</p>
@@ -120,7 +143,6 @@ const DossierPage = () => {
     );
   }
 
-  // Afficher une version limitée pour les agents visio
   if (isAgentVisio) {
     return (
       <div className="container mx-auto px-4 py-6">
@@ -148,7 +170,7 @@ const DossierPage = () => {
           </div>
         </div>
         
-        <VisioLimitedInfo dossier={currentDossier} />
+        <VisioLimitedInfo dossier={dossier} />
         
         <div className="flex justify-between mt-6 mb-4">
           <h2 className="text-xl font-bold">Actions</h2>
@@ -240,17 +262,15 @@ const DossierPage = () => {
           </div>
         </div>
         
-        {/* Afficher les rendez-vous car l'agent visio y a accès */}
         <div className="mt-6">
           <h2 className="text-xl font-bold mb-4">Rendez-vous</h2>
-          <DossierDetail dossier={currentDossier} />
+          <DossierDetail dossier={dossier} />
         </div>
       </div>
     );
   }
 
-  // Affichage normal pour les autres utilisateurs
-  return <DossierDetail dossier={currentDossier} />;
+  return <DossierDetail dossier={dossier} />;
 };
 
 export default DossierPage;
