@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Settings, UserCircle } from "lucide-react";
+import { User, LogOut, Settings, UserCircle, BarChart2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -52,7 +52,7 @@ const UserAvatar: React.FC = () => {
           <span>Profil</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate("/statistiques")}>
-          <BarChart4 className="mr-2 h-4 w-4" />
+          <BarChart2 className="mr-2 h-4 w-4" />
           <span>Statistiques</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate("/dossiers")}>

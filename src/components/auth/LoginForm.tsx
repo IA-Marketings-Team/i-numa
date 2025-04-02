@@ -33,7 +33,7 @@ const LoginForm: React.FC = () => {
         });
         navigate("/dashboard");
       } else {
-        setError(error || "Échec de la connexion. Veuillez vérifier vos identifiants.");
+        setError(error?.message || "Échec de la connexion. Veuillez vérifier vos identifiants.");
       }
     } catch (err) {
       setError("Une erreur inattendue s'est produite. Veuillez réessayer.");

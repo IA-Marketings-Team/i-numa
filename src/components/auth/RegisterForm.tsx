@@ -33,7 +33,7 @@ const RegisterForm: React.FC = () => {
 
     // Validate form
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+      setError("Les mots de passe ne correspondent pas");
       return;
     }
 
@@ -52,13 +52,13 @@ const RegisterForm: React.FC = () => {
       );
 
       if (success) {
-        navigate("/login", { state: { message: "Registration successful! Please check your email to confirm your account." } });
+        navigate("/login", { state: { message: "Inscription réussie ! Veuillez vérifier votre email pour confirmer votre compte." } });
       } else {
-        setError(error || "Registration failed. Please try again.");
+        setError(error?.message || "L'inscription a échoué. Veuillez réessayer.");
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
-      console.error("Registration error:", err);
+      setError("Une erreur inattendue s'est produite. Veuillez réessayer.");
+      console.error("Erreur d'inscription:", err);
     } finally {
       setIsLoading(false);
     }
@@ -67,8 +67,8 @@ const RegisterForm: React.FC = () => {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl">Create an Account</CardTitle>
-        <CardDescription>Fill in your details to create a new account</CardDescription>
+        <CardTitle className="text-2xl">Créer un compte</CardTitle>
+        <CardDescription>Remplissez vos informations pour créer un nouveau compte</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -80,7 +80,7 @@ const RegisterForm: React.FC = () => {
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="prenom">First Name</Label>
+              <Label htmlFor="prenom">Prénom</Label>
               <Input
                 id="prenom"
                 name="prenom"
@@ -91,7 +91,7 @@ const RegisterForm: React.FC = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="nom">Last Name</Label>
+              <Label htmlFor="nom">Nom</Label>
               <Input
                 id="nom"
                 name="nom"
@@ -115,7 +115,7 @@ const RegisterForm: React.FC = () => {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="telephone">Phone Number</Label>
+            <Label htmlFor="telephone">Téléphone</Label>
             <Input
               id="telephone"
               name="telephone"
@@ -126,7 +126,7 @@ const RegisterForm: React.FC = () => {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Mot de passe</Label>
             <Input
               id="password"
               name="password"
@@ -138,7 +138,7 @@ const RegisterForm: React.FC = () => {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
             <Input
               id="confirmPassword"
               name="confirmPassword"
@@ -157,15 +157,15 @@ const RegisterForm: React.FC = () => {
           className="w-full"
           disabled={isLoading}
         >
-          {isLoading ? "Creating Account..." : "Create Account"}
+          {isLoading ? "Création du compte..." : "Créer un compte"}
         </Button>
         <div className="text-center text-sm">
-          Already have an account?{" "}
+          Vous avez déjà un compte ?{" "}
           <a
             href="/login"
             className="text-blue-600 hover:text-blue-800 font-medium"
           >
-            Sign in
+            Se connecter
           </a>
         </div>
       </CardFooter>

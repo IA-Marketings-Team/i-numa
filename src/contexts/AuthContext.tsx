@@ -1,176 +1,104 @@
 
-import React, { createContext, useState, useContext, useEffect } from "react";
+import React, { createContext, useContext, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { User, Session } from "@supabase/supabase-js";
-import { UserRole } from "@/types";
+import { User, UserRole } from "@/types";
+import { useAuthState } from "@/hooks/useAuthState";
+import { loginWithEmail, registerWithEmail, signOut, hasPermission as checkPermission } from "@/utils/authUtils";
 import { createAuthLog } from "@/services/authLogService";
 
-interface AuthContextType {
-  session: Session | null;
+export interface AuthContextType {
   user: User | null;
-  loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, role: UserRole) => Promise<void>;
+  session: any | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; error: Error | null }>;
+  register: (userData: Partial<User>, password: string) => Promise<{ success: boolean; error: Error | null }>;
   logout: () => Promise<void>;
-  error: string | null;
-  userDetails: any | null;
+  hasPermission: (requiredRoles: UserRole | UserRole[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [userDetails, setUserDetails] = useState<any | null>(null);
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const {
+    user,
+    session,
+    isAuthenticated,
+    isLoading,
+    setUser,
+  } = useAuthState();
 
-  useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log("Auth state changed:", event, session);
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        // Log login and logout events
-        if (event === 'SIGNED_IN' && session?.user) {
-          logAuthAction(session.user.id, 'login');
-        } else if (event === 'SIGNED_OUT') {
-          // User ID might not be available here, but it's handled in the logout function
-        }
-      }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-
-      if (session?.user) {
-        fetchUserDetails(session.user.id);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // Fetch user details from profiles table
-  const fetchUserDetails = async (userId: string) => {
+  // Login function
+  const login = async (email: string, password: string): Promise<{ success: boolean; error: Error | null }> => {
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (error) {
-        console.error("Error fetching user details:", error);
-        return;
+      const result = await loginWithEmail(email, password);
+      if (result.success && user?.id) {
+        // Log the login action
+        await createAuthLog({
+          userId: user.id,
+          action: 'login',
+          timestamp: new Date(),
+          userAgent: navigator.userAgent,
+        });
       }
-
-      setUserDetails(data);
+      return result;
     } catch (error) {
-      console.error("Unexpected error fetching user details:", error);
+      console.error("Login error:", error);
+      return { success: false, error: error as Error };
     }
   };
 
-  const logAuthAction = async (userId: string, action: 'login' | 'logout') => {
+  // Register function
+  const register = async (userData: Partial<User>, password: string): Promise<{ success: boolean; error: Error | null }> => {
     try {
-      // Create auth log entry
-      await createAuthLog({
-        userId,
-        action,
-        timestamp: new Date(),
-        userAgent: navigator.userAgent,
-        // IP address would need to be captured from server-side
-      });
+      return await registerWithEmail(userData.email || '', password, userData);
     } catch (error) {
-      console.error(`Error logging ${action} action:`, error);
+      console.error("Register error:", error);
+      return { success: false, error: error as Error };
     }
   };
 
-  const login = async (email: string, password: string) => {
-    try {
-      setError(null);
-      setLoading(true);
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        setError(error.message);
-        console.error("Login error:", error);
-      } else if (data.user) {
-        fetchUserDetails(data.user.id);
+  // Logout function
+  const logout = async (): Promise<void> => {
+    if (user?.id) {
+      // Log the logout action
+      try {
+        await createAuthLog({
+          userId: user.id,
+          action: 'logout',
+          timestamp: new Date(),
+          userAgent: navigator.userAgent,
+        });
+      } catch (error) {
+        console.error("Error logging logout:", error);
       }
-    } catch (error: any) {
-      setError(error.message);
-      console.error("Unexpected login error:", error);
-    } finally {
-      setLoading(false);
     }
+    
+    await signOut();
+    setUser(null);
   };
 
-  const signup = async (email: string, password: string, role: UserRole) => {
-    try {
-      setError(null);
-      setLoading(true);
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (error) {
-        setError(error.message);
-        console.error("Signup error:", error);
-      }
-    } catch (error: any) {
-      setError(error.message);
-      console.error("Unexpected signup error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      // Log the logout action before signing out
-      if (user) {
-        await logAuthAction(user.id, 'logout');
-      }
-      
-      setError(null);
-      setLoading(true);
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        setError(error.message);
-        console.error("Logout error:", error);
-      }
-      setUser(null);
-      setSession(null);
-      setUserDetails(null);
-    } catch (error: any) {
-      setError(error.message);
-      console.error("Unexpected logout error:", error);
-    } finally {
-      setLoading(false);
-    }
+  // Check if user has permission
+  const hasPermission = (requiredRoles: UserRole | UserRole[]): boolean => {
+    if (!user) return false;
+    
+    // Convert single role to array
+    const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
+    
+    return checkPermission(user, roles);
   };
 
   return (
     <AuthContext.Provider
       value={{
-        session,
         user,
-        loading,
+        session,
+        isAuthenticated,
+        isLoading,
         login,
-        signup,
+        register,
         logout,
-        error,
-        userDetails,
+        hasPermission,
       }}
     >
       {children}
@@ -178,7 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
