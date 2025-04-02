@@ -1,3 +1,4 @@
+
 export type UserRole = 'client' | 'agent_phoner' | 'agent_visio' | 'agent_developpeur' | 'agent_marketing' | 'superviseur' | 'responsable';
 
 export type DossierStatus = 'prospect' | 'rdv_en_cours' | 'valide' | 'signe' | 'archive';
@@ -56,6 +57,7 @@ export interface SecteurActivite {
   id: string;
   nom: string;
   description?: string;
+  disponible?: boolean; // Added for use in the join table context
 }
 
 export interface OffreSecteur {

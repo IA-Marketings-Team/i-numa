@@ -25,17 +25,18 @@ export const fetchOffres = async (): Promise<Offre[]> => {
 };
 
 export const fetchOffresWithSecteurs = async (): Promise<Offre[]> => {
-  const { data, error } = await supabase
+  // First fetch all offers
+  const { data: offresData, error: offresError } = await supabase
     .from('offres')
     .select('*');
   
-  if (error) {
-    console.error("Error fetching offres:", error);
-    throw new Error(error.message);
+  if (offresError) {
+    console.error("Error fetching offres:", offresError);
+    throw new Error(offresError.message);
   }
   
   // Transform Supabase data to match our Offre type
-  const offres: Offre[] = data.map(item => ({
+  const offres: Offre[] = offresData.map(item => ({
     id: item.id,
     nom: item.nom || '',
     description: item.description || '',
@@ -44,32 +45,46 @@ export const fetchOffresWithSecteurs = async (): Promise<Offre[]> => {
     secteurs: [] // Will be populated below
   }));
   
-  // Fetch the sectors for each offer
-  for (const offre of offres) {
-    const { data: secteurData, error: secteurError } = await supabase
-      .from('offres_secteurs')
-      .select(`
-        secteur_id,
-        disponible,
-        secteurs_activite:secteur_id(id, nom, description)
-      `)
-      .eq('offre_id', offre.id);
+  // Now let's fetch all secteurs_activite
+  const { data: secteurs, error: secteursError } = await supabase
+    .from('secteurs_activite')
+    .select('*');
     
-    if (secteurError) {
-      console.error(`Error fetching sectors for offre ${offre.id}:`, secteurError);
-      continue;
-    }
+  if (secteursError) {
+    console.error("Error fetching secteurs:", secteursError);
+  }
+  
+  // Then fetch all offres_secteurs join table records
+  const { data: offresSecteurs, error: joinError } = await supabase
+    .from('offres_secteurs')
+    .select('*');
     
-    if (secteurData && secteurData.length > 0) {
-      // Filter only disponible sectors and transform to our type
-      offre.secteurs = secteurData
-        .filter(item => item.disponible)
-        .map(item => ({
-          id: item.secteurs_activite.id,
-          nom: item.secteurs_activite.nom,
-          description: item.secteurs_activite.description
-        }));
-    }
+  if (joinError) {
+    console.error("Error fetching offres_secteurs:", joinError);
+  }
+  
+  if (secteurs && offresSecteurs) {
+    // For each offer, find its associated sectors
+    offres.forEach(offre => {
+      const offreJoins = offresSecteurs.filter(join => join.offre_id === offre.id && join.disponible);
+      
+      if (offreJoins.length > 0) {
+        // Map to our SecteurActivite type
+        offre.secteurs = offreJoins
+          .map(join => {
+            const secteur = secteurs.find(s => s.id === join.secteur_id);
+            if (secteur) {
+              return {
+                id: secteur.id,
+                nom: secteur.nom,
+                description: secteur.description
+              };
+            }
+            return null;
+          })
+          .filter(Boolean) as SecteurActivite[];
+      }
+    });
   }
   
   return offres;
@@ -98,24 +113,41 @@ export const fetchOffreById = async (id: string): Promise<Offre | null> => {
     prix: data.prix || 0
   };
   
-  // Fetch the sectors for this offer
-  const { data: secteurData, error: secteurError } = await supabase
-    .from('offres_secteurs')
-    .select(`
-      secteur_id,
-      disponible,
-      secteurs_activite:secteur_id(id, nom, description)
-    `)
-    .eq('offre_id', id);
+  // Now let's fetch all secteurs_activite
+  const { data: secteurs, error: secteursError } = await supabase
+    .from('secteurs_activite')
+    .select('*');
+    
+  if (secteursError) {
+    console.error("Error fetching secteurs:", secteursError);
+  }
   
-  if (!secteurError && secteurData && secteurData.length > 0) {
-    // Include all sectors with disponible flag
-    offre.secteurs = secteurData.map(item => ({
-      id: item.secteurs_activite.id,
-      nom: item.secteurs_activite.nom,
-      description: item.secteurs_activite.description,
-      disponible: item.disponible
-    }));
+  // Then fetch offres_secteurs join table records for this offer
+  const { data: offresSecteurs, error: joinError } = await supabase
+    .from('offres_secteurs')
+    .select('*')
+    .eq('offre_id', id);
+    
+  if (joinError) {
+    console.error(`Error fetching sectors for offre ${id}:`, joinError);
+  }
+  
+  if (secteurs && offresSecteurs && offresSecteurs.length > 0) {
+    // Map to our SecteurActivite type
+    offre.secteurs = offresSecteurs
+      .map(join => {
+        const secteur = secteurs.find(s => s.id === join.secteur_id);
+        if (secteur) {
+          return {
+            id: secteur.id,
+            nom: secteur.nom,
+            description: secteur.description,
+            disponible: join.disponible
+          };
+        }
+        return null;
+      })
+      .filter(Boolean) as SecteurActivite[];
   }
   
   return offre;
@@ -148,19 +180,22 @@ export const createOffre = async (offreData: Omit<Offre, 'id'>): Promise<Offre |
   
   // If sectors were provided, link them to the offer
   if (offreData.secteurs && offreData.secteurs.length > 0) {
+    // Create array of records for the join table
     const secteurInserts = offreData.secteurs.map(secteur => ({
       offre_id: offre.id,
       secteur_id: secteur.id,
       disponible: true
     }));
     
-    const { error: insertError } = await supabase
-      .from('offres_secteurs')
-      .insert(secteurInserts);
-    
-    if (insertError) {
-      console.error("Error linking sectors to offre:", insertError);
-      // Continue even if sector linking fails
+    // Insert all the join records
+    for (const insert of secteurInserts) {
+      const { error: insertError } = await supabase
+        .from('offres_secteurs')
+        .insert(insert);
+      
+      if (insertError) {
+        console.error("Error linking sector to offre:", insertError);
+      }
     }
   }
   
@@ -187,32 +222,35 @@ export const updateOffre = async (id: string, updates: Partial<Offre>): Promise<
   
   // If sectors were provided, update them
   if (updates.secteurs) {
-    // First, get current sectors
-    const { data: currentSecteurs, error: fetchError } = await supabase
+    // First, get current sectors join records
+    const { data: currentJoins, error: fetchError } = await supabase
       .from('offres_secteurs')
       .select('*')
       .eq('offre_id', id);
     
     if (fetchError) {
       console.error("Error fetching current sectors:", fetchError);
-      // Continue even if sector update fails
     } else {
       // For each provided sector, update or insert
       for (const secteur of updates.secteurs) {
-        const existingSecteur = currentSecteurs?.find(s => s.secteur_id === secteur.id);
+        const existingJoin = currentJoins?.find(j => j.secteur_id === secteur.id);
         
-        if (existingSecteur) {
-          // Update existing link
-          const { error: updateError } = await supabase
-            .from('offres_secteurs')
-            .update({ disponible: secteur.disponible !== false })
-            .eq('id', existingSecteur.id);
-          
-          if (updateError) {
-            console.error("Error updating sector link:", updateError);
+        if (existingJoin) {
+          // Update existing join record if disponible has changed
+          if (existingJoin.disponible !== (secteur.disponible !== false)) {
+            const { error: updateError } = await supabase
+              .from('offres_secteurs')
+              .update({
+                disponible: secteur.disponible !== false
+              })
+              .eq('id', existingJoin.id);
+            
+            if (updateError) {
+              console.error("Error updating sector link:", updateError);
+            }
           }
         } else {
-          // Insert new link
+          // Insert new join record
           const { error: insertError } = await supabase
             .from('offres_secteurs')
             .insert({
@@ -233,6 +271,7 @@ export const updateOffre = async (id: string, updates: Partial<Offre>): Promise<
 };
 
 export const deleteOffre = async (id: string): Promise<boolean> => {
+  // Delete the offer (cascading delete will remove join records)
   const { error } = await supabase
     .from('offres')
     .delete()
@@ -246,7 +285,7 @@ export const deleteOffre = async (id: string): Promise<boolean> => {
   return true;
 };
 
-// New functions for sectors
+// Fetch sectors
 export const fetchSecteurs = async (): Promise<SecteurActivite[]> => {
   const { data, error } = await supabase
     .from('secteurs_activite')
@@ -265,12 +304,13 @@ export const fetchSecteurs = async (): Promise<SecteurActivite[]> => {
   }));
 };
 
+// Update the sectors for an offer
 export const updateOffreSecteurs = async (
   offreId: string, 
   secteurs: { id: string, disponible: boolean }[]
 ): Promise<boolean> => {
-  // First, get all current sector associations
-  const { data: currentLinks, error: fetchError } = await supabase
+  // First, get all current join records
+  const { data: currentJoins, error: fetchError } = await supabase
     .from('offres_secteurs')
     .select('*')
     .eq('offre_id', offreId);
@@ -282,15 +322,17 @@ export const updateOffreSecteurs = async (
   
   // For each sector in the update list
   for (const secteur of secteurs) {
-    const existingLink = currentLinks?.find(link => link.secteur_id === secteur.id);
+    const existingJoin = currentJoins?.find(join => join.secteur_id === secteur.id);
     
-    if (existingLink) {
-      // Update existing link
-      if (existingLink.disponible !== secteur.disponible) {
+    if (existingJoin) {
+      // Update existing join record if disponible has changed
+      if (existingJoin.disponible !== secteur.disponible) {
         const { error: updateError } = await supabase
           .from('offres_secteurs')
-          .update({ disponible: secteur.disponible })
-          .eq('id', existingLink.id);
+          .update({
+            disponible: secteur.disponible
+          })
+          .eq('id', existingJoin.id);
         
         if (updateError) {
           console.error("Error updating sector availability:", updateError);
@@ -298,7 +340,7 @@ export const updateOffreSecteurs = async (
         }
       }
     } else {
-      // Create new link
+      // Create new join record
       const { error: insertError } = await supabase
         .from('offres_secteurs')
         .insert({
@@ -313,8 +355,6 @@ export const updateOffreSecteurs = async (
       }
     }
   }
-  
-  // For sectors in the database but not in the update list, we'll leave them as is
   
   return true;
 };

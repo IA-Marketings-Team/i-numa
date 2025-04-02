@@ -10,7 +10,7 @@ import { fr } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { useDossier } from "@/contexts/DossierContext";
 import { Dossier, RendezVous } from "@/types";
-import { RendezVousFormDialog } from "@/components/stats/RendezVousFormDialog";
+import RendezVousFormDialog from "@/components/stats/RendezVousFormDialog"; // Changed from named import to default import
 import { useToast } from "@/hooks/use-toast";
 import { 
   fetchRendezVous, 
