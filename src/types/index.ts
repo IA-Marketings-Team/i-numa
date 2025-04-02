@@ -80,6 +80,7 @@ export interface RendezVous {
 }
 
 export interface Statistique {
+  id?: string; // Adding optional id field to match Supabase data
   periode: 'jour' | 'semaine' | 'mois';
   dateDebut: Date;
   dateFin: Date;

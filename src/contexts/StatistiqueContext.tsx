@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Statistique, Agent, UserRole } from "@/types";
 import { useAuth } from "./AuthContext";
@@ -14,7 +13,7 @@ import { fetchAgentById, resetAgentStats } from "@/services/agentService";
 import { useToast } from "@/hooks/use-toast";
 
 interface StatistiqueContextType {
-  statistiques: Array<Statistique & { id: string }>;
+  statistiques: Array<Statistique>;
   isLoading: boolean;
   error: Error | null;
   refreshStatistiques: () => Promise<void>;
@@ -22,18 +21,16 @@ interface StatistiqueContextType {
   getStatistiquesByPeriodeType: (periode: "jour" | "semaine" | "mois") => Promise<Statistique[]>;
   getAgentStatistics: (agentId: string) => Promise<Agent | undefined>;
   resetAgentStatistics: (agentId: string) => Promise<boolean>;
-  getAuthorizedStatistics: (userRole: UserRole) => Partial<Statistique & { id: string }>[];
+  getAuthorizedStatistics: (userRole: UserRole) => Partial<Statistique>[];
   addStatistique: (data: Omit<Statistique, "id">) => Promise<Statistique | null>;
   editStatistique: (id: string, data: Partial<Statistique>) => Promise<boolean>;
   removeStatistique: (id: string) => Promise<boolean>;
 }
 
-type StatistiqueWithId = Statistique & { id: string };
-
 const StatistiqueContext = createContext<StatistiqueContextType | undefined>(undefined);
 
 export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [statistiques, setStatistiques] = useState<StatistiqueWithId[]>([]);
+  const [statistiques, setStatistiques] = useState<Statistique[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
   const { user } = useAuth();
@@ -53,7 +50,7 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
             id: `stat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}` 
           };
         }
-        return stat as StatistiqueWithId;
+        return stat;
       });
       
       setStatistiques(statsWithId);
@@ -142,7 +139,7 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
-  const getAuthorizedStatistics = (userRole: UserRole): Partial<StatistiqueWithId>[] => {
+  const getAuthorizedStatistics = (userRole: UserRole): Partial<Statistique>[] => {
     // Cloner les statistiques pour éviter de modifier les originales
     const authorizedStats = statistiques.map(stat => ({ ...stat }));
     
@@ -173,14 +170,11 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const newStat = await createStatistique(data);
       if (newStat) {
         // Assurez-vous que la nouvelle statistique a un ID
-        const newStatWithId = newStat as StatistiqueWithId;
-        
-        // Si pour une raison quelconque il n'y a pas d'ID, générez-en un
-        if (!newStatWithId.id) {
-          newStatWithId.id = `stat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        if (!newStat.id) {
+          newStat.id = `stat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
         }
         
-        setStatistiques(prev => [...prev, newStatWithId]);
+        setStatistiques(prev => [...prev, newStat]);
         toast({
           title: "Succès",
           description: "La statistique a été ajoutée avec succès",
@@ -203,7 +197,7 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const success = await updateStatistique(id, data);
       if (success) {
         setStatistiques(prev => prev.map(stat => 
-          stat.id === id ? { ...stat, ...data } as StatistiqueWithId : stat
+          stat.id === id ? { ...stat, ...data } : stat
         ));
         toast({
           title: "Succès",
