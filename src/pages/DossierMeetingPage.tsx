@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { DossierProvider } from "@/contexts/DossierContext";
 
-const DossierMeetingPage: React.FC = () => {
+const DossierMeetingContent: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { getDossierById, addRendezVous, currentDossier } = useDossier();
   const { user } = useAuth();
@@ -185,6 +186,15 @@ const DossierMeetingPage: React.FC = () => {
         </Card>
       )}
     </div>
+  );
+};
+
+// Wrapper component that provides the DossierProvider context
+const DossierMeetingPage: React.FC = () => {
+  return (
+    <DossierProvider>
+      <DossierMeetingContent />
+    </DossierProvider>
   );
 };
 
