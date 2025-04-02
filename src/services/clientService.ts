@@ -77,7 +77,9 @@ export const fetchClientById = async (id: string): Promise<Client | null> => {
 export const createClient = async (clientData: Omit<Client, 'id'>): Promise<Client> => {
   // Transform our Client type to match the Supabase profiles table structure
   const clientForSupabase = {
-    // We don't include id as Supabase will generate it
+    // Use an empty string for ID to allow Supabase to generate it
+    // The type definitions expect id but Supabase will ignore it for inserts
+    id: undefined,
     nom: clientData.nom,
     prenom: clientData.prenom,
     email: clientData.email,
@@ -94,11 +96,11 @@ export const createClient = async (clientData: Omit<Client, 'id'>): Promise<Clie
     role: 'client'
   };
 
-  // Insert the client into the profiles table
-  // We use upsert instead of insert to avoid the id requirement
+  // Insert the client into the profiles table using insert instead of upsert
+  // The TypeScript error occurs because upsert expects an id
   const { data, error } = await supabase
     .from('profiles')
-    .upsert(clientForSupabase)
+    .insert(clientForSupabase)
     .select()
     .single();
   
