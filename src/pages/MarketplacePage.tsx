@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -7,16 +6,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingCart, Filter, Search, Check, Tags, Mail } from "lucide-react";
 import {
-  BuildingStore,
+  Building,
   MessageCircle,
   Star,
-  World,
-  ThumbUp,
+  Globe,
+  ThumbsUp,
   Gauge,
   Gift,
   Cloud,
   TrendingUp,
-  ChartCandle,
+  CandlestickChart,
   TrendingDown,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -57,7 +56,6 @@ const MarketplacePage = () => {
     const loadOffres = async () => {
       setIsLoading(true);
       try {
-        // Charger les offres depuis le service
         const data = await fetchOffres();
         setOffres(data);
         setFilteredOffres(data);
@@ -165,14 +163,13 @@ const MarketplacePage = () => {
         </div>
       </div>
       
-      {/* Marketing Benefits Cards */}
       <div className="mb-10 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950 p-6 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
         <h2 className="text-xl font-semibold mb-4 text-center bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
           Nos offres vous permettent de...
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           <div className="flex flex-col items-center p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
-            <BuildingStore className="h-8 w-8 mb-2 text-indigo-500" />
+            <Building className="h-8 w-8 mb-2 text-indigo-500" />
             <p className="text-center text-sm">Générez des <strong>visites en magasin</strong></p>
           </div>
           
@@ -187,12 +184,12 @@ const MarketplacePage = () => {
           </div>
           
           <div className="flex flex-col items-center p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
-            <World className="h-8 w-8 mb-2 text-indigo-500" />
+            <Globe className="h-8 w-8 mb-2 text-indigo-500" />
             <p className="text-center text-sm">Augmentez votre <strong>visibilité / notoriété</strong></p>
           </div>
           
           <div className="flex flex-col items-center p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
-            <ThumbUp className="h-8 w-8 mb-2 text-indigo-500" />
+            <ThumbsUp className="h-8 w-8 mb-2 text-indigo-500" />
             <p className="text-center text-sm">Générez des <strong>avis positifs</strong></p>
           </div>
           
@@ -217,7 +214,7 @@ const MarketplacePage = () => {
           </div>
           
           <div className="flex flex-col items-center p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
-            <ChartCandle className="h-8 w-8 mb-2 text-indigo-500" />
+            <CandlestickChart className="h-8 w-8 mb-2 text-indigo-500" />
             <p className="text-center text-sm"><strong>Pilotez</strong> votre activité</p>
           </div>
           
@@ -284,7 +281,6 @@ const MarketplacePage = () => {
             </div>
           </div>
           
-          {/* Offres spéciales ou mises en avant */}
           <div className="bg-gradient-to-br from-purple-100 to-blue-50 dark:from-purple-950 dark:to-blue-950 p-5 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
             <h3 className="text-lg font-medium mb-3">Offres spéciales</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
@@ -374,7 +370,6 @@ const MarketplacePage = () => {
         </div>
       </div>
       
-      {/* Dialog pour l'envoi d'email */}
       <EmailOfferDialog 
         open={isEmailDialogOpen} 
         onOpenChange={setIsEmailDialogOpen}
