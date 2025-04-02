@@ -1,22 +1,8 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-
-export interface CartItem {
-  id: string;
-  offreId: string;
-  quantity: number;
-  nom?: string;
-  description?: string;
-  type?: string;
-  prix?: number;
-  title?: string;
-  category?: string;
-  price?: string;
-  setupFee?: string;
-  prixMensuel?: string;
-  fraisCreation?: string;
-}
+import { CartItem } from "@/types";
 
 interface CartContextType {
   cart: CartItem[];
