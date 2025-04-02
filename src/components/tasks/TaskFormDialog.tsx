@@ -45,74 +45,35 @@ interface TaskFormData {
 }
 
 interface TaskFormDialogProps {
-  isOpen: boolean;
+  open: boolean;
   onOpenChange: (open: boolean) => void;
-  task: Task | null;
-  isEditMode: boolean;
+  initialData?: Task;
+  agents: Agent[];
   onSubmit: ((data: Omit<Task, "id" | "dateCreation">) => Promise<void>) | ((id: string, updates: Partial<Task>) => Promise<void>);
   onDelete?: (id: string) => Promise<void>;
 }
 
 const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
-  isOpen,
+  open,
   onOpenChange,
-  task,
-  isEditMode,
+  initialData,
+  agents,
   onSubmit,
   onDelete,
 }) => {
-  const [agents, setAgents] = useState<Agent[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { register, handleSubmit, setValue, reset, watch } = useForm<TaskFormData>();
   const selectedDate = watch("dateEcheance");
+  const isEditMode = !!initialData;
 
   useEffect(() => {
-    const loadAgents = async () => {
-      try {
-        const agentList = await fetchAgents();
-        // Transform the data to match the Agent type
-        const transformedAgents: Agent[] = agentList.map(agent => ({
-          id: agent.id,
-          nom: agent.nom || '',
-          prenom: agent.prenom || '',
-          email: agent.email || '',
-          telephone: agent.telephone || '',
-          role: agent.role as any || 'agent_phoner',
-          dateCreation: new Date(agent.date_creation || new Date()),
-          adresse: agent.adresse,
-          ville: agent.ville,
-          codePostal: agent.code_postal,
-          iban: agent.iban,
-          bic: agent.bic,
-          nomBanque: agent.nom_banque,
-          equipeId: agent.equipe_id,
-          statistiques: {
-            appelsEmis: agent.appels_emis || 0,
-            appelsDecroches: agent.appels_decroches || 0,
-            appelsTransformes: agent.appels_transformes || 0,
-            rendezVousHonores: agent.rendez_vous_honores || 0,
-            rendezVousNonHonores: agent.rendez_vous_non_honores || 0,
-            dossiersValides: agent.dossiers_valides || 0,
-            dossiersSigne: agent.dossiers_signe || 0
-          }
-        }));
-        setAgents(transformedAgents);
-      } catch (error) {
-        console.error("Error loading agents:", error);
-      }
-    };
-
-    loadAgents();
-  }, []);
-
-  useEffect(() => {
-    if (task && isEditMode) {
-      setValue("title", task.title);
-      setValue("description", task.description || "");
-      setValue("agentId", task.agentId);
-      setValue("status", task.status);
-      setValue("priority", task.priority);
-      setValue("dateEcheance", task.dateEcheance);
+    if (initialData && isEditMode) {
+      setValue("title", initialData.title);
+      setValue("description", initialData.description || "");
+      setValue("agentId", initialData.agentId);
+      setValue("status", initialData.status);
+      setValue("priority", initialData.priority);
+      setValue("dateEcheance", initialData.dateEcheance);
     } else {
       reset({
         title: "",
@@ -122,35 +83,30 @@ const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
         priority: "medium",
       });
     }
-  }, [task, isEditMode, setValue, reset]);
+  }, [initialData, isEditMode, setValue, reset]);
 
   const handleFormSubmit: SubmitHandler<TaskFormData> = (data) => {
-    if (isEditMode && task) {
-      // Remove undefined values to prevent overwriting with undefined
-      const updates: Partial<Task> = {};
-      if (data.title !== undefined) updates.title = data.title;
-      if (data.description !== undefined) updates.description = data.description;
-      if (data.agentId !== undefined) updates.agentId = data.agentId;
-      if (data.status !== undefined) updates.status = data.status;
-      if (data.priority !== undefined) updates.priority = data.priority;
-      if (data.dateEcheance !== undefined) updates.dateEcheance = data.dateEcheance;
-
-      (onSubmit as (id: string, updates: Partial<Task>) => Promise<void>)(task.id, updates);
+    if (isEditMode && initialData) {
+      // Cast the onSubmit function to the correct type for edit mode
+      (onSubmit as (id: string, updates: Partial<Task>) => Promise<void>)(initialData.id, data);
     } else {
+      // Cast the onSubmit function to the correct type for create mode
       (onSubmit as (data: Omit<Task, "id" | "dateCreation">) => Promise<void>)(data);
     }
+    onOpenChange(false);
   };
 
   const handleDelete = () => {
-    if (task && onDelete) {
-      onDelete(task.id);
+    if (initialData && onDelete) {
+      onDelete(initialData.id);
     }
     setIsDeleteDialogOpen(false);
+    onOpenChange(false);
   };
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>{isEditMode ? "Modifier la tâche" : "Créer une nouvelle tâche"}</DialogTitle>
@@ -177,7 +133,7 @@ const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
                 <Label htmlFor="agentId">Agent assigné</Label>
                 <Select
                   onValueChange={(value) => setValue("agentId", value)}
-                  defaultValue={task?.agentId}
+                  defaultValue={initialData?.agentId}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner un agent" />
@@ -197,7 +153,7 @@ const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
                   <Label htmlFor="status">Statut</Label>
                   <Select
                     onValueChange={(value) => setValue("status", value as TaskStatus)}
-                    defaultValue={task?.status || "to_do"}
+                    defaultValue={initialData?.status || "to_do"}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Statut" />
@@ -214,7 +170,7 @@ const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
                   <Label htmlFor="priority">Priorité</Label>
                   <Select
                     onValueChange={(value) => setValue("priority", value as TaskPriority)}
-                    defaultValue={task?.priority || "medium"}
+                    defaultValue={initialData?.priority || "medium"}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Priorité" />

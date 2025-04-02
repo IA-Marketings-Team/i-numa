@@ -1,3 +1,4 @@
+
 import { Client } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -93,7 +94,7 @@ export const createClient = async (clientData: Omit<Client, 'id'>): Promise<Clie
 
   const { data, error } = await supabase
     .from('profiles')
-    .insert(clientForSupabase)
+    .insert([clientForSupabase])  // Wrap in array to match the expected format
     .select()
     .single();
   

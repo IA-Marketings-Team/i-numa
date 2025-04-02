@@ -54,6 +54,7 @@ import KanbanBoard from "@/components/tasks/KanbanBoard";
 import TeamForm from "@/components/teams/TeamForm";
 import AgentForm from "@/components/agents/AgentForm";
 import TaskFormDialog from "@/components/tasks/TaskFormDialog";
+import { createTask } from "@/services/taskService";
 import { 
   BarChart2, 
   Phone, 
@@ -228,7 +229,7 @@ const SuperviseurEquipe = () => {
     });
   };
 
-  const handleSubmitTask = async (data: Omit<Task, "id" | "dateCreation">) => {
+  const handleSubmitTask = async (data: Omit<Task, "id" | "dateCreation">): Promise<void> => {
     try {
       await createTask(data);
       toast({
@@ -240,30 +241,34 @@ const SuperviseurEquipe = () => {
     }
   };
 
-  const handleEditTask = (data: any) => {
+  const handleEditTask = async (id: string, updates: Partial<Task>): Promise<void> => {
     if (!selectedTask) return;
 
-    const updatedTasks = tasks.map(task => 
-      task.id === selectedTask.id
-        ? {
-            ...task,
-            title: data.title,
-            description: data.description,
-            agentId: data.agentId,
-            status: data.status,
-            dateEcheance: data.dateEcheance,
-            priority: data.priority
-          }
-        : task
-    );
+    try {
+      const updatedTasks = tasks.map(task => 
+        task.id === selectedTask.id
+          ? {
+              ...task,
+              title: updates.title || task.title,
+              description: updates.description || task.description,
+              agentId: updates.agentId || task.agentId,
+              status: updates.status || task.status,
+              dateEcheance: updates.dateEcheance || task.dateEcheance,
+              priority: updates.priority || task.priority
+            }
+          : task
+      );
 
-    setTasks(updatedTasks);
-    setSelectedTask(null);
-    
-    toast({
-      title: "Tâche mise à jour",
-      description: `La tâche "${data.title}" a été mise à jour avec succès`,
-    });
+      setTasks(updatedTasks);
+      setSelectedTask(null);
+      
+      toast({
+        title: "Tâche mise à jour",
+        description: `La tâche "${updates.title}" a été mise à jour avec succès`,
+      });
+    } catch (error) {
+      console.error("Failed to update task:", error);
+    }
   };
 
   const handleTaskClick = (task: Task) => {
