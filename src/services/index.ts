@@ -8,3 +8,4 @@ export * from './userService';
 export { clientService } from './clientService';
 export { userService } from './userService';
 export { deleteClient } from './clientService';
+export { offreService } from './offreService';

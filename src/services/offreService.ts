@@ -1,4 +1,3 @@
-
 import { Offre, SecteurActivite, OffreSection } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -538,3 +537,15 @@ function getMockOffres(): Offre[] {
     }
   ];
 }
+
+// Export as named export for easier importing
+export const offreService = {
+  fetchOffres,
+  fetchOffresWithSecteurs,
+  fetchOffreById,
+  createOffre,
+  updateOffre,
+  deleteOffre,
+  fetchSecteurs,
+  updateOffreSecteurs
+};

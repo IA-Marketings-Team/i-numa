@@ -4,7 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from "@/contexts/CartContext";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import CartDrawer, { FixedCartDrawer } from "@/components/cart/CartDrawer";

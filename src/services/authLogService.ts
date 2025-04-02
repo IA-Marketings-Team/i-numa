@@ -17,7 +17,7 @@ export const fetchAuthLogs = async (): Promise<AuthLog[]> => {
       return [];
     }
 
-    return data ? data.map((log: any) => ({
+    return data && Array.isArray(data) ? data.map((log: any) => ({
       id: log.id,
       userId: log.user_id,
       action: log.action,
@@ -45,7 +45,7 @@ export const fetchAuthLogsByUser = async (userId: string): Promise<AuthLog[]> =>
       return [];
     }
 
-    return data ? data.map((log: any) => ({
+    return data && Array.isArray(data) ? data.map((log: any) => ({
       id: log.id,
       userId: log.user_id,
       action: log.action,
