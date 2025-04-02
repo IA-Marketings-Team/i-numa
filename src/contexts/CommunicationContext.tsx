@@ -30,6 +30,8 @@ interface CommunicationContextType {
   meetings: Meeting[];
   emails: Email[];
   loading: boolean;
+  fetchingEmails: boolean;
+  fetchingMeetings: boolean;
   fetchAppels: () => Promise<void>;
   getAppelById: (id: string) => Promise<Appel | null>;
   addAppel: (appel: Omit<Appel, "id">) => Promise<Appel | null>;
@@ -45,6 +47,7 @@ interface CommunicationContextType {
   addEmail: (email: Omit<Email, "id">) => Promise<Email | null>;
   editEmail: (id: string, updates: Partial<Email>) => Promise<boolean>;
   removeEmail: (id: string) => Promise<boolean>;
+  markAsRead: (id: string) => Promise<boolean>;
 }
 
 const CommunicationContext = createContext<CommunicationContextType | undefined>(undefined);
@@ -56,6 +59,8 @@ export const CommunicationProvider: React.FC<{ children: ReactNode }> = ({ child
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [emails, setEmails] = useState<Email[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchingEmails, setFetchingEmails] = useState(false);
+  const [fetchingMeetings, setFetchingMeetings] = useState(false);
 
   // Charger les données initiales
   useEffect(() => {
@@ -85,21 +90,39 @@ export const CommunicationProvider: React.FC<{ children: ReactNode }> = ({ child
   }, [user]);
 
   const fetchAndSetAppels = async () => {
-    const data = await fetchAppels();
-    setAppels(data);
-    return data;
+    try {
+      const data = await fetchAppels();
+      setAppels(data);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des appels:", error);
+      throw error;
+    }
   };
 
   const fetchAndSetMeetings = async () => {
-    const data = await fetchMeetings();
-    setMeetings(data);
-    return data;
+    try {
+      setFetchingMeetings(true);
+      const data = await fetchMeetings();
+      setMeetings(data);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des réunions:", error);
+      throw error;
+    } finally {
+      setFetchingMeetings(false);
+    }
   };
 
   const fetchAndSetEmails = async () => {
-    const data = await fetchEmails();
-    setEmails(data);
-    return data;
+    try {
+      setFetchingEmails(true);
+      const data = await fetchEmails();
+      setEmails(data);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des emails:", error);
+      throw error;
+    } finally {
+      setFetchingEmails(false);
+    }
   };
 
   // Méthodes pour les appels
@@ -189,26 +212,38 @@ export const CommunicationProvider: React.FC<{ children: ReactNode }> = ({ child
     return success;
   };
 
-  const value = {
+  const markAsRead = async (id: string) => {
+    const success = await updateEmail(id, { lu: true });
+    if (success) {
+      setEmails(emails.map(e => e.id === id ? { ...e, lu: true } : e));
+    }
+    return success;
+  };
+
+  // Now we need to modify our context value to match the CommunicationContextType
+  const value: CommunicationContextType = {
     appels,
     meetings,
     emails,
     loading,
-    fetchAppels: fetchAndSetAppels,
+    fetchingEmails,
+    fetchingMeetings,
+    fetchAppels: async () => { await fetchAndSetAppels(); },
     getAppelById,
     addAppel,
     editAppel,
     removeAppel,
-    fetchMeetings: fetchAndSetMeetings,
+    fetchMeetings: async () => { await fetchAndSetMeetings(); },
     getMeetingById,
     addMeeting,
     editMeeting,
     removeMeeting,
-    fetchEmails: fetchAndSetEmails,
+    fetchEmails: async () => { await fetchAndSetEmails(); },
     getEmailById,
     addEmail,
     editEmail,
-    removeEmail
+    removeEmail,
+    markAsRead
   };
 
   return (

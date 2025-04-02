@@ -1,212 +1,217 @@
 
-import { useEffect, useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
-import KanbanBoard from "@/components/tasks/KanbanBoard";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import TaskFormDialog from "@/components/tasks/TaskFormDialog";
-import { Plus } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Filter, Plus } from 'lucide-react';
+import KanbanBoard from '@/components/tasks/KanbanBoard';
+import TaskFormDialog from '@/components/tasks/TaskFormDialog';
+import { fetchTasks, createTask, updateTaskStatus, deleteTask } from '@/services/taskService';
+import { Task, TaskStatus } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  status: 'todo' | 'in-progress' | 'review' | 'done';
-  priority: 'low' | 'medium' | 'high';
-  agent_id: string;
-  date_creation: string;
-  date_echeance: string;
-}
-
-const TasksPage = () => {
+const TasksPage: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
+  const [loading, setLoading] = useState(true);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'mine' | 'team'>('all');
+  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+
   useEffect(() => {
-    fetchTasks();
-  }, [user]);
-  
-  const fetchTasks = async () => {
-    if (!user) return;
-    
-    setIsLoading(true);
-    
+    loadTasks();
+  }, [selectedFilter, user]);
+
+  const loadTasks = async () => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('agent_id', user.id)
-        .order('date_echeance', { ascending: true });
-        
-      if (error) throw error;
+      let loadedTasks: Task[] = [];
       
-      setTasks(data as Task[]);
+      if (selectedFilter === 'mine' && user) {
+        loadedTasks = await fetchTasks({ agentId: user.id });
+      } else if (selectedFilter === 'team' && user) {
+        // Pour l'instant, chargez toutes les tâches.
+        // Dans le futur, nous pourrions filtrer par équipe quand cette fonctionnalité sera implémentée
+        loadedTasks = await fetchTasks();
+      } else {
+        loadedTasks = await fetchTasks();
+      }
+      
+      // Transform from DB format to our Task interface if needed
+      const transformedTasks: Task[] = loadedTasks.map(task => ({
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        agentId: task.agentId,
+        status: task.status as TaskStatus,
+        dateCreation: task.dateCreation,
+        dateEcheance: task.dateEcheance,
+        priority: task.priority as 'low' | 'medium' | 'high'
+      }));
+      
+      setTasks(transformedTasks);
     } catch (error) {
-      console.error("Erreur lors de la récupération des tâches:", error);
+      console.error('Erreur lors du chargement des tâches:', error);
       toast({
+        variant: "destructive",
         title: "Erreur",
-        description: "Impossible de récupérer vos tâches. Veuillez réessayer plus tard.",
-        variant: "destructive"
+        description: "Impossible de charger les tâches."
       });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
-  
-  const handleTaskCreate = async (newTask: Partial<Task>) => {
-    if (!user) return;
+
+  const handleAddTask = async (data: { 
+    title?: string; 
+    status?: TaskStatus; 
+    agentId?: string; 
+    description?: string; 
+    priority?: 'low' | 'medium' | 'high';
+    dateEcheance?: Date;
+  }) => {
+    if (!data.title) return;
     
     try {
-      const { data, error } = await supabase
-        .from('tasks')
-        .insert({
-          title: newTask.title,
-          description: newTask.description || '',
-          status: newTask.status || 'todo',
-          priority: newTask.priority || 'medium',
-          agent_id: user.id,
-          date_echeance: newTask.date_echeance
-        })
-        .select();
-        
-      if (error) throw error;
+      const newTask: Omit<Task, 'id'> = {
+        title: data.title,
+        status: data.status || 'to_do',
+        agentId: data.agentId || (user ? user.id : ''),
+        description: data.description || '',
+        dateCreation: new Date(),
+        dateEcheance: data.dateEcheance,
+        priority: data.priority || 'medium'
+      };
       
-      setTasks([...tasks, data[0] as Task]);
+      await createTask(newTask);
+      loadTasks();
+      setIsCreateModalOpen(false);
       
       toast({
         title: "Tâche créée",
-        description: "Votre tâche a été créée avec succès."
+        description: "La tâche a été créée avec succès."
       });
     } catch (error) {
-      console.error("Erreur lors de la création de la tâche:", error);
+      console.error('Erreur lors de la création de la tâche:', error);
       toast({
+        variant: "destructive",
         title: "Erreur",
-        description: "Impossible de créer la tâche. Veuillez réessayer plus tard.",
-        variant: "destructive"
+        description: "Impossible de créer la tâche."
       });
     }
   };
-  
-  const handleTaskUpdate = async (updatedTask: Task) => {
+
+  const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
     try {
-      const { error } = await supabase
-        .from('tasks')
-        .update({
-          title: updatedTask.title,
-          description: updatedTask.description,
-          status: updatedTask.status,
-          priority: updatedTask.priority,
-          date_echeance: updatedTask.date_echeance
-        })
-        .eq('id', updatedTask.id);
-        
-      if (error) throw error;
-      
+      await updateTaskStatus(taskId, newStatus);
       setTasks(tasks.map(task => 
-        task.id === updatedTask.id ? updatedTask : task
+        task.id === taskId ? { ...task, status: newStatus } : task
       ));
       
       toast({
-        title: "Tâche mise à jour",
-        description: "Votre tâche a été mise à jour avec succès."
+        title: "Statut mis à jour",
+        description: "Le statut de la tâche a été mis à jour."
       });
     } catch (error) {
-      console.error("Erreur lors de la mise à jour de la tâche:", error);
+      console.error('Erreur lors de la mise à jour du statut:', error);
       toast({
+        variant: "destructive",
         title: "Erreur",
-        description: "Impossible de mettre à jour la tâche. Veuillez réessayer plus tard.",
-        variant: "destructive"
+        description: "Impossible de mettre à jour le statut de la tâche."
       });
     }
   };
-  
-  const handleTaskDelete = async (taskId: string) => {
+
+  const handleDeleteTask = async (taskId: string) => {
     try {
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', taskId);
-        
-      if (error) throw error;
-      
+      await deleteTask(taskId);
       setTasks(tasks.filter(task => task.id !== taskId));
       
       toast({
         title: "Tâche supprimée",
-        description: "Votre tâche a été supprimée avec succès."
+        description: "La tâche a été supprimée avec succès."
       });
     } catch (error) {
-      console.error("Erreur lors de la suppression de la tâche:", error);
+      console.error('Erreur lors de la suppression de la tâche:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible de supprimer la tâche. Veuillez réessayer plus tard.",
-        variant: "destructive"
+        variant: "destructive",
+        title: "Erreur", 
+        description: "Impossible de supprimer la tâche."
       });
     }
   };
-  
-  const handleStatusChange = async (taskId: string, newStatus: 'todo' | 'in-progress' | 'review' | 'done') => {
-    const taskToUpdate = tasks.find(task => task.id === taskId);
-    if (!taskToUpdate) return;
-    
-    const updatedTask = { ...taskToUpdate, status: newStatus };
-    await handleTaskUpdate(updatedTask);
-  };
 
-  // Adjust the props for the KanbanBoard component
-  const handleTaskClick = (task: Task) => {
-    // Open task detail or edit dialog here if needed
-    console.log("Task clicked:", task);
-  };
-  
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Gestion des tâches</h1>
-        <Button onClick={() => setIsDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Nouvelle tâche
-        </Button>
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Gestion des tâches</h1>
+        <div className="flex space-x-4">
+          <Button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" /> Nouvelle tâche
+          </Button>
+        </div>
       </div>
       
-      {isLoading ? (
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+        <Tabs defaultValue="all" value={selectedFilter} onValueChange={(v) => setSelectedFilter(v as any)}>
+          <TabsList>
+            <TabsTrigger value="all">Toutes les tâches</TabsTrigger>
+            <TabsTrigger value="mine">Mes tâches</TabsTrigger>
+            <TabsTrigger value="team">Équipe</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        
+        <div className="flex items-center gap-2">
+          <Tabs defaultValue="kanban" value={viewMode} onValueChange={(v) => setViewMode(v as any)}>
+            <TabsList>
+              <TabsTrigger value="kanban">Kanban</TabsTrigger>
+              <TabsTrigger value="list">Liste</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      </div>
+      
+      {loading ? (
         <Card>
-          <CardContent className="p-8">
-            <p className="text-center">Chargement des tâches...</p>
-          </CardContent>
-        </Card>
-      ) : tasks.length === 0 ? (
-        <Card>
-          <CardContent className="p-8">
-            <div className="text-center">
-              <h3 className="text-lg font-medium mb-2">Aucune tâche</h3>
-              <p className="text-muted-foreground mb-4">Vous n'avez aucune tâche pour le moment.</p>
-              <Button onClick={() => setIsDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" /> Créer une tâche
-              </Button>
+          <CardContent className="p-6">
+            <div className="flex justify-center">
+              <p>Chargement des tâches...</p>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <KanbanBoard 
-          tasks={tasks}
-          onTaskClick={handleTaskClick}
-          onTaskStatusChange={handleStatusChange}
-        />
+        viewMode === 'kanban' ? (
+          <KanbanBoard 
+            tasks={tasks}
+            onTaskMove={handleStatusChange}
+            onDeleteTask={handleDeleteTask}
+          />
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Liste des tâches</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Tableau des tâches en mode liste (à implémenter)</p>
+            </CardContent>
+          </Card>
+        )
       )}
       
-      <TaskFormDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        onSubmit={handleTaskCreate}
-        // Since agents array is required by the component, provide an empty array for now
-        agents={[]}
-        initialData={undefined}
-      />
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Créer une nouvelle tâche</DialogTitle>
+          </DialogHeader>
+          <TaskFormDialog onSubmit={handleAddTask} onCancel={() => setIsCreateModalOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

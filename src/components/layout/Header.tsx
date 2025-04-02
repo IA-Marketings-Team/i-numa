@@ -1,4 +1,3 @@
-
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -11,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import NotificationsPanel from "@/components/notifications/NotificationsPanel";
 import HelpDialog from "@/components/support/HelpDialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const Header = () => {
   const { user, logout } = useAuth();
@@ -181,9 +180,10 @@ const Header = () => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="relative h-8 flex items-center gap-2 font-normal">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.avatarUrl || undefined} alt={`${user?.prenom} ${user?.nom}`} />
-                  <AvatarFallback>{getInitials()}</AvatarFallback>
+                <Avatar>
+                  <AvatarFallback>
+                    {user?.prenom?.charAt(0) ?? ''}{user?.nom?.charAt(0) ?? ''}
+                  </AvatarFallback>
                 </Avatar>
                 <span className="hidden sm:inline-block">
                   {user?.prenom} {user?.nom}

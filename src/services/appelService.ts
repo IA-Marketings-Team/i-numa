@@ -1,22 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-
-export interface Appel {
-  id: string;
-  clientId: string;
-  agentId: string;
-  date: Date;
-  duree: number; // en minutes
-  notes: string;
-  statut: 'RDV' | 'Vente' | 'Répondeur' | 'Injoignable' | 'Refus argumentaire' | 'Refus intro' | 'Rappel' | 'Hors cible' | 'planifie' | 'effectue' | 'manque';
-  entreprise?: string;
-  gerant?: string;
-  contact?: string;
-  email?: string;
-  codePostal?: string;
-  dateRdv?: Date;
-  heureRdv?: string;
-}
+import { Appel } from "@/types";
 
 /**
  * Récupère tous les appels depuis Supabase
@@ -145,7 +129,14 @@ export const fetchAppelsByClient = async (clientId: string): Promise<Appel[]> =>
       date: new Date(appel.date),
       duree: appel.duree,
       notes: appel.notes || '',
-      statut: convertAppelStatut(appel.statut)
+      statut: convertAppelStatut(appel.statut),
+      entreprise: appel.entreprise,
+      gerant: appel.gerant,
+      contact: appel.contact,
+      email: appel.email,
+      codePostal: appel.code_postal,
+      dateRdv: appel.date_rdv ? new Date(appel.date_rdv) : undefined,
+      heureRdv: appel.heure_rdv
     }));
   } catch (error) {
     console.error(`Erreur inattendue lors de la récupération des appels pour le client ${clientId}:`, error);
@@ -176,7 +167,14 @@ export const fetchAppelsByAgent = async (agentId: string): Promise<Appel[]> => {
       date: new Date(appel.date),
       duree: appel.duree,
       notes: appel.notes || '',
-      statut: convertAppelStatut(appel.statut)
+      statut: convertAppelStatut(appel.statut),
+      entreprise: appel.entreprise,
+      gerant: appel.gerant,
+      contact: appel.contact,
+      email: appel.email,
+      codePostal: appel.code_postal,
+      dateRdv: appel.date_rdv ? new Date(appel.date_rdv) : undefined,
+      heureRdv: appel.heure_rdv
     }));
   } catch (error) {
     console.error(`Erreur inattendue lors de la récupération des appels pour l'agent ${agentId}:`, error);
@@ -209,7 +207,14 @@ export const fetchAppelById = async (id: string): Promise<Appel | null> => {
       date: new Date(data.date),
       duree: data.duree,
       notes: data.notes || '',
-      statut: convertAppelStatut(data.statut)
+      statut: convertAppelStatut(data.statut),
+      entreprise: data.entreprise,
+      gerant: data.gerant,
+      contact: data.contact,
+      email: data.email,
+      codePostal: data.code_postal,
+      dateRdv: data.date_rdv ? new Date(data.date_rdv) : undefined,
+      heureRdv: data.heure_rdv
     };
   } catch (error) {
     console.error(`Erreur inattendue lors de la récupération de l'appel ${id}:`, error);
@@ -274,7 +279,7 @@ export const createAppel = async (appel: Omit<Appel, "id">): Promise<Appel | nul
  */
 export const updateAppel = async (id: string, updates: Partial<Appel>): Promise<boolean> => {
   try {
-    const updateData: any = {};
+    const updateData: Record<string, any> = {};
     
     if (updates.clientId !== undefined) updateData.client_id = updates.clientId;
     if (updates.agentId !== undefined) updateData.agent_id = updates.agentId;
@@ -330,11 +335,11 @@ export const deleteAppel = async (id: string): Promise<boolean> => {
 };
 
 // Fonction auxiliaire pour convertir le statut d'appel
-const convertAppelStatut = (statut: string): 'RDV' | 'Vente' | 'Répondeur' | 'Injoignable' | 'Refus argumentaire' | 'Refus intro' | 'Rappel' | 'Hors cible' | 'planifie' | 'effectue' | 'manque' => {
-  const validStatuts = ['RDV', 'Vente', 'Répondeur', 'Injoignable', 'Refus argumentaire', 'Refus intro', 'Rappel', 'Hors cible', 'planifie', 'effectue', 'manque'];
+const convertAppelStatut = (statut: string): Appel['statut'] => {
+  const validStatuts: Appel['statut'][] = ['RDV', 'Vente', 'Répondeur', 'Injoignable', 'Refus argumentaire', 'Refus intro', 'Rappel', 'Hors cible', 'planifie', 'effectue', 'manque'];
   
-  if (validStatuts.includes(statut)) {
-    return statut as any;
+  if (validStatuts.includes(statut as any)) {
+    return statut as Appel['statut'];
   }
   
   // Valeur par défaut si le statut n'est pas reconnu

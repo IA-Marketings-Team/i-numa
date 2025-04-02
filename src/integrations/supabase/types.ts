@@ -13,8 +13,15 @@ export type Database = {
         Row: {
           agent_id: string | null
           client_id: string | null
+          code_postal: string | null
+          contact: string | null
           date: string
+          date_rdv: string | null
           duree: number
+          email: string | null
+          entreprise: string | null
+          gerant: string | null
+          heure_rdv: string | null
           id: string
           notes: string | null
           statut: string | null
@@ -22,8 +29,15 @@ export type Database = {
         Insert: {
           agent_id?: string | null
           client_id?: string | null
+          code_postal?: string | null
+          contact?: string | null
           date?: string
+          date_rdv?: string | null
           duree?: number
+          email?: string | null
+          entreprise?: string | null
+          gerant?: string | null
+          heure_rdv?: string | null
           id?: string
           notes?: string | null
           statut?: string | null
@@ -31,8 +45,15 @@ export type Database = {
         Update: {
           agent_id?: string | null
           client_id?: string | null
+          code_postal?: string | null
+          contact?: string | null
           date?: string
+          date_rdv?: string | null
           duree?: number
+          email?: string | null
+          entreprise?: string | null
+          gerant?: string | null
+          heure_rdv?: string | null
           id?: string
           notes?: string | null
           statut?: string | null
