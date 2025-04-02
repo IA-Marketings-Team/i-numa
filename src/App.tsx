@@ -96,7 +96,7 @@ const App: React.FC = () => {
               <Route path="/dashboard/clients/:id" element={<Navigate to="/clients/:id" replace />} />
               <Route path="/dashboard/clients/:id/edit" element={<Navigate to="/clients/:id/modifier" replace />} />
               <Route path="/dashboard/clients/nouveau" element={<Navigate to="/clients/nouveau" replace />} />
-              <Route path="/dashboard/dossiers/*" element={<Navigate to="/dossiers" replace />} />
+              <Route path="/dashboard/dossiers/*" element={<Navigate to "/dossiers" replace />} />
               
               {/* Route pour les URLs non trouvées */}
               <Route path="*" element={<NotFoundPage />} />

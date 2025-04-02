@@ -13,14 +13,19 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     // Check if theme is stored in localStorage
-    const savedTheme = localStorage.getItem("theme") as Theme;
-    // Check if user prefers dark mode
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    
-    return savedTheme || (prefersDark ? "dark" : "light");
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem("theme") as Theme;
+      // Check if user prefers dark mode
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      
+      return savedTheme || (prefersDark ? "dark" : "light");
+    }
+    return "light"; // Default fallback for SSR
   });
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const root = window.document.documentElement;
     
     root.classList.remove("light", "dark");
