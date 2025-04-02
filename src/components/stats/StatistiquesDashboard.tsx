@@ -87,28 +87,28 @@ const StatistiquesDashboard: React.FC<StatistiquesDashboardProps> = ({
         <div className="space-y-2">
           <StatsItem
             label="Appels émis"
-            value={periodStats.appelsEmis}
+            value={periodStats.appelsEmis || 0}
           />
           <StatsItem
             label="Appels décrochés"
-            value={periodStats.appelsDecroches}
+            value={periodStats.appelsDecroches || 0}
           />
           <StatsItem
             label="Appels transformés"
-            value={periodStats.appelsTransformes}
+            value={periodStats.appelsTransformes || 0}
           />
           <StatsItem
             label="Rendez-vous honorés"
-            value={periodStats.rendezVousHonores}
+            value={periodStats.rendezVousHonores || 0}
           />
           <StatsItem
             label="Dossiers validés"
-            value={periodStats.dossiersValides}
+            value={periodStats.dossiersValides || 0}
           />
           {showMonetaryStats && periodStats.chiffreAffaires !== undefined && (
             <StatsItem
               label="Chiffre d'affaires"
-              value={`${periodStats.chiffreAffaires.toLocaleString()} €`}
+              value={`${(periodStats.chiffreAffaires || 0).toLocaleString()} €`}
               isMonetary
             />
           )}

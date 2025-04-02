@@ -46,7 +46,7 @@ export type Database = {
         Row: {
           agent_phoner_id: string | null
           agent_visio_id: string | null
-          client_id: string
+          client_id: string | null
           date_archivage: string | null
           date_creation: string | null
           date_mise_a_jour: string | null
@@ -56,12 +56,12 @@ export type Database = {
           id: string
           montant: number | null
           notes: string | null
-          status: string
+          status: string | null
         }
         Insert: {
           agent_phoner_id?: string | null
           agent_visio_id?: string | null
-          client_id: string
+          client_id?: string | null
           date_archivage?: string | null
           date_creation?: string | null
           date_mise_a_jour?: string | null
@@ -71,12 +71,12 @@ export type Database = {
           id?: string
           montant?: number | null
           notes?: string | null
-          status: string
+          status?: string | null
         }
         Update: {
           agent_phoner_id?: string | null
           agent_visio_id?: string | null
-          client_id?: string
+          client_id?: string | null
           date_archivage?: string | null
           date_creation?: string | null
           date_mise_a_jour?: string | null
@@ -86,7 +86,7 @@ export type Database = {
           id?: string
           montant?: number | null
           notes?: string | null
-          status?: string
+          status?: string | null
         }
         Relationships: [
           {
@@ -116,37 +116,37 @@ export type Database = {
         Row: {
           action: string | null
           created_at: string | null
-          description: string
+          description: string | null
           id: string
           link: string | null
           read: boolean | null
-          time: string
-          title: string
-          type: string
+          time: string | null
+          title: string | null
+          type: string | null
           user_id: string | null
         }
         Insert: {
           action?: string | null
           created_at?: string | null
-          description: string
+          description?: string | null
           id?: string
           link?: string | null
           read?: boolean | null
-          time: string
-          title: string
-          type: string
+          time?: string | null
+          title?: string | null
+          type?: string | null
           user_id?: string | null
         }
         Update: {
           action?: string | null
           created_at?: string | null
-          description?: string
+          description?: string | null
           id?: string
           link?: string | null
           read?: boolean | null
-          time?: string
-          title?: string
-          type?: string
+          time?: string | null
+          title?: string | null
+          type?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -163,23 +163,23 @@ export type Database = {
         Row: {
           description: string | null
           id: string
-          nom: string
+          nom: string | null
           prix: number | null
-          type: string
+          type: string | null
         }
         Insert: {
           description?: string | null
           id?: string
-          nom: string
+          nom?: string | null
           prix?: number | null
-          type: string
+          type?: string | null
         }
         Update: {
           description?: string | null
           id?: string
-          nom?: string
+          nom?: string | null
           prix?: number | null
-          type?: string
+          type?: string | null
         }
         Relationships: []
       }
@@ -195,7 +195,7 @@ export type Database = {
           date_creation: string | null
           dossiers_signe: number | null
           dossiers_valides: number | null
-          email: string
+          email: string | null
           equipe_id: string | null
           iban: string | null
           id: string
@@ -204,7 +204,7 @@ export type Database = {
           prenom: string | null
           rendez_vous_honores: number | null
           rendez_vous_non_honores: number | null
-          role: string
+          role: string | null
           secteur_activite: string | null
           telephone: string | null
           type_entreprise: string | null
@@ -221,7 +221,7 @@ export type Database = {
           date_creation?: string | null
           dossiers_signe?: number | null
           dossiers_valides?: number | null
-          email: string
+          email?: string | null
           equipe_id?: string | null
           iban?: string | null
           id: string
@@ -230,7 +230,7 @@ export type Database = {
           prenom?: string | null
           rendez_vous_honores?: number | null
           rendez_vous_non_honores?: number | null
-          role?: string
+          role?: string | null
           secteur_activite?: string | null
           telephone?: string | null
           type_entreprise?: string | null
@@ -247,7 +247,7 @@ export type Database = {
           date_creation?: string | null
           dossiers_signe?: number | null
           dossiers_valides?: number | null
-          email?: string
+          email?: string | null
           equipe_id?: string | null
           iban?: string | null
           id?: string
@@ -256,7 +256,7 @@ export type Database = {
           prenom?: string | null
           rendez_vous_honores?: number | null
           rendez_vous_non_honores?: number | null
-          role?: string
+          role?: string | null
           secteur_activite?: string | null
           telephone?: string | null
           type_entreprise?: string | null
@@ -274,8 +274,8 @@ export type Database = {
       }
       rendez_vous: {
         Row: {
-          date: string
-          dossier_id: string
+          date: string | null
+          dossier_id: string | null
           honore: boolean | null
           id: string
           location: string | null
@@ -283,8 +283,8 @@ export type Database = {
           notes: string | null
         }
         Insert: {
-          date: string
-          dossier_id: string
+          date?: string | null
+          dossier_id?: string | null
           honore?: boolean | null
           id?: string
           location?: string | null
@@ -292,8 +292,8 @@ export type Database = {
           notes?: string | null
         }
         Update: {
-          date?: string
-          dossier_id?: string
+          date?: string | null
+          dossier_id?: string | null
           honore?: boolean | null
           id?: string
           location?: string | null
@@ -316,12 +316,12 @@ export type Database = {
           appels_emis: number | null
           appels_transformes: number | null
           chiffre_affaires: number | null
-          date_debut: string
-          date_fin: string
+          date_debut: string | null
+          date_fin: string | null
           dossiers_signe: number | null
           dossiers_valides: number | null
           id: string
-          periode: string
+          periode: string | null
           rendez_vous_honores: number | null
           rendez_vous_non_honores: number | null
         }
@@ -330,12 +330,12 @@ export type Database = {
           appels_emis?: number | null
           appels_transformes?: number | null
           chiffre_affaires?: number | null
-          date_debut: string
-          date_fin: string
+          date_debut?: string | null
+          date_fin?: string | null
           dossiers_signe?: number | null
           dossiers_valides?: number | null
           id?: string
-          periode: string
+          periode?: string | null
           rendez_vous_honores?: number | null
           rendez_vous_non_honores?: number | null
         }
@@ -344,12 +344,12 @@ export type Database = {
           appels_emis?: number | null
           appels_transformes?: number | null
           chiffre_affaires?: number | null
-          date_debut?: string
-          date_fin?: string
+          date_debut?: string | null
+          date_fin?: string | null
           dossiers_signe?: number | null
           dossiers_valides?: number | null
           id?: string
-          periode?: string
+          periode?: string | null
           rendez_vous_honores?: number | null
           rendez_vous_non_honores?: number | null
         }
@@ -362,9 +362,9 @@ export type Database = {
           date_echeance: string | null
           description: string | null
           id: string
-          priority: string
-          status: string
-          title: string
+          priority: string | null
+          status: string | null
+          title: string | null
         }
         Insert: {
           agent_id?: string | null
@@ -372,9 +372,9 @@ export type Database = {
           date_echeance?: string | null
           description?: string | null
           id?: string
-          priority: string
-          status: string
-          title: string
+          priority?: string | null
+          status?: string | null
+          title?: string | null
         }
         Update: {
           agent_id?: string | null
@@ -382,9 +382,9 @@ export type Database = {
           date_echeance?: string | null
           description?: string | null
           id?: string
-          priority?: string
-          status?: string
-          title?: string
+          priority?: string | null
+          status?: string | null
+          title?: string | null
         }
         Relationships: [
           {
@@ -400,23 +400,23 @@ export type Database = {
         Row: {
           date_creation: string | null
           description: string | null
-          fonction: string
+          fonction: string | null
           id: string
-          nom: string
+          nom: string | null
         }
         Insert: {
           date_creation?: string | null
           description?: string | null
-          fonction: string
+          fonction?: string | null
           id?: string
-          nom: string
+          nom?: string | null
         }
         Update: {
           date_creation?: string | null
           description?: string | null
-          fonction?: string
+          fonction?: string | null
           id?: string
-          nom?: string
+          nom?: string | null
         }
         Relationships: []
       }

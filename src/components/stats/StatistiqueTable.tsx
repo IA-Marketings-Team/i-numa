@@ -61,16 +61,16 @@ const StatistiqueTable: React.FC<StatistiqueTableProps> = ({
             <TableCell className="font-medium">
               {formatDate(stat.dateDebut)} - {formatDate(stat.dateFin)}
             </TableCell>
-            <TableCell className="text-right">{stat.appelsEmis}</TableCell>
-            <TableCell className="text-right">{stat.appelsDecroches}</TableCell>
-            <TableCell className="text-right">{stat.appelsTransformes}</TableCell>
-            <TableCell className="text-right">{stat.rendezVousHonores}</TableCell>
-            <TableCell className="text-right">{stat.rendezVousNonHonores}</TableCell>
-            <TableCell className="text-right">{stat.dossiersValides}</TableCell>
-            <TableCell className="text-right">{stat.dossiersSigne}</TableCell>
+            <TableCell className="text-right">{stat.appelsEmis || 0}</TableCell>
+            <TableCell className="text-right">{stat.appelsDecroches || 0}</TableCell>
+            <TableCell className="text-right">{stat.appelsTransformes || 0}</TableCell>
+            <TableCell className="text-right">{stat.rendezVousHonores || 0}</TableCell>
+            <TableCell className="text-right">{stat.rendezVousNonHonores || 0}</TableCell>
+            <TableCell className="text-right">{stat.dossiersValides || 0}</TableCell>
+            <TableCell className="text-right">{stat.dossiersSigne || 0}</TableCell>
             {showMonetaryStats && (
               <TableCell className="text-right font-medium text-green-600">
-                {stat.chiffreAffaires?.toLocaleString()} €
+                {(stat.chiffreAffaires || 0).toLocaleString()} €
               </TableCell>
             )}
           </TableRow>
