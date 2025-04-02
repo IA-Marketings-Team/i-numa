@@ -13,6 +13,10 @@ interface DashboardLayoutProps {
   roles?: UserRole[];
 }
 
+/**
+ * Layout principal pour les pages du tableau de bord
+ * Gère la protection des routes et l'affichage de la sidebar
+ */
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ 
   children, 
   roles = ['client', 'agent_phoner', 'agent_visio', 'superviseur', 'responsable']

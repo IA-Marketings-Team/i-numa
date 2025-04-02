@@ -2,28 +2,28 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserRole } from "@/types";
+import { hasPermission, getDefaultRouteForRole } from "@/utils/accessControl";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   roles?: UserRole[];
 }
 
+/**
+ * Composant pour protéger les routes en fonction des rôles
+ * Redirige vers la page de connexion si non authentifié
+ * Redirige vers une page appropriée si l'utilisateur n'a pas les permissions
+ */
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
   roles = ['client', 'agent_phoner', 'agent_visio', 'superviseur', 'responsable'] 
 }) => {
-  const { isAuthenticated, isLoading, user, hasPermission } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-lg">Chargement...</p>
-          <div className="mt-4 animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (!isAuthenticated) {
@@ -31,9 +31,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/connexion" state={{ from: location.pathname }} replace />;
   }
 
-  if (!hasPermission(roles)) {
-    // Redirect to dashboard if user doesn't have required permissions
-    const fallbackRoute = user?.role === 'client' ? '/mes-offres' : '/tableau-de-bord';
+  if (!hasPermission(user?.role, roles)) {
+    // Redirect to appropriate route based on user role
+    const fallbackRoute = user ? getDefaultRouteForRole(user.role) : '/connexion';
     return <Navigate to={fallbackRoute} replace />;
   }
 

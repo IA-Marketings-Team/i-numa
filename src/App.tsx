@@ -26,6 +26,7 @@ import TasksPage from "./pages/TasksPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ProfilePage from "./pages/ProfilePage";
 
+// Configuration des routes
 const App: React.FC = () => {
   return (
     <Router>
@@ -33,135 +34,55 @@ const App: React.FC = () => {
         <AuthProvider>
           <StatistiqueProvider>
             <Routes>
-              {/* Public routes */}
+              {/* Routes publiques */}
               <Route path="/connexion" element={<LoginPage />} />
               <Route path="/inscription" element={<RegisterPage />} />
               <Route path="/non-autorise" element={<UnauthorizedPage />} />
               
-              {/* Redirect root to tableau-de-bord */}
+              {/* Rediriger la racine vers le tableau de bord */}
               <Route path="/" element={<Navigate to="/tableau-de-bord" replace />} />
               
-              {/* Protected routes with DashboardLayout */}
+              {/* Routes protégées avec DashboardLayout */}
               <Route path="/" element={<DashboardLayout />}>
-                {/* Dashboard route */}
+                {/* Route du tableau de bord */}
                 <Route path="tableau-de-bord" element={<DashboardPage />} />
                 
-                {/* Client routes - accessible by agents, supervisors and managers */}
-                <Route 
-                  path="clients" 
-                  element={
-                    <DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}>
-                      <ClientsPage />
-                    </DashboardLayout>
-                  }
-                />
-                <Route 
-                  path="clients/:id" 
-                  element={
-                    <DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}>
-                      <ClientDetailsPage />
-                    </DashboardLayout>
-                  } 
-                />
-                <Route 
-                  path="clients/:id/modifier" 
-                  element={
-                    <DashboardLayout roles={["superviseur", "responsable"]}>
-                      <ClientEditPage />
-                    </DashboardLayout>
-                  } 
-                />
-                <Route 
-                  path="clients/nouveau" 
-                  element={
-                    <DashboardLayout roles={["superviseur", "responsable"]}>
-                      <ClientNewPage />
-                    </DashboardLayout>
-                  } 
-                />
+                {/* Routes clients - accessibles par les agents, superviseurs et responsables */}
+                <Route path="clients">
+                  <Route index element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><ClientsPage /></DashboardLayout>} />
+                  <Route path=":id" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><ClientDetailsPage /></DashboardLayout>} />
+                  <Route path=":id/modifier" element={<DashboardLayout roles={["superviseur", "responsable"]}><ClientEditPage /></DashboardLayout>} />
+                  <Route path="nouveau" element={<DashboardLayout roles={["superviseur", "responsable"]}><ClientNewPage /></DashboardLayout>} />
+                </Route>
                 
-                {/* Dossier routes */}
-                <Route 
-                  path="dossiers" 
-                  element={
-                    <DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}>
-                      <DossiersPage />
-                    </DashboardLayout>
-                  } 
-                />
-                <Route 
-                  path="dossiers/:id" 
-                  element={
-                    <DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}>
-                      <DossierDetailsPage />
-                    </DashboardLayout>
-                  } 
-                />
-                <Route 
-                  path="dossiers/:id/modifier" 
-                  element={
-                    <DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}>
-                      <DossierEditPage />
-                    </DashboardLayout>
-                  } 
-                />
-                <Route 
-                  path="dossiers/nouveau" 
-                  element={
-                    <DashboardLayout roles={["agent_phoner", "superviseur", "responsable"]}>
-                      <DossierNewPage />
-                    </DashboardLayout>
-                  } 
-                />
+                {/* Routes dossiers */}
+                <Route path="dossiers">
+                  <Route index element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossiersPage /></DashboardLayout>} />
+                  <Route path=":id" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossierDetailsPage /></DashboardLayout>} />
+                  <Route path=":id/modifier" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossierEditPage /></DashboardLayout>} />
+                  <Route path="nouveau" element={<DashboardLayout roles={["agent_phoner", "superviseur", "responsable"]}><DossierNewPage /></DashboardLayout>} />
+                </Route>
                 
-                {/* Agent routes */}
-                <Route 
-                  path="agents" 
-                  element={
-                    <DashboardLayout roles={["superviseur", "responsable"]}>
-                      <AgentsPage />
-                    </DashboardLayout>
-                  }
-                />
+                {/* Routes agents */}
+                <Route path="agents" element={<DashboardLayout roles={["superviseur", "responsable"]}><AgentsPage /></DashboardLayout>} />
                 
-                {/* Tasks routes */}
-                <Route 
-                  path="taches" 
-                  element={
-                    <DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}>
-                      <TasksPage />
-                    </DashboardLayout>
-                  } 
-                />
+                {/* Routes tâches */}
+                <Route path="taches" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><TasksPage /></DashboardLayout>} />
                 
-                {/* Profile route - accessible by all authenticated users */}
+                {/* Route profil - accessible par tous les utilisateurs authentifiés */}
                 <Route path="profil" element={<ProfilePage />} />
                 
-                {/* Statistics routes - only for supervisors and managers */}
-                <Route 
-                  path="statistiques" 
-                  element={
-                    <DashboardLayout roles={["superviseur", "responsable"]}>
-                      <StatistiquesPage />
-                    </DashboardLayout>
-                  }
-                />
+                {/* Routes statistiques - uniquement pour les superviseurs et responsables */}
+                <Route path="statistiques" element={<DashboardLayout roles={["superviseur", "responsable"]}><StatistiquesPage /></DashboardLayout>} />
                 
-                {/* Team management routes for supervisors and responsables */}
-                <Route 
-                  path="superviseur/equipes" 
-                  element={
-                    <DashboardLayout roles={["superviseur", "responsable"]}>
-                      <AgentsPage />
-                    </DashboardLayout>
-                  }
-                />
+                {/* Routes de gestion d'équipe pour les superviseurs et responsables */}
+                <Route path="superviseur/equipes" element={<DashboardLayout roles={["superviseur", "responsable"]}><AgentsPage /></DashboardLayout>} />
                 
-                {/* Not found route */}
+                {/* Route non trouvée */}
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
               
-              {/* Catch all other routes and redirect to login */}
+              {/* Intercepter toutes les autres routes et rediriger vers la connexion */}
               <Route path="*" element={<Navigate to="/connexion" replace />} />
             </Routes>
             <Toaster />
