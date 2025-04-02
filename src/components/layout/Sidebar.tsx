@@ -1,3 +1,4 @@
+
 import {
   BarChart,
   Building2,
@@ -11,13 +12,14 @@ import {
   User2,
   Users,
 } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 
 export function Sidebar() {
-  const pathname = usePathname();
-  const navigate = useRouter().push;
+  const location = useLocation();
+  const navigate = useNavigate();
+  const pathname = location.pathname;
 
   return (
     <div className="space-y-4 py-4">
