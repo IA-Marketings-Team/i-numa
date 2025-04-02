@@ -4,7 +4,7 @@ import { AuthLog } from "@/types";
 
 /**
  * Récupère tous les journaux d'authentification
- * Note: Cette fonction suppose que la table auth_logs existe dans Supabase
+ * Note: Cette fonction suppose que la fonction RPC get_auth_logs existe dans Supabase
  */
 export const fetchAuthLogs = async (): Promise<AuthLog[]> => {
   try {
@@ -79,7 +79,7 @@ export const createAuthLog = async (log: Omit<AuthLog, "id">): Promise<AuthLog |
     }
 
     // Retourner un objet AuthLog à partir des données de réponse
-    if (data && data.length > 0) {
+    if (data && Array.isArray(data) && data.length > 0) {
       const createdLog = data[0];
       return {
         id: createdLog.id,

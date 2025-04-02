@@ -109,3 +109,9 @@ export const updateUser = async (id: string, userData: Partial<Omit<User, 'id' |
     return false;
   }
 };
+
+export const userService = {
+  fetchUsers,
+  fetchUserById,
+  updateUser
+};

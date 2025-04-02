@@ -1,29 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingCart, Filter, Search, Check, Tags, Mail } from "lucide-react";
-import {
-  Building,
-  MessageCircle,
-  Star,
-  Globe,
-  ThumbsUp,
-  Gauge,
-  Gift,
-  Cloud,
-  TrendingUp,
-  CandlestickChart,
-  TrendingDown,
-} from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState } from 'react';
 import { useCart } from "@/contexts/CartContext";
-import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
-import { fetchOffres } from "@/services/offreService";
-import { offerCategories } from "@/data/offerData";
+import { Button } from '@/components/ui/button';
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import CartDrawer, { FixedCartDrawer } from "@/components/cart/CartDrawer";
 import EmailOfferDialog from "@/components/offers/EmailOfferDialog";
@@ -92,14 +70,12 @@ const MarketplacePage = () => {
     setFilteredOffres(result);
   }, [offres, searchQuery, selectedSecteur, sortOrder]);
 
-  const handleAddToCart = (offre: Offre) => {
+  const handleAddToCart = (offre: any) => {
     addToCart({
-      offreId: offre.id,
-      quantity: 1,
       title: offre.nom,
       category: offre.type,
-      price: offre.prix || 0,
-      description: offre.description
+      price: offre.prix.toString(),
+      quantity: 1
     });
     
     toast({

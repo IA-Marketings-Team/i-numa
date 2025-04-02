@@ -13,6 +13,8 @@ export function useAgentStatistics() {
       
       if (!agentData) return undefined;
       
+      const userRole = agentData.role as UserRole;
+      
       // Transform to Agent type
       const agent: Agent = {
         id: agentData.id,
@@ -20,7 +22,7 @@ export function useAgentStatistics() {
         prenom: agentData.prenom || '',
         email: agentData.email || '',
         telephone: agentData.telephone || '',
-        role: agentData.role as UserRole,
+        role: userRole,
         dateCreation: new Date(),
         statistiques: {
           appelsEmis: agentData.appels_emis || 0,

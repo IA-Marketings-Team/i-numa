@@ -40,15 +40,12 @@ export default function Dashboard() {
     <div className="p-4 space-y-6">
       <h1 className="text-3xl font-bold">Tableau de bord</h1>
       
-      <OverviewSection 
-        dossiers={dossiers} 
-        user={user} 
-        isLoading={isLoading}
-      />
+      {/* Updating to match OverviewSection's expected props */}
+      <OverviewSection />
       
       {/* La section Performance est uniquement visible pour les superviseurs et responsables */}
       {userRole && hasPermission(userRole, ['superviseur', 'responsable']) && (
-        <PerformanceSection />
+        <PerformanceSection statistiques={[]} />
       )}
     </div>
   );

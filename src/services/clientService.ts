@@ -89,7 +89,7 @@ export const createClient = async (clientData: Omit<Client, 'id' | 'dateCreation
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .insert([{
+      .insert({
         nom: clientData.nom,
         prenom: clientData.prenom,
         email: clientData.email,
@@ -105,7 +105,7 @@ export const createClient = async (clientData: Omit<Client, 'id' | 'dateCreation
         secteur_activite: clientData.secteurActivite,
         type_entreprise: clientData.typeEntreprise,
         besoins: clientData.besoins
-      }])
+      })
       .select()
       .single();
 
@@ -200,9 +200,7 @@ export const deleteClient = async (id: string): Promise<boolean> => {
   }
 };
 
-/**
- * Export du service client pour l'utiliser dans d'autres fichiers
- */
+// Export du service client pour l'utiliser dans d'autres fichiers
 export const clientService = {
   fetchClients,
   fetchClientById,
