@@ -6,6 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingCart, Filter, Search, Check, Tags, Mail } from "lucide-react";
+import {
+  BuildingStore,
+  MessageCircle,
+  Star,
+  World,
+  ThumbUp,
+  Gauge,
+  Gift,
+  Cloud,
+  TrendingUp,
+  ChartCandle,
+  TrendingDown,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/contexts/CartContext";
 import { Badge } from "@/components/ui/badge";
@@ -149,6 +162,69 @@ const MarketplacePage = () => {
             <ShoppingCart className="h-4 w-4" />
             Voir le panier
           </Button>
+        </div>
+      </div>
+      
+      {/* Marketing Benefits Cards */}
+      <div className="mb-10 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950 p-6 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
+        <h2 className="text-xl font-semibold mb-4 text-center bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          Nos offres vous permettent de...
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="flex flex-col items-center p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+            <BuildingStore className="h-8 w-8 mb-2 text-indigo-500" />
+            <p className="text-center text-sm">Générez des <strong>visites en magasin</strong></p>
+          </div>
+          
+          <div className="flex flex-col items-center p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+            <MessageCircle className="h-8 w-8 mb-2 text-indigo-500" />
+            <p className="text-center text-sm">Animez/créez votre <strong>communauté</strong></p>
+          </div>
+          
+          <div className="flex flex-col items-center p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+            <Star className="h-8 w-8 mb-2 text-indigo-500" />
+            <p className="text-center text-sm">Valorisez <strong>votre expertise</strong></p>
+          </div>
+          
+          <div className="flex flex-col items-center p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+            <World className="h-8 w-8 mb-2 text-indigo-500" />
+            <p className="text-center text-sm">Augmentez votre <strong>visibilité / notoriété</strong></p>
+          </div>
+          
+          <div className="flex flex-col items-center p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+            <ThumbUp className="h-8 w-8 mb-2 text-indigo-500" />
+            <p className="text-center text-sm">Générez des <strong>avis positifs</strong></p>
+          </div>
+          
+          <div className="flex flex-col items-center p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+            <Gauge className="h-8 w-8 mb-2 text-indigo-500" />
+            <p className="text-center text-sm">Gagnez en <strong>efficacité</strong></p>
+          </div>
+          
+          <div className="flex flex-col items-center p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+            <Gift className="h-8 w-8 mb-2 text-indigo-500" />
+            <p className="text-center text-sm"><strong>Fidélisez</strong> vos clients</p>
+          </div>
+          
+          <div className="flex flex-col items-center p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+            <Cloud className="h-8 w-8 mb-2 text-indigo-500" />
+            <p className="text-center text-sm">Exploitez vos <strong>données clients</strong></p>
+          </div>
+          
+          <div className="flex flex-col items-center p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+            <TrendingUp className="h-8 w-8 mb-2 text-indigo-500" />
+            <p className="text-center text-sm"><strong>Développez</strong> votre activité</p>
+          </div>
+          
+          <div className="flex flex-col items-center p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+            <ChartCandle className="h-8 w-8 mb-2 text-indigo-500" />
+            <p className="text-center text-sm"><strong>Pilotez</strong> votre activité</p>
+          </div>
+          
+          <div className="flex flex-col items-center p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+            <TrendingDown className="h-8 w-8 mb-2 text-indigo-500" />
+            <p className="text-center text-sm"><strong>Diminuez</strong> vos coûts</p>
+          </div>
         </div>
       </div>
       
