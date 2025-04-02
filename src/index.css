@@ -1,47 +1,48 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 238 42% 25%;
+    --background: 240 33% 99%;
+    --foreground: 275 73% 25%;
 
     --card: 0 0% 100%;
-    --card-foreground: 238 42% 25%;
+    --card-foreground: 275 73% 25%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 238 42% 25%;
+    --popover-foreground: 275 73% 25%;
 
-    --primary: 350 94% 34%;
+    --primary: 270 93% 51%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 238 42% 25%;
+    --secondary: 262 42% 54%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 220 14% 44%;
+    --muted: 260 33% 96%;
+    --muted-foreground: 270 20% 44%;
 
-    --accent: 238 33% 45%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 262 33% 85%;
+    --accent-foreground: 270 47% 22%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 346 83.3% 41%;
+    --border: 262 31.8% 91.4%;
+    --input: 262 31.8% 91.4%;
+    --ring: 270 83.3% 51%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 238 42% 25%;
+    --sidebar-background: 270 93% 51%;
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 346 83.3% 41%;
+    --sidebar-primary: 270 83.3% 51%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 238 33% 45%;
+    --sidebar-accent: 262 33% 65%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 238 33% 45%;
-    --sidebar-ring: 346 83.3% 41%;
+    --sidebar-border: 262 33% 65%;
+    --sidebar-ring: 270 83.3% 51%;
   }
 
   .dark {
@@ -199,8 +200,8 @@
   }
 
   /* Gradient backgrounds */
-  .inuma-gradient-red {
-    @apply bg-gradient-to-r from-inuma-red to-inuma-lightRed;
+  .inuma-gradient-purple {
+    @apply bg-gradient-to-r from-inuma-purple to-inuma-light-purple;
   }
 
   .inuma-gradient-blue {
@@ -208,11 +209,11 @@
   }
 
   .inuma-gradient-mixed {
-    @apply bg-gradient-to-r from-inuma-blue via-inuma-lightBlue to-inuma-lightRed;
+    @apply bg-gradient-to-r from-inuma-blue via-inuma-lightBlue to-inuma-light-purple;
   }
 }
 
 /* Sidebar active item styling */
 [data-sidebar="menu-button"][data-active="true"] {
-  @apply bg-inuma-red text-white font-medium;
+  @apply bg-inuma-purple text-white font-medium;
 }

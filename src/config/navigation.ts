@@ -11,7 +11,8 @@ import {
   MessageSquare,
   ListChecks,
   Calendar,
-  ShoppingCart
+  ShoppingCart,
+  BookUser
 } from "lucide-react";
 import { UserRole } from "@/types";
 
@@ -46,6 +47,13 @@ export const navigationConfig: NavigationItem[] = [
     permissions: ['agent_phoner', 'agent_visio', 'superviseur', 'responsable']
   },
   {
+    id: 'annuaire',
+    title: 'Annuaire',
+    path: '/annuaire',
+    icon: BookUser,
+    permissions: ['agent_phoner', 'agent_visio', 'superviseur', 'responsable']
+  },
+  {
     id: 'marketplace',
     title: 'Marketplace',
     path: '/marketplace',
@@ -74,9 +82,9 @@ export const navigationConfig: NavigationItem[] = [
     permissions: ['agent_phoner', 'agent_visio', 'superviseur', 'responsable']
   },
   {
-    id: 'appels',
-    title: 'Appels',
-    path: '/appels',
+    id: 'prospects',
+    title: 'Prospects',
+    path: '/prospects',
     icon: Phone,
     permissions: ['agent_phoner', 'superviseur', 'responsable']
   },

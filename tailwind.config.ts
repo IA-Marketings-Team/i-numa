@@ -1,3 +1,4 @@
+
 import { type Config } from "tailwindcss";
 
 export default {
@@ -25,7 +26,7 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#E53E3E",
+          DEFAULT: "#5E17EB",
           foreground: "#FFFFFF",
           blue: "#4A7CFE",
           purple: "#6E59A5",
@@ -55,7 +56,9 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        "inuma-red": "#E53E3E",
+        "inuma-purple": "#5E17EB",
+        "inuma-light-purple": "#9b87f5",
+        "inuma-dark-purple": "#3B0F9E",
         "chart-green": "#10B981",
         "chart-red": "#EF4444",
         "chart-blue": "#3B82F6",
@@ -72,7 +75,10 @@ export default {
         "inuma-lightRed": "#FCA5A5",
       },
       backgroundImage: {
-        "header-gradient": "linear-gradient(to right, #1A1F2C, #2D3748)",
+        "header-gradient": "linear-gradient(to right, #5E17EB, #9b87f5)",
+        "sidebar-gradient": "linear-gradient(to bottom, #5E17EB, #3B0F9E)",
+        "card-gradient": "linear-gradient(to bottom right, #ffffff, #f5f5f5)",
+        "primary-gradient": "linear-gradient(to right, #5E17EB, #9b87f5)",
       },
       borderRadius: {
         lg: "var(--radius)",

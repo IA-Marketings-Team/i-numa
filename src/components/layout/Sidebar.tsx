@@ -46,7 +46,10 @@ export function Sidebar({ className, isOpen, onClose, ...props }: SidebarProps) 
   };
 
   return (
-    <div className={cn("flex flex-col h-full bg-sidebar-gradient text-white", className)} {...props}>
+    <div className={cn("flex flex-col h-full bg-sidebar-gradient text-white shadow-lg", className)} {...props}>
+      <div className="p-4 flex justify-center">
+        <img src="/logo-inuma.svg" alt="I-Numa" className="h-10" />
+      </div>
       <ScrollArea className="flex-1">
         <div className="flex flex-col gap-2 p-4">
           {mainMenuItems.length > 0 && (
@@ -61,7 +64,7 @@ export function Sidebar({ className, isOpen, onClose, ...props }: SidebarProps) 
                   variant={activeItem === item.id ? 'default' : 'ghost'}
                   className={`w-full justify-start ${
                     activeItem === item.id 
-                      ? 'bg-inuma-red text-white hover:bg-inuma-lightRed hover:text-white' 
+                      ? 'bg-white/20 text-white hover:bg-white/30 hover:text-white' 
                       : 'text-white hover:bg-white/10'
                   }`}
                   asChild
@@ -88,7 +91,7 @@ export function Sidebar({ className, isOpen, onClose, ...props }: SidebarProps) 
                   variant={activeItem === item.id ? 'default' : 'ghost'}
                   className={`w-full justify-start ${
                     activeItem === item.id 
-                      ? 'bg-inuma-red text-white hover:bg-inuma-lightRed hover:text-white' 
+                      ? 'bg-white/20 text-white hover:bg-white/30 hover:text-white' 
                       : 'text-white hover:bg-white/10'
                   }`}
                   asChild

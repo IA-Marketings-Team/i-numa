@@ -29,7 +29,7 @@ import StatistiquesPage from "./pages/StatistiquesPage";
 import TasksPage from "./pages/TasksPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ProfilePage from "./pages/ProfilePage";
-import AppelsPage from "./pages/AppelsPage";
+import ProspectsPage from "./pages/ProspectsPage";
 import Communications from "./pages/Communications";
 import GlobalAgenda from "./pages/GlobalAgenda";
 import ClientAgenda from "./pages/ClientAgenda";
@@ -38,6 +38,7 @@ import DossierMeetingPage from "./pages/DossierMeetingPage";
 import DossierPage from "./pages/DossierPage";
 import MarketplacePage from "./pages/MarketplacePage";
 import ContractAcceptance from "./pages/ContractAcceptance";
+import AnnuairePage from "./pages/AnnuairePage";
 
 // Configuration des routes
 const App: React.FC = () => {
@@ -68,6 +69,9 @@ const App: React.FC = () => {
                   <Route path=":id/modifier" element={<DashboardLayout roles={["superviseur", "responsable"]}><ClientEditPage /></DashboardLayout>} />
                   <Route path="nouveau" element={<DashboardLayout roles={["superviseur", "responsable"]}><ClientNewPage /></DashboardLayout>} />
                 </Route>
+                
+                {/* Route annuaire */}
+                <Route path="/annuaire" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><AnnuairePage /></DashboardLayout>} />
                 
                 {/* Routes dossiers */}
                 <Route path="/dossiers">
@@ -110,8 +114,10 @@ const App: React.FC = () => {
                 <Route path="/agenda-global" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><GlobalAgenda /></DashboardLayout>} />
                 <Route path="/agenda" element={<DashboardLayout roles={["client"]}><ClientAgenda /></DashboardLayout>} />
                 
-                {/* Route appels */}
-                <Route path="/appels" element={<DashboardLayout roles={["agent_phoner", "superviseur", "responsable"]}><AppelsPage /></DashboardLayout>} />
+                {/* Route prospects (remplace appels) */}
+                <Route path="/prospects" element={<DashboardLayout roles={["agent_phoner", "superviseur", "responsable"]}><ProspectsPage /></DashboardLayout>} />
+                {/* Rediriger l'ancienne route appels vers prospects */}
+                <Route path="/appels" element={<Navigate to="/prospects" replace />} />
                 
                 {/* Route communications */}
                 <Route path="/communications" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><Communications /></DashboardLayout>} />
