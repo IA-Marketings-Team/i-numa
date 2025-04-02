@@ -10,7 +10,7 @@ export const fetchAuthLogs = async (): Promise<AuthLog[]> => {
   try {
     // Utilisez la fonction RPC définie dans Supabase au lieu d'accéder directement à la table
     const { data, error } = await supabase
-      .rpc('get_auth_logs') as { data: any; error: any };
+      .rpc('get_auth_logs', {}) as unknown as { data: any[]; error: any };
 
     if (error) {
       console.error("Erreur lors de la récupération des journaux d'authentification:", error);
@@ -38,7 +38,7 @@ export const fetchAuthLogsByUser = async (userId: string): Promise<AuthLog[]> =>
   try {
     // Utilisez la fonction RPC définie dans Supabase avec paramètre
     const { data, error } = await supabase
-      .rpc('get_user_auth_logs', { user_id_param: userId }) as { data: any; error: any };
+      .rpc('get_user_auth_logs', { user_id_param: userId }) as unknown as { data: any[]; error: any };
 
     if (error) {
       console.error(`Erreur lors de la récupération des journaux pour l'utilisateur ${userId}:`, error);
@@ -71,7 +71,7 @@ export const createAuthLog = async (log: Omit<AuthLog, "id">): Promise<AuthLog |
         action_param: log.action,
         user_agent_param: log.userAgent || null,
         ip_address_param: log.ipAddress || null
-      }) as { data: any; error: any };
+      }) as unknown as { data: any[]; error: any };
 
     if (error) {
       console.error("Erreur lors de la création du journal d'authentification:", error);
