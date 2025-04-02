@@ -1,4 +1,3 @@
-
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -43,6 +42,11 @@ app.use('/api/statistiques', statistiqueRoutes);
 // Route de base
 app.get('/', (req, res) => {
   res.send('API I-Numa fonctionne correctement');
+});
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'Backend is running' });
 });
 
 // Démarrage du serveur
