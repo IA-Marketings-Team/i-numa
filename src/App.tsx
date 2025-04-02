@@ -11,6 +11,9 @@ import RegisterPage from "./pages/RegisterPage";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
 import { Toaster } from "./components/ui/toaster";
 
+// Import RendezVousEdit component
+import RendezVousEdit from "./pages/RendezVousEdit";
+
 // Import your pages
 import DashboardPage from "./pages/DashboardPage";
 import ClientsPage from "./pages/ClientsPage";
