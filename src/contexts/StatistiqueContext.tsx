@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Statistique, Agent, UserRole } from "@/types";
 import { useAuth } from "./AuthContext";
@@ -13,7 +14,7 @@ import { fetchAgentById, resetAgentStats } from "@/services/agentService";
 import { useToast } from "@/hooks/use-toast";
 
 interface StatistiqueContextType {
-  statistiques: Statistique[];
+  statistiques: Array<Statistique & { id: string }>;
   isLoading: boolean;
   error: Error | null;
   refreshStatistiques: () => Promise<void>;
@@ -21,13 +22,12 @@ interface StatistiqueContextType {
   getStatistiquesByPeriodeType: (periode: "jour" | "semaine" | "mois") => Promise<Statistique[]>;
   getAgentStatistics: (agentId: string) => Promise<Agent | undefined>;
   resetAgentStatistics: (agentId: string) => Promise<boolean>;
-  getAuthorizedStatistics: (userRole: UserRole) => Partial<Statistique>[];
+  getAuthorizedStatistics: (userRole: UserRole) => Partial<Statistique & { id: string }>[];
   addStatistique: (data: Omit<Statistique, "id">) => Promise<Statistique | null>;
   editStatistique: (id: string, data: Partial<Statistique>) => Promise<boolean>;
   removeStatistique: (id: string) => Promise<boolean>;
 }
 
-// Extend the Statistique type to ensure it has an id
 type StatistiqueWithId = Statistique & { id: string };
 
 const StatistiqueContext = createContext<StatistiqueContextType | undefined>(undefined);
@@ -43,11 +43,15 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       setIsLoading(true);
       const data = await fetchStatistiques();
-      // Ensure all statistics have an id
+      
+      // Assurer que toutes les statistiques ont un ID
       const statsWithId = data.map(stat => {
         if (!stat.id) {
-          console.warn("Statistique without id detected, generating random id");
-          return { ...stat, id: `stat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` };
+          console.warn("Statistique sans ID détectée, génération d'un ID aléatoire");
+          return { 
+            ...stat, 
+            id: `stat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}` 
+          };
         }
         return stat as StatistiqueWithId;
       });
@@ -138,7 +142,7 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
-  const getAuthorizedStatistics = (userRole: UserRole): Partial<Statistique>[] => {
+  const getAuthorizedStatistics = (userRole: UserRole): Partial<StatistiqueWithId>[] => {
     // Cloner les statistiques pour éviter de modifier les originales
     const authorizedStats = statistiques.map(stat => ({ ...stat }));
     
@@ -155,7 +159,10 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const threeMonthsAgo = new Date();
       threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
       
-      return authorizedStats.filter(stat => new Date(stat.dateDebut) >= threeMonthsAgo);
+      return authorizedStats.filter(stat => {
+        if (!stat.dateDebut) return false;
+        return new Date(stat.dateDebut) >= threeMonthsAgo;
+      });
     }
     
     return authorizedStats;
@@ -165,7 +172,15 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       const newStat = await createStatistique(data);
       if (newStat) {
-        setStatistiques(prev => [...prev, newStat as StatistiqueWithId]);
+        // Assurez-vous que la nouvelle statistique a un ID
+        const newStatWithId = newStat as StatistiqueWithId;
+        
+        // Si pour une raison quelconque il n'y a pas d'ID, générez-en un
+        if (!newStatWithId.id) {
+          newStatWithId.id = `stat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        }
+        
+        setStatistiques(prev => [...prev, newStatWithId]);
         toast({
           title: "Succès",
           description: "La statistique a été ajoutée avec succès",

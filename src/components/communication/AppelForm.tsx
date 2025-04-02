@@ -66,7 +66,7 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
               agentId: appel.agentId || user?.id || '',
               date: format(new Date(appel.date), "yyyy-MM-dd'T'HH:mm"),
               duree: appel.duree,
-              notes: appel.notes,
+              notes: appel.notes || '',
               statut: appel.statut,
               entreprise: appel.entreprise || '',
               gerant: appel.gerant || '',
@@ -74,7 +74,7 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
               email: appel.email || '',
               codePostal: appel.codePostal || '',
               dateRdv: appel.dateRdv ? format(new Date(appel.dateRdv), "yyyy-MM-dd") : undefined,
-              heureRdv: appel.heureRdv
+              heureRdv: appel.heureRdv || ''
             });
           }
         } catch (error) {
@@ -108,8 +108,8 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
 
     try {
       const appelData = {
-        clientId: formData.clientId,
-        agentId: formData.agentId,
+        clientId: formData.clientId || null,
+        agentId: formData.agentId || null,
         date: new Date(formData.date),
         duree: formData.duree,
         notes: formData.notes,
@@ -119,8 +119,8 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
         contact: formData.contact,
         email: formData.email,
         codePostal: formData.codePostal,
-        dateRdv: formData.dateRdv ? new Date(formData.dateRdv) : undefined,
-        heureRdv: formData.heureRdv
+        dateRdv: formData.dateRdv ? new Date(formData.dateRdv) : null,
+        heureRdv: formData.heureRdv || null
       };
 
       if (appelId) {
@@ -240,7 +240,6 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
             name="clientId"
             value={formData.clientId}
             onChange={handleChange}
-            required
           />
         </div>
         
@@ -251,7 +250,6 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
             name="agentId"
             value={formData.agentId}
             onChange={handleChange}
-            required
           />
         </div>
         

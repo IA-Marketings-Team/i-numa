@@ -235,7 +235,7 @@ const AppelList: React.FC<AppelListProps> = ({ onlyShowClientAppels = false, cli
                   <SelectValue placeholder="Tous les statuts" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous les statuts</SelectItem>
+                  <SelectItem value="all">Tous les statuts</SelectItem>
                   <SelectItem value="RDV">RDV</SelectItem>
                   <SelectItem value="Vente">Vente</SelectItem>
                   <SelectItem value="Répondeur">Répondeur</SelectItem>
