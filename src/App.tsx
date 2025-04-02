@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,6 +26,7 @@ import { DossierProvider } from "./contexts/DossierContext";
 import { StatistiqueProvider } from "./contexts/StatistiqueContext";
 import { CartProvider } from "./contexts/CartContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { CommunicationProvider } from "./contexts/CommunicationContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import SuperviseurEquipes from "./pages/SuperviseurEquipes";
 import SuperviseurEquipe from "./pages/SuperviseurEquipe";
