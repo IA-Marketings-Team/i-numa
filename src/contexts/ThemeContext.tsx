@@ -10,27 +10,42 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    // Check if theme is stored in localStorage
-    if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem("theme") as Theme;
-      // Check if user prefers dark mode
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      
-      return savedTheme || (prefersDark ? "dark" : "light");
+// Safe access to browser APIs
+const getInitialTheme = (): Theme => {
+  if (typeof window === 'undefined') return "light";
+  
+  try {
+    const savedTheme = localStorage.getItem("theme") as Theme;
+    if (savedTheme && (savedTheme === "light" || savedTheme === "dark")) {
+      return savedTheme;
     }
-    return "light"; // Default fallback for SSR
-  });
+    
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    return prefersDark ? "dark" : "light";
+  } catch (e) {
+    console.error("Error accessing localStorage:", e);
+    return "light";
+  }
+};
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
-    const root = window.document.documentElement;
-    
-    root.classList.remove("light", "dark");
-    root.classList.add(theme);
-    localStorage.setItem("theme", theme);
+    try {
+      const root = window.document.documentElement;
+      
+      // Remove both themes and add the current one
+      root.classList.remove("light", "dark");
+      root.classList.add(theme);
+      
+      // Save to localStorage
+      localStorage.setItem("theme", theme);
+    } catch (e) {
+      console.error("Error updating theme:", e);
+    }
   }, [theme]);
 
   const toggleTheme = () => {
