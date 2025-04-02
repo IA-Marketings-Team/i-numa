@@ -315,6 +315,45 @@ export type Database = {
         }
         Relationships: []
       }
+      offres_secteurs: {
+        Row: {
+          created_at: string
+          disponible: boolean
+          id: string
+          offre_id: string
+          secteur_id: string
+        }
+        Insert: {
+          created_at?: string
+          disponible?: boolean
+          id?: string
+          offre_id: string
+          secteur_id: string
+        }
+        Update: {
+          created_at?: string
+          disponible?: boolean
+          id?: string
+          offre_id?: string
+          secteur_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offres_secteurs_offre_id_fkey"
+            columns: ["offre_id"]
+            isOneToOne: false
+            referencedRelation: "offres"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offres_secteurs_secteur_id_fkey"
+            columns: ["secteur_id"]
+            isOneToOne: false
+            referencedRelation: "secteurs_activite"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           adresse: string | null
@@ -441,6 +480,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      secteurs_activite: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          nom: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          nom: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          nom?: string
+        }
+        Relationships: []
       }
       statistiques: {
         Row: {

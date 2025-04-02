@@ -49,6 +49,20 @@ export interface Offre {
   description: string;
   type: 'SEO' | 'Google Ads' | 'Email X' | 'Foner' | 'Devis';
   prix?: number; // Accessible uniquement aux superviseurs et responsables
+  secteurs?: SecteurActivite[]; // Secteurs d'activité associés
+}
+
+export interface SecteurActivite {
+  id: string;
+  nom: string;
+  description?: string;
+}
+
+export interface OffreSecteur {
+  id: string;
+  offreId: string;
+  secteurId: string;
+  disponible: boolean;
 }
 
 export interface Dossier {

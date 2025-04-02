@@ -61,6 +61,28 @@ const OffreCard: React.FC<OffreCardProps> = ({ offre, onDelete }) => {
               ? `${offre.description.substring(0, 120)}...` 
               : offre.description}
           </p>
+          
+          {offre.secteurs && offre.secteurs.length > 0 && (
+            <div className="mt-3">
+              <p className="text-xs text-muted-foreground mb-1">Secteurs d'activité:</p>
+              <div className="flex flex-wrap gap-1">
+                {offre.secteurs.slice(0, 3).map(secteur => (
+                  <Badge 
+                    key={secteur.id} 
+                    variant="outline" 
+                    className="text-xs"
+                  >
+                    {secteur.nom}
+                  </Badge>
+                ))}
+                {offre.secteurs.length > 3 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{offre.secteurs.length - 3}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
         </CardContent>
         <CardFooter className="flex justify-between pt-2">
           <Button variant="outline" size="sm" onClick={() => setIsViewOpen(true)}>
@@ -93,6 +115,22 @@ const OffreCard: React.FC<OffreCardProps> = ({ offre, onDelete }) => {
               )}
             </div>
             <p>{offre.description}</p>
+            
+            {offre.secteurs && offre.secteurs.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium mb-2">Secteurs d'activité compatibles:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {offre.secteurs.map(secteur => (
+                    <Badge 
+                      key={secteur.id} 
+                      variant="outline"
+                    >
+                      {secteur.nom}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsViewOpen(false)}>Fermer</Button>

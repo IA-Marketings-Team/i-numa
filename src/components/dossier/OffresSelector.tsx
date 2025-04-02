@@ -2,20 +2,16 @@
 import React, { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, Plus } from "lucide-react";
+import { ShoppingBag, Plus, Filter } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
-
-interface Offre {
-  id: string;
-  nom: string;
-  description: string;
-  type: string;
-  prix?: number;
-}
+import { fetchOffresWithSecteurs, fetchSecteurs } from "@/services/offreService";
+import { Offre, SecteurActivite } from "@/types";
 
 interface OffresSelectorProps {
   selectedOffres: string[];
@@ -30,19 +26,21 @@ const OffresSelector: React.FC<OffresSelectorProps> = ({
 }) => {
   const [offres, setOffres] = useState<Offre[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [secteurs, setSecteurs] = useState<SecteurActivite[]>([]);
+  const [selectedSecteurs, setSelectedSecteurs] = useState<string[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchOffres = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
-          .from('offres')
-          .select('*')
-          .order('nom');
+        const [fetchedOffres, fetchedSecteurs] = await Promise.all([
+          fetchOffresWithSecteurs(),
+          fetchSecteurs()
+        ]);
         
-        if (error) throw error;
-        setOffres(data || []);
+        setOffres(fetchedOffres);
+        setSecteurs(fetchedSecteurs);
       } catch (error) {
         console.error('Erreur lors de la récupération des offres:', error);
       } finally {
@@ -50,11 +48,22 @@ const OffresSelector: React.FC<OffresSelectorProps> = ({
       }
     };
     
-    fetchOffres();
+    fetchData();
   }, []);
 
   const handleBrowseOffres = () => {
     navigate('/marketplace');
+  };
+
+  // Gérer la sélection/désélection d'un secteur
+  const handleSecteurChange = (secteurId: string) => {
+    setSelectedSecteurs(prev => {
+      if (prev.includes(secteurId)) {
+        return prev.filter(id => id !== secteurId);
+      } else {
+        return [...prev, secteurId];
+      }
+    });
   };
 
   if (isLoading) {
@@ -69,9 +78,18 @@ const OffresSelector: React.FC<OffresSelectorProps> = ({
     );
   }
 
+  // Filter offers by selected sectors if any are selected
+  const filteredOffres = selectedSecteurs.length > 0
+    ? offres.filter(offre => 
+        offre.secteurs && offre.secteurs.some(secteur => 
+          selectedSecteurs.includes(secteur.id)
+        )
+      )
+    : offres;
+
   // Regrouper les offres par type
   const offresByType: Record<string, Offre[]> = {};
-  offres.forEach(offre => {
+  filteredOffres.forEach(offre => {
     if (!offresByType[offre.type]) {
       offresByType[offre.type] = [];
     }
@@ -82,16 +100,66 @@ const OffresSelector: React.FC<OffresSelectorProps> = ({
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <Label className="text-base">Offres proposées</Label>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handleBrowseOffres}
-          className="flex items-center gap-1.5"
-        >
-          <ShoppingBag className="h-4 w-4" />
-          <span className="hidden sm:inline">Parcourir le catalogue</span>
-          <span className="inline sm:hidden">Catalogue</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="flex items-center gap-1.5">
+                <Filter className="h-4 w-4" />
+                <span className="hidden sm:inline">Filtrer par secteur</span>
+                <span className="inline sm:hidden">Filtrer</span>
+                {selectedSecteurs.length > 0 && (
+                  <Badge className="ml-1">{selectedSecteurs.length}</Badge>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[220px] p-0" align="end">
+              <ScrollArea className="h-[300px] p-4">
+                <div className="space-y-2">
+                  {secteurs.map((secteur) => (
+                    <div key={secteur.id} className="flex items-start space-x-2">
+                      <Checkbox
+                        id={`selector-secteur-${secteur.id}`}
+                        checked={selectedSecteurs.includes(secteur.id)}
+                        onCheckedChange={() => handleSecteurChange(secteur.id)}
+                      />
+                      <div>
+                        <label
+                          htmlFor={`selector-secteur-${secteur.id}`}
+                          className="text-sm font-medium leading-none cursor-pointer"
+                        >
+                          {secteur.nom}
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+              {selectedSecteurs.length > 0 && (
+                <div className="border-t p-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => setSelectedSecteurs([])}
+                  >
+                    Réinitialiser les filtres
+                  </Button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleBrowseOffres}
+            className="flex items-center gap-1.5"
+          >
+            <ShoppingBag className="h-4 w-4" />
+            <span className="hidden sm:inline">Parcourir le catalogue</span>
+            <span className="inline sm:hidden">Catalogue</span>
+          </Button>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -129,12 +197,57 @@ const OffresSelector: React.FC<OffresSelectorProps> = ({
                         {offre.description.length > 100 && "..."}
                       </p>
                     )}
+                    {offre.secteurs && offre.secteurs.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {offre.secteurs.slice(0, 2).map(secteur => (
+                          <Badge 
+                            key={secteur.id} 
+                            variant="outline" 
+                            className="text-[10px] py-0 h-5"
+                          >
+                            {secteur.nom}
+                          </Badge>
+                        ))}
+                        {offre.secteurs.length > 2 && (
+                          <Badge 
+                            variant="outline" 
+                            className="text-[10px] py-0 h-5"
+                          >
+                            +{offre.secteurs.length - 2}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
+              {typeOffres.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-2">
+                  Aucune offre disponible
+                </p>
+              )}
             </CardContent>
           </Card>
         ))}
+        {Object.keys(offresByType).length === 0 && (
+          <Card className="col-span-1 md:col-span-2">
+            <CardContent className="p-8 text-center">
+              <p className="text-muted-foreground">
+                Aucune offre ne correspond aux filtres sélectionnés
+              </p>
+              {selectedSecteurs.length > 0 && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-4"
+                  onClick={() => setSelectedSecteurs([])}
+                >
+                  Réinitialiser les filtres
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
