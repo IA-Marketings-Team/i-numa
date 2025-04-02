@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { 
   fetchAppels, 
@@ -75,7 +74,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
   const [fetchingMeetings, setFetchingMeetings] = useState<boolean>(true);
   const [fetchingEmails, setFetchingEmails] = useState<boolean>(true);
 
-  // Chargement initial des données
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -127,7 +125,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
     loadData();
   }, [toast]);
 
-  // Méthodes pour les appels
   const getAppelById = async (id: string): Promise<Appel | null> => {
     try {
       return await fetchAppelById(id);
@@ -204,7 +201,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Méthodes pour les réunions
   const getMeetingById = async (id: string): Promise<Meeting | null> => {
     try {
       return await fetchMeetingById(id);
@@ -337,7 +333,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Méthodes pour les emails
   const getEmailById = async (id: string): Promise<Email | null> => {
     try {
       return await fetchEmailById(id);
@@ -450,7 +445,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Méthodes de filtrage
   const userAppels = (userId: string): Appel[] => {
     return appels.filter(
       appel => appel.clientId === userId || appel.agentId === userId
@@ -474,14 +468,12 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const value = {
-    // Appels
     appels,
     fetchingAppels,
     getAppelById,
     addAppel,
     editAppel,
     removeAppel,
-    // Meetings
     meetings,
     fetchingMeetings,
     getMeetingById,
@@ -490,7 +482,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
     removeMeeting,
     addParticipant,
     removeParticipant,
-    // Emails
     emails,
     fetchingEmails,
     getEmailById,
@@ -499,7 +490,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
     removeEmail,
     markAsRead,
     markAsUnread,
-    // Filtres
     userAppels,
     userMeetings,
     userEmails
@@ -515,7 +505,7 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
 export const useCommunication = () => {
   const context = useContext(CommunicationContext);
   if (context === undefined) {
-    throw new Error('useCommunication doit être utilisé à l'intérieur d'un CommunicationProvider');
+    throw new Error("useCommunication doit être utilisé à l'intérieur d'un CommunicationProvider");
   }
   return context;
 };

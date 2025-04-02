@@ -109,7 +109,6 @@ export function Sidebar() {
             <Mail className="mr-2 h-4 w-4" />
             Communications
           </Button>
-          
         </div>
       </div>
       <div className="px-3 py-2">
