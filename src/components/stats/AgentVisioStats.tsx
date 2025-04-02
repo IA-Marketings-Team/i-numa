@@ -30,7 +30,9 @@ const AgentVisioStats: React.FC = () => {
     time: "",
     dossierId: "",
     notes: "",
-    honore: true
+    honore: true,
+    meetingLink: "",
+    location: "Visioconférence"
   });
   
   // Filtrer les rendez-vous et dossiers pour l'agent visio actuel
@@ -76,7 +78,7 @@ const AgentVisioStats: React.FC = () => {
     .slice(0, 5);
 
   // Handlers pour les formulaires
-  const handleAddRdv = () => {
+  const handleAddRdv = async () => {
     // Formatter la date et l'heure
     const dateTime = new Date(`${rdvForm.date}T${rdvForm.time}`);
     
@@ -86,10 +88,12 @@ const AgentVisioStats: React.FC = () => {
       date: dateTime,
       honore: rdvForm.honore,
       notes: rdvForm.notes,
+      meetingLink: rdvForm.meetingLink,
+      location: rdvForm.location,
       dossier: dossiers.find(d => d.id === rdvForm.dossierId)!
     };
     
-    addRendezVous(newRdv);
+    await addRendezVous(newRdv);
     setIsAddRdvOpen(false);
     resetForm();
     
@@ -99,17 +103,19 @@ const AgentVisioStats: React.FC = () => {
     });
   };
   
-  const handleEditRdv = () => {
+  const handleEditRdv = async () => {
     if (!selectedRdv) return;
     
     // Formatter la date et l'heure
     const dateTime = new Date(`${rdvForm.date}T${rdvForm.time}`);
     
     // Mettre à jour le rendez-vous
-    updateRendezVous(selectedRdv, {
+    await updateRendezVous(selectedRdv, {
       date: dateTime,
       honore: rdvForm.honore,
-      notes: rdvForm.notes
+      notes: rdvForm.notes,
+      meetingLink: rdvForm.meetingLink,
+      location: rdvForm.location
     });
     
     setIsEditRdvOpen(false);
@@ -121,10 +127,10 @@ const AgentVisioStats: React.FC = () => {
     });
   };
   
-  const handleDeleteRdv = () => {
+  const handleDeleteRdv = async () => {
     if (!selectedRdv) return;
     
-    deleteRendezVous(selectedRdv);
+    await deleteRendezVous(selectedRdv);
     setIsDeleteRdvOpen(false);
     setSelectedRdv(null);
     
@@ -145,7 +151,9 @@ const AgentVisioStats: React.FC = () => {
       time: format(rdvDate, "HH:mm"),
       dossierId: rdv.dossierId,
       notes: rdv.notes || "",
-      honore: rdv.honore
+      honore: rdv.honore,
+      meetingLink: rdv.meetingLink || "",
+      location: rdv.location || "Visioconférence"
     });
     
     setSelectedRdv(rdvId);
@@ -163,15 +171,18 @@ const AgentVisioStats: React.FC = () => {
       time: "",
       dossierId: "",
       notes: "",
-      honore: true
+      honore: true,
+      meetingLink: "",
+      location: "Visioconférence"
     });
     setSelectedRdv(null);
   };
-  
-  const handleFormChange = (values: Partial<typeof rdvForm>) => {
-    setRdvForm(prev => ({ ...prev, ...values }));
-  };
 
+  // Find an existing rendez-vous for editing mode
+  const selectedRendezVous = selectedRdv 
+    ? userRendezVous.find(rdv => rdv.id === selectedRdv) 
+    : undefined;
+  
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Tableau de bord Agent Visio</h2>
@@ -208,30 +219,44 @@ const AgentVisioStats: React.FC = () => {
       />
       
       {/* Dialogue d'ajout de rendez-vous */}
-      <RendezVousFormDialog 
-        isOpen={isAddRdvOpen}
-        onOpenChange={setIsAddRdvOpen}
-        title="Ajouter un rendez-vous"
-        description="Remplissez le formulaire pour ajouter un nouveau rendez-vous."
-        values={rdvForm}
-        onChange={handleFormChange}
-        onSubmit={handleAddRdv}
-        dossiers={userDossiers}
-        submitLabel="Ajouter"
-      />
+      {isAddRdvOpen && (
+        <RendezVousFormDialog 
+          isOpen={isAddRdvOpen}
+          onOpenChange={setIsAddRdvOpen}
+          dossiers={userDossiers}
+          onRendezVousAdded={async (newRdv) => {
+            await addRendezVous(newRdv);
+            setIsAddRdvOpen(false);
+            resetForm();
+            toast({
+              title: "Rendez-vous créé",
+              description: "Le rendez-vous a été ajouté avec succès"
+            });
+          }}
+        />
+      )}
       
       {/* Dialogue de modification de rendez-vous */}
-      <RendezVousFormDialog 
-        isOpen={isEditRdvOpen}
-        onOpenChange={setIsEditRdvOpen}
-        title="Modifier le rendez-vous"
-        values={rdvForm}
-        onChange={handleFormChange}
-        onSubmit={handleEditRdv}
-        dossiers={userDossiers}
-        submitLabel="Enregistrer"
-        isEditMode={true}
-      />
+      {isEditRdvOpen && selectedRendezVous && (
+        <RendezVousFormDialog 
+          isOpen={isEditRdvOpen}
+          onOpenChange={setIsEditRdvOpen}
+          dossiers={userDossiers}
+          rendezVous={selectedRendezVous}
+          onRendezVousUpdated={async (id, updates) => {
+            const success = await updateRendezVous(id, updates);
+            if (success) {
+              setIsEditRdvOpen(false);
+              resetForm();
+              toast({
+                title: "Rendez-vous mis à jour",
+                description: "Le rendez-vous a été mis à jour avec succès"
+              });
+            }
+            return success;
+          }}
+        />
+      )}
       
       {/* Dialogue de suppression de rendez-vous */}
       <DeleteRendezVousDialog 
