@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { UserRole } from "@/types";
 import {
   SidebarContent,
   SidebarGroup,
@@ -41,7 +42,7 @@ export function Sidebar() {
         icon: <LayoutDashboard className="mr-2 h-4 w-4" />,
         path: "/tableau-de-bord",
         active: pathname === "/tableau-de-bord" || pathname === "/",
-        roles: ['client', 'agent_phoner', 'agent_visio', 'superviseur', 'responsable'],
+        roles: ['client', 'agent_phoner', 'agent_visio', 'superviseur', 'responsable'] as UserRole[],
       }
     ];
   };
@@ -53,7 +54,7 @@ export function Sidebar() {
         icon: <User2 className="mr-2 h-4 w-4" />,
         path: "/clients",
         active: pathname.startsWith("/clients"),
-        roles: ['agent_phoner', 'agent_visio', 'superviseur', 'responsable'],
+        roles: ['agent_phoner', 'agent_visio', 'superviseur', 'responsable'] as UserRole[],
       }
     ];
   };
@@ -65,7 +66,7 @@ export function Sidebar() {
         icon: <File className="mr-2 h-4 w-4" />,
         path: "/dossiers",
         active: pathname.startsWith("/dossiers"),
-        roles: ['agent_phoner', 'agent_visio', 'superviseur', 'responsable'],
+        roles: ['agent_phoner', 'agent_visio', 'superviseur', 'responsable'] as UserRole[],
       }
     ];
   };
@@ -77,7 +78,7 @@ export function Sidebar() {
         icon: <CreditCard className="mr-2 h-4 w-4" />,
         path: "/offres",
         active: pathname.startsWith("/offres"),
-        roles: ['client', 'agent_phoner', 'agent_visio', 'supervisable', 'responsable'],
+        roles: ['client', 'agent_phoner', 'agent_visio', 'superviseur', 'responsable'] as UserRole[],
       }
     ];
   };
@@ -89,7 +90,7 @@ export function Sidebar() {
         icon: <Calendar className="mr-2 h-4 w-4" />,
         path: "/rendez-vous",
         active: pathname.startsWith("/rendez-vous"),
-        roles: ['agent_phoner', 'agent_visio', 'superviseur', 'responsable'],
+        roles: ['agent_phoner', 'agent_visio', 'superviseur', 'responsable'] as UserRole[],
       }
     ];
   };
@@ -101,7 +102,7 @@ export function Sidebar() {
         icon: <ListChecks className="mr-2 h-4 w-4" />,
         path: "/tasks",
         active: pathname.startsWith("/tasks"),
-        roles: ['agent_phoner', 'agent_visio', 'superviseur', 'responsable'],
+        roles: ['agent_phoner', 'agent_visio', 'superviseur', 'responsable'] as UserRole[],
       }
     ];
   };
@@ -113,7 +114,7 @@ export function Sidebar() {
         icon: <Mail className="mr-2 h-4 w-4" />,
         path: "/communications",
         active: pathname.startsWith("/communications"),
-        roles: ['agent_phoner', 'agent_visio', 'superviseur', 'responsable'],
+        roles: ['agent_phoner', 'agent_visio', 'superviseur', 'responsable'] as UserRole[],
       }
     ];
   };
@@ -125,14 +126,14 @@ export function Sidebar() {
         icon: <Users className="mr-2 h-4 w-4" />,
         path: "/agents",
         active: pathname.startsWith("/agents"),
-        roles: ['superviseur', 'responsable'],
+        roles: ['superviseur', 'responsable'] as UserRole[],
       },
       {
         label: "Équipes",
         icon: <Building2 className="mr-2 h-4 w-4" />,
         path: "/teams",
         active: pathname.startsWith("/teams"),
-        roles: ['superviseur', 'responsable'],
+        roles: ['superviseur', 'responsable'] as UserRole[],
       }
     ];
   };
@@ -144,7 +145,7 @@ export function Sidebar() {
         icon: <BarChart className="mr-2 h-4 w-4" />,
         path: "/statistiques",
         active: pathname.startsWith("/statistiques"),
-        roles: ['agent_phoner', 'agent_visio', 'superviseur', 'responsable'],
+        roles: ['agent_phoner', 'agent_visio', 'superviseur', 'responsable'] as UserRole[],
       }
     ];
   };
@@ -156,7 +157,7 @@ export function Sidebar() {
         icon: <Headset className="mr-2 h-4 w-4" />,
         path: "/support",
         active: pathname.startsWith("/support"),
-        roles: ['client'],
+        roles: ['client'] as UserRole[],
       }
     ];
   };
@@ -168,7 +169,7 @@ export function Sidebar() {
         icon: <Settings className="mr-2 h-4 w-4" />,
         path: "/settings",
         active: pathname.startsWith("/settings"),
-        roles: ['client', 'agent_phoner', 'agent_visio', 'superviseur', 'responsable'],
+        roles: ['client', 'agent_phoner', 'agent_visio', 'superviseur', 'responsable'] as UserRole[],
       }
     ];
   };
@@ -184,7 +185,7 @@ export function Sidebar() {
     });
 
     // Section Client - uniquement pour les rôles agent_phoner, agent_visio, superviseur, responsable
-    if (hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable'])) {
+    if (hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable'] as UserRole[])) {
       menuGroups.push({
         group: "Gestion des clients",
         items: [
@@ -210,7 +211,7 @@ export function Sidebar() {
     }
 
     // Section Équipe - uniquement pour superviseur et responsable
-    if (hasPermission(['superviseur', 'responsable'])) {
+    if (hasPermission(['superviseur', 'responsable'] as UserRole[])) {
       menuGroups.push({
         group: "Gestion d'équipe",
         items: getTeamItems().filter(item => hasPermission(item.roles))
@@ -227,7 +228,7 @@ export function Sidebar() {
     }
 
     // Section Support client - uniquement pour le client
-    if (hasPermission(['client'])) {
+    if (hasPermission(['client'] as UserRole[])) {
       menuGroups.push({
         group: "Support",
         items: getClientSupportItems()
