@@ -48,8 +48,8 @@ const ClientNewPage: React.FC = () => {
     try {
       setIsLoading(true);
       
-      // Créer le client
-      const clientData: Omit<Client, 'id' | 'dateCreation'> = {
+      // Créer le client - FIX: Include dateCreation with the current date
+      const clientData: Omit<Client, 'id'> = {
         nom: formData.nom,
         prenom: formData.prenom,
         email: formData.email,
@@ -63,7 +63,8 @@ const ClientNewPage: React.FC = () => {
         iban: formData.iban,
         bic: formData.bic,
         nomBanque: formData.nomBanque,
-        role: 'client'
+        role: 'client',
+        dateCreation: new Date()  // Added dateCreation to fix the TypeScript error
       };
       
       const newClient = await createClient(clientData);
