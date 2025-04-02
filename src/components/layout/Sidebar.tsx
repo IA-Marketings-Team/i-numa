@@ -21,7 +21,7 @@ export function Sidebar({ className, isOpen, onClose, ...props }: SidebarProps) 
   // Find active item based on current path
   const getActiveItem = (path: string) => {
     for (const item of [...mainMenuItems, ...accountMenuItems]) {
-      if (path.startsWith(item.path)) {
+      if (path === item.path || (path.startsWith(item.path) && item.path !== '/')) {
         return item.id;
       }
     }

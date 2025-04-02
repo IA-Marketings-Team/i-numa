@@ -13,6 +13,7 @@ import { fr } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Info, Video } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type AppointmentType = 'meeting' | 'rdv';
 type CalendarEvent = {
@@ -28,6 +29,7 @@ type CalendarEvent = {
 const GlobalAgenda: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [rendezVous, setRendezVous] = useState<RendezVous[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -37,6 +39,7 @@ const GlobalAgenda: React.FC = () => {
   const [filterType, setFilterType] = useState<'all' | 'meetings' | 'rdv'>('all');
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [activeView, setActiveView] = useState<'day' | 'week'>(isMobile ? 'day' : 'week');
   
   // Generate days of the week from current week
   const daysOfWeek = Array.from({ length: 7 }, (_, i) => addDays(currentWeek, i));
@@ -107,6 +110,11 @@ const GlobalAgenda: React.FC = () => {
     loadData();
   }, []);
   
+  // Set view based on screen size when component mounts or screen size changes
+  useEffect(() => {
+    setActiveView(isMobile ? 'day' : 'week');
+  }, [isMobile]);
+  
   // Filter events based on selected filter type
   const filteredEvents = events.filter(event => {
     if (filterType === 'all') return true;
@@ -165,15 +173,16 @@ const GlobalAgenda: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold mb-6">Agenda global</h1>
+    <div className="container mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
+      <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6">Agenda global</h1>
       
-      <div className="flex flex-col md:flex-row gap-4 items-start justify-between mb-6">
-        <div className="flex gap-2 items-center">
+      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 mb-4">
+        <div className="flex gap-2 items-center flex-wrap">
           <Button 
             variant="outline" 
             size="sm" 
             onClick={goToPreviousWeek}
+            className="h-8 px-2"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -181,6 +190,7 @@ const GlobalAgenda: React.FC = () => {
             variant="outline" 
             size="sm" 
             onClick={goToCurrentWeek}
+            className="h-8 px-2"
           >
             Aujourd'hui
           </Button>
@@ -188,23 +198,44 @@ const GlobalAgenda: React.FC = () => {
             variant="outline" 
             size="sm" 
             onClick={goToNextWeek}
+            className="h-8 px-2"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <span className="text-sm font-medium">
-            Semaine du {format(currentWeek, 'dd MMM', { locale: fr })} au {format(addDays(currentWeek, 6), 'dd MMM yyyy', { locale: fr })}
+          <span className="text-sm font-medium ml-1">
+            {format(currentWeek, 'dd MMM', { locale: fr })} - {format(addDays(currentWeek, 6), 'dd MMM yyyy', { locale: fr })}
           </span>
         </div>
         
-        <div className="flex gap-4 items-center">
+        <div className="flex flex-wrap gap-3 items-center">
+          {!isMobile && (
+            <div className="flex gap-2">
+              <Button 
+                variant={activeView === 'day' ? 'default' : 'outline'} 
+                size="sm" 
+                onClick={() => setActiveView('day')}
+                className="h-8"
+              >
+                Jour
+              </Button>
+              <Button 
+                variant={activeView === 'week' ? 'default' : 'outline'} 
+                size="sm" 
+                onClick={() => setActiveView('week')}
+                className="h-8"
+              >
+                Semaine
+              </Button>
+            </div>
+          )}
+          
           <div className="flex items-center">
             <CalendarIcon className="mr-2 h-4 w-4" />
-            <label className="text-sm font-medium mr-2">Type:</label>
             <Select
               value={filterType}
               onValueChange={(value) => setFilterType(value as 'all' | 'meetings' | 'rdv')}
             >
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[130px] md:w-[180px] h-8">
                 <SelectValue placeholder="Type d'événement" />
               </SelectTrigger>
               <SelectContent>
@@ -220,136 +251,213 @@ const GlobalAgenda: React.FC = () => {
       {isLoading ? (
         <Card>
           <CardContent className="p-6">
-            <div className="flex justify-center">
+            <div className="flex justify-center py-12">
               <p>Chargement de l'agenda...</p>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-8 gap-6">
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CalendarIcon className="h-5 w-5" />
-                Calendrier
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={(date) => date && setSelectedDate(date)}
-                className="rounded-md border"
-                modifiers={{
-                  event: (date) => dateHasEvent(date),
-                }}
-                modifiersStyles={{
-                  event: { fontWeight: 'bold', backgroundColor: 'rgba(99, 102, 241, 0.1)' }
-                }}
-                locale={fr}
-              />
-              
-              <div className="mt-6 space-y-2">
-                <h3 className="font-medium">Événements du {format(selectedDate, 'dd MMMM yyyy', { locale: fr })}</h3>
-                {eventsForSelectedDate.length > 0 ? (
-                  <div className="space-y-3 mt-3">
-                    {eventsForSelectedDate.map((event) => (
-                      <div 
-                        key={`${event.type}-${event.id}`} 
-                        className={`p-3 rounded-lg border ${getEventTypeColor(event.type)} cursor-pointer hover:shadow-sm transition-shadow`}
-                        onClick={() => handleEventClick(event)}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium">{event.title}</p>
-                            <p className="text-xs">
-                              {event.startTime} {event.endTime ? `- ${event.endTime}` : ''}
-                            </p>
+        <div className="grid grid-cols-1 gap-4 md:gap-6">
+          {/* Calendar and Day View */}
+          <div className={`grid grid-cols-1 ${activeView === 'day' || isMobile ? 'md:grid-cols-3' : 'md:grid-cols-1'} gap-4 md:gap-6`}>
+            <Card className={activeView === 'day' || isMobile ? 'md:col-span-1' : 'hidden md:block'}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <CalendarIcon className="h-5 w-5" />
+                  Calendrier
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => date && setSelectedDate(date)}
+                  className="rounded-md border mx-auto"
+                  modifiers={{
+                    event: (date) => dateHasEvent(date),
+                  }}
+                  modifiersStyles={{
+                    event: { fontWeight: 'bold', backgroundColor: 'rgba(99, 102, 241, 0.1)' }
+                  }}
+                  locale={fr}
+                />
+                
+                <div className="mt-6 space-y-2">
+                  <h3 className="font-medium">Événements du {format(selectedDate, 'dd MMMM yyyy', { locale: fr })}</h3>
+                  {eventsForSelectedDate.length > 0 ? (
+                    <div className="space-y-3 mt-3">
+                      {eventsForSelectedDate.map((event) => (
+                        <div 
+                          key={`${event.type}-${event.id}`} 
+                          className={`p-3 rounded-lg border ${getEventTypeColor(event.type)} cursor-pointer hover:shadow-sm transition-shadow`}
+                          onClick={() => handleEventClick(event)}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium text-sm">{event.title}</p>
+                              <p className="text-xs">
+                                {event.startTime} {event.endTime ? `- ${event.endTime}` : ''}
+                              </p>
+                            </div>
+                            <Info className="h-4 w-4 flex-shrink-0" />
                           </div>
-                          <Info className="h-4 w-4" />
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Pas d'événements pour cette date.</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="md:col-span-6">
-            <CardHeader>
-              <CardTitle>Vue hebdomadaire</CardTitle>
-              <CardDescription>
-                Semaine {getWeek(currentWeek)} - {format(currentWeek, 'MMMM yyyy', { locale: fr })}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <div className="min-w-[800px]">
-                  {/* Days header */}
-                  <div className="grid grid-cols-8 gap-1 mb-2">
-                    <div className="col-span-1"></div>
-                    {daysOfWeek.map((day, index) => (
-                      <div 
-                        key={index} 
-                        className={`col-span-1 text-center font-medium p-2 rounded-t-md ${
-                          isSameDay(day, new Date()) ? 'bg-primary/10' : ''
-                        }`}
-                      >
-                        <div className="text-sm">{format(day, 'EEE', { locale: fr })}</div>
-                        <div className={`text-lg ${
-                          isSameDay(day, new Date()) ? 'text-primary' : ''
-                        }`}>
-                          {format(day, 'dd')}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Time slots */}
-                  {timeSlots.map((timeSlot) => (
-                    <div 
-                      key={timeSlot} 
-                      className="grid grid-cols-8 gap-1 border-t py-1"
-                    >
-                      <div className="col-span-1 text-right pr-2 text-sm text-muted-foreground pt-1">
-                        {timeSlot}
-                      </div>
-                      
-                      {daysOfWeek.map((day, dayIndex) => {
-                        const eventsForSlot = getEventsForTimeSlot(day, timeSlot);
-                        return (
-                          <div 
-                            key={dayIndex} 
-                            className={`col-span-1 h-16 border border-dashed rounded-sm ${
-                              isSameDay(day, new Date()) ? 'bg-primary/5' : ''
-                            }`}
-                          >
-                            {eventsForSlot.length > 0 ? (
-                              <div className="p-1 h-full overflow-y-auto">
-                                {eventsForSlot.map((event) => (
-                                  <div
-                                    key={`${event.type}-${event.id}`}
-                                    className={`p-1 text-xs rounded mb-1 cursor-pointer ${getEventTypeColor(event.type)}`}
-                                    onClick={() => handleEventClick(event)}
-                                  >
-                                    <div className="font-medium truncate">{event.title}</div>
-                                    <div>{event.startTime}{event.endTime ? ` - ${event.endTime}` : ''}</div>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : null}
-                          </div>
-                        );
-                      })}
+                      ))}
                     </div>
-                  ))}
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Pas d'événements pour cette date.</p>
+                  )}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+            
+            {/* Day View Events */}
+            {(activeView === 'day' || isMobile) && (
+              <Card className="md:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-lg">
+                    {format(selectedDate, 'EEEE dd MMMM yyyy', { locale: fr })}
+                  </CardTitle>
+                  <CardDescription>
+                    {eventsForSelectedDate.length} événement{eventsForSelectedDate.length !== 1 ? 's' : ''}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {eventsForSelectedDate.length > 0 ? (
+                    <div className="space-y-3">
+                      {eventsForSelectedDate.map((event) => (
+                        <div 
+                          key={`day-${event.type}-${event.id}`} 
+                          className={`p-4 rounded-lg border ${getEventTypeColor(event.type)} cursor-pointer hover:shadow-md transition-shadow`}
+                          onClick={() => handleEventClick(event)}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium">{event.title}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                                <p className="text-sm text-muted-foreground">
+                                  {format(event.date, 'EEEE dd MMMM', { locale: fr })}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                                <p className="text-sm text-muted-foreground">
+                                  {event.startTime} {event.endTime ? `- ${event.endTime}` : ''}
+                                </p>
+                              </div>
+                              {event.type === 'meeting' && (
+                                <p className="text-sm mt-2">{(event.details as Meeting).description}</p>
+                              )}
+                            </div>
+                            <div className="flex flex-col items-end">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                {event.type === 'meeting' ? 'Réunion' : 'Rendez-vous'}
+                              </span>
+                              {event.type === 'meeting' && (event.details as Meeting).lien && (
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="mt-2 h-8 text-xs"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.open((event.details as Meeting).lien, '_blank');
+                                  }}
+                                >
+                                  <Video className="h-3 w-3 mr-1" />
+                                  Rejoindre
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <p className="text-muted-foreground">Pas d'événements pour cette date</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+          
+          {/* Week View */}
+          {(activeView === 'week' && !isMobile) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Vue hebdomadaire</CardTitle>
+                <CardDescription>
+                  Semaine {getWeek(currentWeek)} - {format(currentWeek, 'MMMM yyyy', { locale: fr })}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <div className="min-w-[700px]">
+                    {/* Days header */}
+                    <div className="grid grid-cols-8 gap-1 mb-2">
+                      <div className="col-span-1"></div>
+                      {daysOfWeek.map((day, index) => (
+                        <div 
+                          key={index} 
+                          className={`col-span-1 text-center font-medium p-2 rounded-t-md ${
+                            isSameDay(day, new Date()) ? 'bg-primary/10' : ''
+                          }`}
+                        >
+                          <div className="text-sm">{format(day, 'EEE', { locale: fr })}</div>
+                          <div className={`text-lg ${
+                            isSameDay(day, new Date()) ? 'text-primary' : ''
+                          }`}>
+                            {format(day, 'dd')}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Time slots */}
+                    {timeSlots.map((timeSlot) => (
+                      <div 
+                        key={timeSlot} 
+                        className="grid grid-cols-8 gap-1 border-t py-1"
+                      >
+                        <div className="col-span-1 text-right pr-2 text-sm text-muted-foreground pt-1">
+                          {timeSlot}
+                        </div>
+                        
+                        {daysOfWeek.map((day, dayIndex) => {
+                          const eventsForSlot = getEventsForTimeSlot(day, timeSlot);
+                          return (
+                            <div 
+                              key={dayIndex} 
+                              className={`col-span-1 h-16 border border-dashed rounded-sm ${
+                                isSameDay(day, new Date()) ? 'bg-primary/5' : ''
+                              }`}
+                            >
+                              {eventsForSlot.length > 0 ? (
+                                <div className="p-1 h-full overflow-y-auto">
+                                  {eventsForSlot.map((event) => (
+                                    <div
+                                      key={`${event.type}-${event.id}`}
+                                      className={`p-1 text-xs rounded mb-1 cursor-pointer ${getEventTypeColor(event.type)}`}
+                                      onClick={() => handleEventClick(event)}
+                                    >
+                                      <div className="font-medium truncate">{event.title}</div>
+                                      <div>{event.startTime}{event.endTime ? ` - ${event.endTime}` : ''}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : null}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
       
