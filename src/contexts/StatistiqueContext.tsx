@@ -1,72 +1,81 @@
-import React, { createContext, useContext, useState } from "react";
+
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { Statistique, Agent, UserRole } from "@/types";
-import { 
-  statistiques as mockStatistiques, 
-  statistiquesJournalieres,
-  statistiquesHebdomadaires,
-  statistiquesMensuelles
-} from "@/data/mock/statistiques";
-import { agents as mockAgents } from "@/data/mock/agents";
 import { useAuth } from "./AuthContext";
+import { fetchStatistiques, fetchStatistiquesByPeriode, fetchStatistiquesBetweenDates } from "@/services/statistiqueService";
+import { fetchAgentById, resetAgentStats } from "@/services/agentService";
 
 interface StatistiqueContextType {
   statistiques: Statistique[];
-  getStatistiquesForPeriod: (debut: Date, fin: Date) => Statistique[];
-  getStatistiquesByPeriodeType: (periode: "jour" | "semaine" | "mois") => Statistique[];
-  getAgentStatistics: (agentId: string) => Agent | undefined;
-  resetAgentStatistics: (agentId: string) => void;
+  isLoading: boolean;
+  error: Error | null;
+  getStatistiquesForPeriod: (debut: Date, fin: Date) => Promise<Statistique[]>;
+  getStatistiquesByPeriodeType: (periode: "jour" | "semaine" | "mois") => Promise<Statistique[]>;
+  getAgentStatistics: (agentId: string) => Promise<Agent | undefined>;
+  resetAgentStatistics: (agentId: string) => Promise<boolean>;
   getAuthorizedStatistics: (userRole: UserRole) => Partial<Statistique>[];
 }
 
 const StatistiqueContext = createContext<StatistiqueContextType | undefined>(undefined);
 
 export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [statistiques, setStatistiques] = useState<Statistique[]>(mockStatistiques);
-  const [agents, setAgents] = useState<Agent[]>(mockAgents);
+  const [statistiques, setStatistiques] = useState<Statistique[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | null>(null);
   const { user } = useAuth();
 
-  const getStatistiquesForPeriod = (debut: Date, fin: Date): Statistique[] => {
-    return statistiques.filter(stat => 
-      new Date(stat.dateDebut) >= debut && new Date(stat.dateFin) <= fin
-    );
-  };
+  useEffect(() => {
+    const loadStatistiques = async () => {
+      try {
+        setIsLoading(true);
+        const data = await fetchStatistiques();
+        setStatistiques(data);
+        setError(null);
+      } catch (err) {
+        console.error("Error loading statistiques:", err);
+        setError(err instanceof Error ? err : new Error('Unknown error occurred'));
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const getStatistiquesByPeriodeType = (periode: "jour" | "semaine" | "mois"): Statistique[] => {
-    switch (periode) {
-      case "jour":
-        return statistiquesJournalieres;
-      case "semaine":
-        return statistiquesHebdomadaires;
-      case "mois":
-        return statistiquesMensuelles;
-      default:
-        return [];
+    loadStatistiques();
+  }, []);
+
+  const getStatistiquesForPeriod = async (debut: Date, fin: Date): Promise<Statistique[]> => {
+    try {
+      return await fetchStatistiquesBetweenDates(debut, fin);
+    } catch (err) {
+      console.error("Error fetching statistiques for period:", err);
+      return [];
     }
   };
 
-  const getAgentStatistics = (agentId: string): Agent | undefined => {
-    return agents.find(agent => agent.id === agentId);
+  const getStatistiquesByPeriodeType = async (periode: "jour" | "semaine" | "mois"): Promise<Statistique[]> => {
+    try {
+      return await fetchStatistiquesByPeriode(periode);
+    } catch (err) {
+      console.error(`Error fetching statistiques for periode ${periode}:`, err);
+      return [];
+    }
   };
 
-  const resetAgentStatistics = (agentId: string) => {
-    setAgents(prevAgents => 
-      prevAgents.map(agent => 
-        agent.id === agentId
-          ? {
-              ...agent,
-              statistiques: {
-                appelsEmis: 0,
-                appelsDecroches: 0,
-                appelsTransformes: 0,
-                rendezVousHonores: 0,
-                rendezVousNonHonores: 0,
-                dossiersValides: 0,
-                dossiersSigne: 0
-              }
-            }
-          : agent
-      )
-    );
+  const getAgentStatistics = async (agentId: string): Promise<Agent | undefined> => {
+    try {
+      return await fetchAgentById(agentId);
+    } catch (err) {
+      console.error(`Error fetching agent statistics for ${agentId}:`, err);
+      return undefined;
+    }
+  };
+
+  const resetAgentStatistics = async (agentId: string): Promise<boolean> => {
+    try {
+      return await resetAgentStats(agentId);
+    } catch (err) {
+      console.error(`Error resetting agent statistics for ${agentId}:`, err);
+      return false;
+    }
   };
 
   const getAuthorizedStatistics = (userRole: UserRole): Partial<Statistique>[] => {
@@ -95,6 +104,8 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
   return (
     <StatistiqueContext.Provider value={{
       statistiques,
+      isLoading,
+      error,
       getStatistiquesForPeriod,
       getStatistiquesByPeriodeType,
       getAgentStatistics,

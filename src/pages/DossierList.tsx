@@ -10,12 +10,14 @@ import { DossierStatus } from "@/types";
 import { Plus, Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 
 const DossierListPage = () => {
-  const { filteredDossiers, setStatusFilter, statusFilter } = useDossier();
+  const { filteredDossiers, setStatusFilter, statusFilter, isLoading } = useDossier();
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const { hasPermission, user } = useAuth();
+  const { toast } = useToast();
 
   // Log component initialization
   useEffect(() => {
@@ -33,7 +35,8 @@ const DossierListPage = () => {
       dossier.client.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
       dossier.client.prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
       dossier.client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      dossier.client.secteurActivite.toLowerCase().includes(searchTerm.toLowerCase())
+      (dossier.client.secteurActivite && 
+       dossier.client.secteurActivite.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleStatusChange = (status: string) => {
@@ -100,7 +103,13 @@ const DossierListPage = () => {
         </div>
         
         <div className="bg-background rounded-md border p-1 overflow-auto">
-          <DossierList dossiers={searchFilteredDossiers} />
+          {isLoading ? (
+            <div className="p-4 text-center">Chargement des dossiers...</div>
+          ) : searchFilteredDossiers.length === 0 ? (
+            <div className="p-4 text-center">Aucun dossier trouvé</div>
+          ) : (
+            <DossierList dossiers={searchFilteredDossiers} />
+          )}
         </div>
       </CardContent>
     </Card>
