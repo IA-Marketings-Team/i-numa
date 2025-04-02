@@ -8,7 +8,14 @@ export interface Appel {
   date: Date;
   duree: number; // en minutes
   notes: string;
-  statut: 'planifie' | 'effectue' | 'manque';
+  statut: 'RDV' | 'Vente' | 'Répondeur' | 'Injoignable' | 'Refus argumentaire' | 'Refus intro' | 'Rappel' | 'Hors cible' | 'planifie' | 'effectue' | 'manque';
+  entreprise?: string;
+  gerant?: string;
+  contact?: string;
+  email?: string;
+  codePostal?: string;
+  dateRdv?: Date;
+  heureRdv?: string;
 }
 
 /**
@@ -33,7 +40,81 @@ export const fetchAppels = async (): Promise<Appel[]> => {
       date: new Date(appel.date),
       duree: appel.duree,
       notes: appel.notes || '',
-      statut: convertAppelStatut(appel.statut)
+      statut: convertAppelStatut(appel.statut),
+      entreprise: appel.entreprise,
+      gerant: appel.gerant,
+      contact: appel.contact,
+      email: appel.email,
+      codePostal: appel.code_postal,
+      dateRdv: appel.date_rdv ? new Date(appel.date_rdv) : undefined,
+      heureRdv: appel.heure_rdv
+    }));
+  } catch (error) {
+    console.error("Erreur inattendue lors de la récupération des appels:", error);
+    return [];
+  }
+};
+
+/**
+ * Récupère les appels en fonction des filtres
+ */
+export const fetchAppelsFiltered = async (
+  filters: {
+    statut?: string;
+    dateDebut?: Date;
+    dateFin?: Date;
+    codePostal?: string;
+    agentId?: string;
+  }
+): Promise<Appel[]> => {
+  try {
+    let query = supabase
+      .from('appels')
+      .select('*')
+      .order('date', { ascending: false });
+
+    if (filters.statut) {
+      query = query.eq('statut', filters.statut);
+    }
+
+    if (filters.codePostal) {
+      query = query.eq('code_postal', filters.codePostal);
+    }
+
+    if (filters.agentId) {
+      query = query.eq('agent_id', filters.agentId);
+    }
+
+    if (filters.dateDebut) {
+      query = query.gte('date', filters.dateDebut.toISOString());
+    }
+
+    if (filters.dateFin) {
+      query = query.lte('date', filters.dateFin.toISOString());
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Erreur lors de la récupération des appels filtrés:", error);
+      return [];
+    }
+
+    return data.map(appel => ({
+      id: appel.id,
+      clientId: appel.client_id,
+      agentId: appel.agent_id,
+      date: new Date(appel.date),
+      duree: appel.duree,
+      notes: appel.notes || '',
+      statut: convertAppelStatut(appel.statut),
+      entreprise: appel.entreprise,
+      gerant: appel.gerant,
+      contact: appel.contact,
+      email: appel.email,
+      codePostal: appel.code_postal,
+      dateRdv: appel.date_rdv ? new Date(appel.date_rdv) : undefined,
+      heureRdv: appel.heure_rdv
     }));
   } catch (error) {
     console.error("Erreur inattendue lors de la récupération des appels:", error);
@@ -149,7 +230,14 @@ export const createAppel = async (appel: Omit<Appel, "id">): Promise<Appel | nul
         date: appel.date.toISOString(),
         duree: appel.duree,
         notes: appel.notes,
-        statut: appel.statut
+        statut: appel.statut,
+        entreprise: appel.entreprise,
+        gerant: appel.gerant,
+        contact: appel.contact,
+        email: appel.email,
+        code_postal: appel.codePostal,
+        date_rdv: appel.dateRdv?.toISOString(),
+        heure_rdv: appel.heureRdv
       })
       .select()
       .single();
@@ -166,7 +254,14 @@ export const createAppel = async (appel: Omit<Appel, "id">): Promise<Appel | nul
       date: new Date(data.date),
       duree: data.duree,
       notes: data.notes || '',
-      statut: convertAppelStatut(data.statut)
+      statut: convertAppelStatut(data.statut),
+      entreprise: data.entreprise,
+      gerant: data.gerant,
+      contact: data.contact,
+      email: data.email,
+      codePostal: data.code_postal,
+      dateRdv: data.date_rdv ? new Date(data.date_rdv) : undefined,
+      heureRdv: data.heure_rdv
     };
   } catch (error) {
     console.error("Erreur inattendue lors de la création de l'appel:", error);
@@ -187,6 +282,13 @@ export const updateAppel = async (id: string, updates: Partial<Appel>): Promise<
     if (updates.duree !== undefined) updateData.duree = updates.duree;
     if (updates.notes !== undefined) updateData.notes = updates.notes;
     if (updates.statut !== undefined) updateData.statut = updates.statut;
+    if (updates.entreprise !== undefined) updateData.entreprise = updates.entreprise;
+    if (updates.gerant !== undefined) updateData.gerant = updates.gerant;
+    if (updates.contact !== undefined) updateData.contact = updates.contact;
+    if (updates.email !== undefined) updateData.email = updates.email;
+    if (updates.codePostal !== undefined) updateData.code_postal = updates.codePostal;
+    if (updates.dateRdv !== undefined) updateData.date_rdv = updates.dateRdv.toISOString();
+    if (updates.heureRdv !== undefined) updateData.heure_rdv = updates.heureRdv;
     
     const { error } = await supabase
       .from('appels')
@@ -228,10 +330,13 @@ export const deleteAppel = async (id: string): Promise<boolean> => {
 };
 
 // Fonction auxiliaire pour convertir le statut d'appel
-const convertAppelStatut = (statut: string): 'planifie' | 'effectue' | 'manque' => {
-  if (statut === 'planifie' || statut === 'effectue' || statut === 'manque') {
-    return statut as 'planifie' | 'effectue' | 'manque';
+const convertAppelStatut = (statut: string): 'RDV' | 'Vente' | 'Répondeur' | 'Injoignable' | 'Refus argumentaire' | 'Refus intro' | 'Rappel' | 'Hors cible' | 'planifie' | 'effectue' | 'manque' => {
+  const validStatuts = ['RDV', 'Vente', 'Répondeur', 'Injoignable', 'Refus argumentaire', 'Refus intro', 'Rappel', 'Hors cible', 'planifie', 'effectue', 'manque'];
+  
+  if (validStatuts.includes(statut)) {
+    return statut as any;
   }
+  
   // Valeur par défaut si le statut n'est pas reconnu
   return 'planifie';
 };

@@ -1,3 +1,4 @@
+
 export type UserRole = 'client' | 'agent_phoner' | 'agent_visio' | 'agent_developpeur' | 'agent_marketing' | 'superviseur' | 'responsable';
 
 export type DossierStatus = 'prospect' | 'rdv_en_cours' | 'valide' | 'signe' | 'archive';
@@ -142,7 +143,14 @@ export interface Appel {
   date: Date;
   duree: number; // en minutes
   notes: string;
-  statut: 'planifie' | 'effectue' | 'manque';
+  statut: 'RDV' | 'Vente' | 'Répondeur' | 'Injoignable' | 'Refus argumentaire' | 'Refus intro' | 'Rappel' | 'Hors cible' | 'planifie' | 'effectue' | 'manque';
+  entreprise?: string;
+  gerant?: string;
+  contact?: string;
+  email?: string;
+  codePostal?: string;
+  dateRdv?: Date;
+  heureRdv?: string;
 }
 
 export interface Meeting {
