@@ -1,220 +1,130 @@
-
-import { useLocation, Link } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
 import {
-  Sidebar as SidebarComponent,
-  SidebarContent,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
-} from "@/components/ui/sidebar";
-import { 
-  Home, 
-  FileText, 
-  Users, 
-  ShoppingBag, 
-  BarChart2, 
-  User,
-  Sun,
-  Moon,
+  BarChart,
+  Building2,
+  Calendar,
+  CreditCard,
+  File,
+  LayoutDashboard,
+  ListChecks,
+  Mail,
   Settings,
-  HelpCircle,
-  LogOut,
-  UserCog,
-  UsersRound
+  User2,
+  Users,
 } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { UserRole } from "@/types";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import HelpDialog from "@/components/support/HelpDialog";
+import { usePathname, useRouter } from "next/navigation";
 
-export default function Sidebar() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { user, hasPermission, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
-  const [helpDialogOpen, setHelpDialogOpen] = useState(false);
-  
-  const getNavItems = () => {
-    const items = [
-      {
-        name: "Tableau de bord",
-        path: "/tableau-de-bord",
-        icon: <Home className="size-4" />,
-        roles: ["client", "agent_phoner", "agent_visio", "agent_developpeur", "agent_marketing", "superviseur", "responsable"] as UserRole[]
-      }, 
-      {
-        name: "Dossiers",
-        path: "/dossiers",
-        icon: <FileText className="size-4" />,
-        roles: ["client", "agent_phoner", "agent_visio", "agent_developpeur", "agent_marketing", "superviseur", "responsable"] as UserRole[]
-      }, 
-      {
-        name: "Clients",
-        path: "/clients",
-        icon: <Users className="size-4" />,
-        roles: ["agent_phoner", "agent_visio", "agent_developpeur", "agent_marketing", "superviseur", "responsable"] as UserRole[]
-      }, 
-      {
-        name: "Nos offres",
-        path: "/mes-offres",
-        icon: <ShoppingBag className="size-4" />,
-        roles: ["client", "agent_phoner", "responsable"] as UserRole[]
-      }, 
-      {
-        name: "Statistiques",
-        path: "/statistiques",
-        icon: <BarChart2 className="size-4" />,
-        roles: ["agent_phoner", "agent_visio", "agent_developpeur", "agent_marketing", "superviseur", "responsable"] as UserRole[]
-      },
-      {
-        name: "Anciennes équipes",
-        path: "/superviseur/equipes",
-        icon: <UserCog className="size-4" />,
-        roles: ["superviseur", "responsable"] as UserRole[]
-      },
-      {
-        name: "Gestion d'équipes",
-        path: "/superviseur/equipe",
-        icon: <UsersRound className="size-4" />,
-        roles: ["superviseur", "responsable"] as UserRole[]
-      }
-    ];
-    
-    return items.filter(item => hasPermission(item.roles));
-  };
+import { Button } from "@/components/ui/button";
 
-  const isActive = (path: string) => {
-    return location.pathname === path || 
-           (path !== '/tableau-de-bord' && location.pathname.startsWith(path));
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate("/connexion");
-  };
-  
-  const handleOpenHelpDialog = () => {
-    setHelpDialogOpen(true);
-  };
+export function Sidebar() {
+  const pathname = usePathname();
+  const navigate = useRouter().push;
 
   return (
-    <>
-      <SidebarComponent className="border-r">
-        <SidebarHeader className="flex items-center justify-center py-4 border-b">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-semibold">
-              i
-            </div>
-            <div className="text-lg font-semibold">i-numa</div>
-          </div>
-        </SidebarHeader>
-        
-        <SidebarContent className="overflow-y-auto flex-1">
-          <SidebarGroup className="pt-2">
-            <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {getNavItems().map((item) => (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton 
-                      asChild 
-                      isActive={isActive(item.path)}
-                      className="py-2"
-                    >
-                      <Link to={item.path} className="flex items-center gap-3">
-                        {item.icon}
-                        <span>{item.name}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup className="mt-4">
-            <SidebarGroupLabel>Paramètres</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton 
-                    asChild 
-                    isActive={isActive("/parametres")}
-                    className="py-2"
-                  >
-                    <Link to="/parametres" className="flex items-center gap-3">
-                      <Settings className="size-4" />
-                      <span>Paramètres</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton 
-                    className="py-2"
-                    onClick={handleOpenHelpDialog}
-                  >
-                    <div className="flex items-center gap-3">
-                      <HelpCircle className="size-4" />
-                      <span>Aide</span>
-                    </div>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-        
-        <SidebarFooter className="border-t mt-auto">
-          <div className="p-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {theme === "light" ? (
-                <Sun className="size-4" />
-              ) : (
-                <Moon className="size-4" />
-              )}
-              <span className="text-sm">Mode {theme === "light" ? "clair" : "sombre"}</span>
-            </div>
-            <Switch 
-              checked={theme === "dark"}
-              onCheckedChange={toggleTheme}
-            />
-          </div>
-
-          {user && (
-            <div className="p-3 border-t">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-9 w-9 border">
-                  <AvatarFallback className="bg-muted text-muted-foreground">
-                    {user.prenom.charAt(0)}{user.nom.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {user.prenom} {user.nom}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {user.email}
-                  </p>
-                </div>
-                <button onClick={handleLogout} className="text-muted-foreground hover:text-foreground">
-                  <LogOut className="size-4" />
-                </button>
-              </div>
-            </div>
-          )}
-        </SidebarFooter>
-      </SidebarComponent>
-      
-      <HelpDialog open={helpDialogOpen} onOpenChange={setHelpDialogOpen} />
-    </>
+    <div className="space-y-4 py-4">
+      <div className="px-3 py-2">
+        <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
+          Navigation
+        </h2>
+        <div className="space-y-1">
+          <Button
+            variant={pathname === "/" ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => navigate("/")}
+          >
+            <LayoutDashboard className="mr-2 h-4 w-4" />
+            Dashboard
+          </Button>
+          <Button
+            variant={pathname === "/clients" ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => navigate("/clients")}
+          >
+            <User2 className="mr-2 h-4 w-4" />
+            Clients
+          </Button>
+          <Button
+            variant={pathname === "/agents" ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => navigate("/agents")}
+          >
+            <Users className="mr-2 h-4 w-4" />
+            Agents
+          </Button>
+          <Button
+            variant={pathname === "/teams" ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => navigate("/teams")}
+          >
+            <Building2 className="mr-2 h-4 w-4" />
+            Equipes
+          </Button>
+          <Button
+            variant={pathname === "/offres" ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => navigate("/offres")}
+          >
+            <CreditCard className="mr-2 h-4 w-4" />
+            Offres
+          </Button>
+          <Button
+            variant={pathname === "/dossiers" ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => navigate("/dossiers")}
+          >
+            <File className="mr-2 h-4 w-4" />
+            Dossiers
+          </Button>
+          <Button
+            variant={pathname === "/rendez-vous" ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => navigate("/rendez-vous")}
+          >
+            <Calendar className="mr-2 h-4 w-4" />
+            Rendez-vous
+          </Button>
+          <Button
+            variant={pathname === "/tasks" ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => navigate("/tasks")}
+          >
+            <ListChecks className="mr-2 h-4 w-4" />
+            Tâches
+          </Button>
+          <Button
+            variant={pathname === "/statistiques" ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => navigate("/statistiques")}
+          >
+            <BarChart className="mr-2 h-4 w-4" />
+            Statistiques
+          </Button>
+          
+          <Button
+            variant={pathname === "/communications" ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => navigate("/communications")}
+          >
+            <Mail className="mr-2 h-4 w-4" />
+            Communications
+          </Button>
+          
+        </div>
+      </div>
+      <div className="px-3 py-2">
+        <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
+          Paramètres
+        </h2>
+        <div className="space-y-1">
+          <Button
+            variant={pathname === "/settings" ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => navigate("/settings")}
+          >
+            <Settings className="mr-2 h-4 w-4" />
+            Settings
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

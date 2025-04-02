@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -30,6 +29,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import SuperviseurEquipes from "./pages/SuperviseurEquipes";
 import SuperviseurEquipe from "./pages/SuperviseurEquipe";
 import MigrationPage from "./pages/MigrationPage";
+import Communications from "./pages/Communications";
 
 const queryClient = new QueryClient();
 
@@ -42,167 +42,171 @@ function App() {
             <DossierProvider>
               <StatistiqueProvider>
                 <CartProvider>
-                  <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
-                    <Routes>
-                      <Route path="/connexion" element={<Login />} />
-                      <Route path="/migration" element={<MigrationPage />} />
-                      
-                      <Route element={<Layout />}>
-                        <Route path="/" element={<Navigate to="/tableau-de-bord" replace />} />
+                  <CommunicationProvider>
+                    <Toaster />
+                    <Sonner />
+                    <BrowserRouter>
+                      <Routes>
+                        <Route path="/connexion" element={<Login />} />
+                        <Route path="/migration" element={<MigrationPage />} />
                         
-                        <Route 
-                          path="/tableau-de-bord" 
-                          element={
-                            <ProtectedRoute>
-                              <Dashboard />
-                            </ProtectedRoute>
-                          } 
-                        />
-                        
-                        <Route 
-                          path="/dossiers" 
-                          element={
-                            <ProtectedRoute>
-                              <DossierListPage />
-                            </ProtectedRoute>
-                          } 
-                        />
-                        
-                        <Route 
-                          path="/dossiers/:id" 
-                          element={
-                            <ProtectedRoute>
-                              <DossierPage />
-                            </ProtectedRoute>
-                          } 
-                        />
-                        
-                        <Route 
-                          path="/dossiers/nouveau" 
-                          element={
-                            <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
-                              <DossierEdit />
-                            </ProtectedRoute>
-                          } 
-                        />
-                        
-                        <Route 
-                          path="/dossiers/:id/edit" 
-                          element={
-                            <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
-                              <DossierEdit />
-                            </ProtectedRoute>
-                          } 
-                        />
-                        
-                        <Route 
-                          path="/dossiers/:dossierId/rendez-vous/:id" 
-                          element={
-                            <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
-                              <RendezVousEdit />
-                            </ProtectedRoute>
-                          } 
-                        />
-                        
-                        <Route 
-                          path="/clients" 
-                          element={
-                            <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
-                              <ClientListPage />
-                            </ProtectedRoute>
-                          } 
-                        />
-                        
-                        <Route 
-                          path="/clients/nouveau" 
-                          element={
+                        <Route element={<Layout />}>
+                          <Route path="/" element={<Navigate to="/tableau-de-bord" replace />} />
+                          
+                          <Route 
+                            path="/tableau-de-bord" 
+                            element={
+                              <ProtectedRoute>
+                                <Dashboard />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          
+                          <Route 
+                            path="/dossiers" 
+                            element={
+                              <ProtectedRoute>
+                                <DossierListPage />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          
+                          <Route 
+                            path="/dossiers/:id" 
+                            element={
+                              <ProtectedRoute>
+                                <DossierPage />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          
+                          <Route 
+                            path="/dossiers/nouveau" 
+                            element={
+                              <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
+                                <DossierEdit />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          
+                          <Route 
+                            path="/dossiers/:id/edit" 
+                            element={
+                              <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
+                                <DossierEdit />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          
+                          <Route 
+                            path="/dossiers/:dossierId/rendez-vous/:id" 
+                            element={
+                              <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
+                                <RendezVousEdit />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          
+                          <Route 
+                            path="/clients" 
+                            element={
+                              <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
+                                <ClientListPage />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          
+                          <Route 
+                            path="/clients/nouveau" 
+                            element={
+                              <ProtectedRoute roles={['superviseur', 'responsable']}>
+                                <ClientCreate />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          
+                          <Route 
+                            path="/clients/:id" 
+                            element={
+                              <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
+                                <ClientPage />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          
+                          <Route 
+                            path="/clients/:id/edit" 
+                            element={
+                              <ProtectedRoute roles={['superviseur', 'responsable']}>
+                                <ClientEdit />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          
+                          <Route 
+                            path="/mes-offres" 
+                            element={
+                              <ProtectedRoute>
+                                <OfferList />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          
+                          <Route 
+                            path="/contrat-acceptation" 
+                            element={
+                              <ProtectedRoute>
+                                <ContractAcceptance />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          
+                          <Route 
+                            path="/statistiques" 
+                            element={
+                              <ProtectedRoute>
+                                <Statistics />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          
+                          <Route 
+                            path="/parametres" 
+                            element={
+                              <ProtectedRoute>
+                                <Settings />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          
+                          <Route 
+                            path="/notifications" 
+                            element={
+                              <ProtectedRoute>
+                                <AllNotificationsPage />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          
+                          <Route path="/superviseur/equipes" element={
                             <ProtectedRoute roles={['superviseur', 'responsable']}>
-                              <ClientCreate />
+                              <SuperviseurEquipes />
                             </ProtectedRoute>
-                          } 
-                        />
-                        
-                        <Route 
-                          path="/clients/:id" 
-                          element={
-                            <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
-                              <ClientPage />
-                            </ProtectedRoute>
-                          } 
-                        />
-                        
-                        <Route 
-                          path="/clients/:id/edit" 
-                          element={
+                          } />
+                          
+                          <Route path="/superviseur/equipe" element={
                             <ProtectedRoute roles={['superviseur', 'responsable']}>
-                              <ClientEdit />
+                              <SuperviseurEquipe />
                             </ProtectedRoute>
-                          } 
-                        />
-                        
-                        <Route 
-                          path="/mes-offres" 
-                          element={
-                            <ProtectedRoute>
-                              <OfferList />
-                            </ProtectedRoute>
-                          } 
-                        />
-                        
-                        <Route 
-                          path="/contrat-acceptation" 
-                          element={
-                            <ProtectedRoute>
-                              <ContractAcceptance />
-                            </ProtectedRoute>
-                          } 
-                        />
-                        
-                        <Route 
-                          path="/statistiques" 
-                          element={
-                            <ProtectedRoute>
-                              <Statistics />
-                            </ProtectedRoute>
-                          } 
-                        />
-                        
-                        <Route 
-                          path="/parametres" 
-                          element={
-                            <ProtectedRoute>
-                              <Settings />
-                            </ProtectedRoute>
-                          } 
-                        />
-                        
-                        <Route 
-                          path="/notifications" 
-                          element={
-                            <ProtectedRoute>
-                              <AllNotificationsPage />
-                            </ProtectedRoute>
-                          } 
-                        />
-                        
-                        <Route path="/superviseur/equipes" element={
-                          <ProtectedRoute roles={['superviseur', 'responsable']}>
-                            <SuperviseurEquipes />
-                          </ProtectedRoute>
-                        } />
-                        
-                        <Route path="/superviseur/equipe" element={
-                          <ProtectedRoute roles={['superviseur', 'responsable']}>
-                            <SuperviseurEquipe />
-                          </ProtectedRoute>
-                        } />
-                        
-                        <Route path="*" element={<NotFound />} />
-                      </Route>
-                    </Routes>
-                  </BrowserRouter>
+                          } />
+                          
+                          <Route path="/communications" element={<Communications />} />
+                          
+                          <Route path="*" element={<NotFound />} />
+                        </Route>
+                      </Routes>
+                    </BrowserRouter>
+                  </CommunicationProvider>
                 </CartProvider>
               </StatistiqueProvider>
             </DossierProvider>

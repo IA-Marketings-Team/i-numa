@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      appels: {
+        Row: {
+          agent_id: string | null
+          client_id: string | null
+          date: string
+          duree: number
+          id: string
+          notes: string | null
+          statut: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          client_id?: string | null
+          date?: string
+          duree?: number
+          id?: string
+          notes?: string | null
+          statut?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          client_id?: string | null
+          date?: string
+          duree?: number
+          id?: string
+          notes?: string | null
+          statut?: string | null
+        }
+        Relationships: []
+      }
       dossier_offres: {
         Row: {
           dossier_id: string
@@ -111,6 +141,87 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      emails: {
+        Row: {
+          client_lie: string | null
+          contenu: string
+          date_envoi: string
+          destinataire_ids: string[] | null
+          destinataires_bcc: string[] | null
+          destinataires_cc: string[] | null
+          dossier_lie: string | null
+          expediteur_id: string | null
+          id: string
+          lu: boolean | null
+          piece_jointes: string[] | null
+          sujet: string
+        }
+        Insert: {
+          client_lie?: string | null
+          contenu: string
+          date_envoi?: string
+          destinataire_ids?: string[] | null
+          destinataires_bcc?: string[] | null
+          destinataires_cc?: string[] | null
+          dossier_lie?: string | null
+          expediteur_id?: string | null
+          id?: string
+          lu?: boolean | null
+          piece_jointes?: string[] | null
+          sujet: string
+        }
+        Update: {
+          client_lie?: string | null
+          contenu?: string
+          date_envoi?: string
+          destinataire_ids?: string[] | null
+          destinataires_bcc?: string[] | null
+          destinataires_cc?: string[] | null
+          dossier_lie?: string | null
+          expediteur_id?: string | null
+          id?: string
+          lu?: boolean | null
+          piece_jointes?: string[] | null
+          sujet?: string
+        }
+        Relationships: []
+      }
+      meetings: {
+        Row: {
+          date: string
+          description: string | null
+          duree: number
+          id: string
+          lien: string | null
+          participants: string[] | null
+          statut: string | null
+          titre: string
+          type: string | null
+        }
+        Insert: {
+          date?: string
+          description?: string | null
+          duree?: number
+          id?: string
+          lien?: string | null
+          participants?: string[] | null
+          statut?: string | null
+          titre: string
+          type?: string | null
+        }
+        Update: {
+          date?: string
+          description?: string | null
+          duree?: number
+          id?: string
+          lien?: string | null
+          participants?: string[] | null
+          statut?: string | null
+          titre?: string
+          type?: string | null
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
