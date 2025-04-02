@@ -2,10 +2,10 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { KanbanBoard } from "@/components/tasks/KanbanBoard";
+import KanbanBoard from "@/components/tasks/KanbanBoard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TaskFormDialog } from "@/components/tasks/TaskFormDialog";
+import TaskFormDialog from "@/components/tasks/TaskFormDialog";
 import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -157,6 +157,12 @@ const TasksPage = () => {
     const updatedTask = { ...taskToUpdate, status: newStatus };
     await handleTaskUpdate(updatedTask);
   };
+
+  // Adjust the props for the KanbanBoard component
+  const handleTaskClick = (task: Task) => {
+    // Open task detail or edit dialog here if needed
+    console.log("Task clicked:", task);
+  };
   
   return (
     <div className="container mx-auto py-8">
@@ -187,17 +193,19 @@ const TasksPage = () => {
         </Card>
       ) : (
         <KanbanBoard 
-          tasks={tasks} 
-          onStatusChange={handleStatusChange} 
-          onTaskUpdate={handleTaskUpdate}
-          onTaskDelete={handleTaskDelete}
+          tasks={tasks}
+          onTaskClick={handleTaskClick}
+          onTaskStatusChange={handleStatusChange}
         />
       )}
       
       <TaskFormDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
-        onTaskCreate={handleTaskCreate}
+        onSubmit={handleTaskCreate}
+        // Since agents array is required by the component, provide an empty array for now
+        agents={[]}
+        initialData={undefined}
       />
     </div>
   );

@@ -1,3 +1,4 @@
+
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -181,7 +182,7 @@ const Header = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="relative h-8 flex items-center gap-2 font-normal">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.avatarUrl} alt={`${user?.prenom} ${user?.nom}`} />
+                  <AvatarImage src={user?.avatarUrl || undefined} alt={`${user?.prenom} ${user?.nom}`} />
                   <AvatarFallback>{getInitials()}</AvatarFallback>
                 </Avatar>
                 <span className="hidden sm:inline-block">
