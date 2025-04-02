@@ -177,7 +177,7 @@ const Header = () => {
           <Button 
             variant="outline"
             size="sm"
-            className="hidden md:flex items-center gap-1 border-white/20 text-white hover:bg-white/10 hover:text-white"
+            className="hidden md:flex items-center gap-1 border-primary/30 bg-primary-blue text-white hover:bg-primary-blue/80 hover:text-white transition-colors"
             onClick={handleCreateButtonClick}
           >
             <Plus className="h-4 w-4" />
@@ -187,7 +187,7 @@ const Header = () => {
           <Button
             variant="outline"
             size="sm"
-            className="hidden md:flex items-center gap-1 border-white/20 text-white hover:bg-white/10 hover:text-white"
+            className="hidden md:flex items-center gap-1 border-secondary/30 bg-secondary-purple text-white hover:bg-secondary-purple/80 hover:text-white transition-colors"
             onClick={handleMarketplaceClick}
           >
             <ShoppingCart className="h-4 w-4" />

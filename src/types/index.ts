@@ -7,3 +7,4 @@ export * from './statistique';
 export * from './communication';
 export * from './task';
 export * from './marketplace';
+export * from './auth';

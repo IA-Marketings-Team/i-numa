@@ -1,175 +1,178 @@
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { User, UserRole } from "@/types";
+import React, { createContext, useState, useContext, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { useAuthState } from "@/hooks/useAuthState";
+import { User, Session } from "@supabase/supabase-js";
+import { UserRole } from "@/types";
+import { createAuthLog } from "@/services/authLogService";
 
 interface AuthContextType {
+  session: Session | null;
   user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error: string | null }>;
-  register: (userData: Partial<User>, password: string) => Promise<{ success: boolean; error: string | null }>;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string, role: UserRole) => Promise<void>;
   logout: () => Promise<void>;
-  updateUser: (updates: Partial<User>) => Promise<boolean>;
-  hasPermission: (requiredRoles: UserRole[]) => boolean;
+  error: string | null;
+  userDetails: any | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { 
-    user, 
-    isAuthenticated, 
-    isLoading, 
-    setUser, 
-    setIsAuthenticated
-  } = useAuthState();
-  
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [userDetails, setUserDetails] = useState<any | null>(null);
 
-  const login = async (email: string, password: string) => {
+  useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log("Auth state changed:", event, session);
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        // Log login and logout events
+        if (event === 'SIGNED_IN' && session?.user) {
+          logAuthAction(session.user.id, 'login');
+        } else if (event === 'SIGNED_OUT') {
+          // User ID might not be available here, but it's handled in the logout function
+        }
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+
+      if (session?.user) {
+        fetchUserDetails(session.user.id);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Fetch user details from profiles table
+  const fetchUserDetails = async (userId: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
 
       if (error) {
-        console.error("Login error:", error.message);
-        return { success: false, error: error.message };
+        console.error("Error fetching user details:", error);
+        return;
       }
 
-      return { success: true, error: null };
+      setUserDetails(data);
     } catch (error) {
-      console.error("Unexpected login error:", error);
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : "An unexpected error occurred" 
-      };
+      console.error("Unexpected error fetching user details:", error);
     }
   };
 
-  const register = async (userData: Partial<User>, password: string) => {
+  const logAuthAction = async (userId: string, action: 'login' | 'logout') => {
     try {
-      const { error } = await supabase.auth.signUp({
-        email: userData.email!,
+      // Create auth log entry
+      await createAuthLog({
+        userId,
+        action,
+        timestamp: new Date(),
+        userAgent: navigator.userAgent,
+        // IP address would need to be captured from server-side
+      });
+    } catch (error) {
+      console.error(`Error logging ${action} action:`, error);
+    }
+  };
+
+  const login = async (email: string, password: string) => {
+    try {
+      setError(null);
+      setLoading(true);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
         password,
-        options: {
-          data: {
-            nom: userData.nom,
-            prenom: userData.prenom,
-            role: userData.role || "client"
-          }
-        }
       });
 
       if (error) {
-        console.error("Registration error:", error.message);
-        return { success: false, error: error.message };
+        setError(error.message);
+        console.error("Login error:", error);
+      } else if (data.user) {
+        fetchUserDetails(data.user.id);
       }
+    } catch (error: any) {
+      setError(error.message);
+      console.error("Unexpected login error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      toast({
-        title: "Registration successful!",
-        description: "Please check your email to confirm your account.",
+  const signup = async (email: string, password: string, role: UserRole) => {
+    try {
+      setError(null);
+      setLoading(true);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
       });
 
-      return { success: true, error: null };
-    } catch (error) {
-      console.error("Unexpected registration error:", error);
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : "An unexpected error occurred" 
-      };
+      if (error) {
+        setError(error.message);
+        console.error("Signup error:", error);
+      }
+    } catch (error: any) {
+      setError(error.message);
+      console.error("Unexpected signup error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const logout = async () => {
     try {
-      await supabase.auth.signOut();
-      setUser(null);
-      setIsAuthenticated(false);
-      
-      // Redirect to login page after logout
-      navigate("/login");
-      
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out.",
-      });
-    } catch (error) {
-      console.error("Logout error:", error);
-      toast({
-        title: "Error",
-        description: "An error occurred during logout.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const updateUser = async (updates: Partial<User>) => {
-    if (!user) return false;
-
-    try {
-      // Maps JavaScript camelCase properties to Supabase snake_case column names
-      const mappedUpdates: Record<string, any> = {};
-      
-      if (updates.nom !== undefined) mappedUpdates.nom = updates.nom;
-      if (updates.prenom !== undefined) mappedUpdates.prenom = updates.prenom;
-      if (updates.telephone !== undefined) mappedUpdates.telephone = updates.telephone;
-      if (updates.adresse !== undefined) mappedUpdates.adresse = updates.adresse;
-      if (updates.ville !== undefined) mappedUpdates.ville = updates.ville;
-      if (updates.codePostal !== undefined) mappedUpdates.code_postal = updates.codePostal;
-      if (updates.iban !== undefined) mappedUpdates.iban = updates.iban;
-      if (updates.bic !== undefined) mappedUpdates.bic = updates.bic;
-      if (updates.nomBanque !== undefined) mappedUpdates.nom_banque = updates.nomBanque;
-      
-      const { error } = await supabase
-        .from('profiles')
-        .update(mappedUpdates)
-        .eq('id', user.id);
-      
-      if (error) {
-        console.error("Error updating user:", error);
-        return false;
+      // Log the logout action before signing out
+      if (user) {
+        await logAuthAction(user.id, 'logout');
       }
       
-      // Update local user state with changes
-      setUser({ ...user, ...updates });
-      
-      return true;
-    } catch (error) {
-      console.error("Unexpected error updating user:", error);
-      return false;
+      setError(null);
+      setLoading(true);
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        setError(error.message);
+        console.error("Logout error:", error);
+      }
+      setUser(null);
+      setSession(null);
+      setUserDetails(null);
+    } catch (error: any) {
+      setError(error.message);
+      console.error("Unexpected logout error:", error);
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const hasPermission = (requiredRoles: UserRole[]) => {
-    if (!user) return false;
-    
-    // Responsable has access to everything
-    if (user.role === "responsable") return true;
-    
-    return requiredRoles.includes(user.role);
-  };
-
-  // Value to be provided by the context
-  const value = {
-    user,
-    isAuthenticated,
-    isLoading,
-    login,
-    register,
-    logout,
-    updateUser,
-    hasPermission
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        session,
+        user,
+        loading,
+        login,
+        signup,
+        logout,
+        error,
+        userDetails,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -177,8 +180,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
+
+export default AuthContext;

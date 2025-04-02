@@ -1,43 +1,48 @@
 
 import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 interface StatisticsCardProps {
   title: string;
-  description?: string;
   current: number;
   max: number;
-  percentageText?: string;
   progressColor?: string;
+  isPercentage?: boolean;
 }
 
 const StatisticsCard: React.FC<StatisticsCardProps> = ({
   title,
-  description,
   current,
   max,
-  percentageText,
   progressColor = "bg-blue-600",
+  isPercentage = false,
 }) => {
-  const percentage = (current / max) * 100;
+  // Évite la division par zéro
+  const percentage = max > 0 ? Math.min(100, Math.round((current / max) * 100)) : 0;
+  
+  // Formats d'affichage
+  const displayValue = isPercentage ? `${current}%` : current;
+  const displayMax = isPercentage ? "100%" : max;
   
   return (
-    <Card className="overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow">
-      <CardHeader className="bg-gradient-to-r from-slate-800 to-slate-700 pb-2 pt-4">
-        <CardTitle className="text-sm font-medium text-slate-100">{title}</CardTitle>
-        {description && <CardDescription className="text-slate-400">{description}</CardDescription>}
+    <Card className="bg-dark-card border-slate-800 overflow-hidden">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium text-slate-300">{title}</CardTitle>
       </CardHeader>
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="text-xl font-bold">{current}</div>
-          <div className="text-sm text-muted-foreground">{percentageText || `${percentage.toFixed(0)}%`}</div>
+      <CardContent>
+        <div className="flex justify-between items-end mb-2">
+          <div className="text-2xl font-bold">{displayValue}</div>
+          <div className="text-sm text-slate-400">/ {displayMax}</div>
         </div>
-        <Progress 
-          value={percentage} 
-          className="h-2"
-          indicatorClassName={progressColor}
-        />
+        
+        <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+          <div 
+            className={cn("h-full rounded-full", progressColor)}
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
       </CardContent>
     </Card>
   );

@@ -1,89 +1,143 @@
 
-import React, { useEffect, useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import PerformanceChart from "./PerformanceChart";
-import { Card } from "@/components/ui/card";
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Statistique } from "@/types";
+import { AreaChart, BarChart, BarChart4 } from "lucide-react";
+import {
+  Area,
+  AreaChart as RechartsAreaChart,
+  Bar,
+  BarChart as RechartsBarChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 interface PerformanceSectionProps {
   statistiques: Statistique[];
+  showAllData?: boolean;
 }
 
-const PerformanceSection: React.FC<PerformanceSectionProps> = ({ statistiques }) => {
-  const [chartData, setChartData] = useState<any[]>([]);
-
-  useEffect(() => {
-    if (statistiques.length === 0) return;
-
-    // Transforme les données pour les graphiques
-    const chartDataTemp = statistiques.map(stat => ({
-      name: new Date(stat.dateDebut).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
-      appels: stat.appelsEmis,
-      rdv: stat.rendezVousHonores,
-      dossiers: stat.dossiersValides + stat.dossiersSigne,
-      chiffre: stat.chiffreAffaires || 0,
+const PerformanceSection: React.FC<PerformanceSectionProps> = ({ 
+  statistiques,
+  showAllData = false 
+}) => {
+  // Transformer les statistiques pour les graphiques
+  const prepareChartData = () => {
+    return statistiques.map(stat => ({
+      period: getFormattedDate(stat.dateDebut),
+      appelsEmis: stat.appelsEmis,
+      appelsDecroches: stat.appelsDecroches,
+      appelsTransformes: stat.appelsTransformes,
+      rendezVousHonores: stat.rendezVousHonores,
+      rendezVousNonHonores: stat.rendezVousNonHonores,
+      dossiersValides: stat.dossiersValides,
+      dossiersSigne: stat.dossiersSigne,
+      chiffreAffaires: stat.chiffreAffaires || 0,
     }));
+  };
 
-    // Trie par date et limite aux 10 dernières entrées
-    const sortedData = [...chartDataTemp].sort(
-      (a, b) => new Date(a.name.split('/').reverse().join('/')).getTime() - 
-                new Date(b.name.split('/').reverse().join('/')).getTime()
-    ).slice(-10);
+  // Formatter la date pour l'affichage
+  const getFormattedDate = (date: Date) => {
+    const d = new Date(date);
+    return `${d.getDate()}/${d.getMonth() + 1}`;
+  };
 
-    setChartData(sortedData);
-  }, [statistiques]);
+  const chartData = prepareChartData();
 
   return (
-    <Card className="p-4 border-0 bg-slate-900/80 shadow-lg">
-      <Tabs defaultValue="appels">
-        <TabsList className="grid grid-cols-4 mb-4">
-          <TabsTrigger value="appels" className="data-[state=active]:bg-blue-600">Appels</TabsTrigger>
-          <TabsTrigger value="rdv" className="data-[state=active]:bg-green-600">Rendez-vous</TabsTrigger>
-          <TabsTrigger value="dossiers" className="data-[state=active]:bg-purple-600">Dossiers</TabsTrigger>
-          <TabsTrigger value="chiffre" className="data-[state=active]:bg-amber-600">Chiffre d'affaires</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="appels">
-          <PerformanceChart 
-            title="Évolution des appels émis" 
-            data={chartData} 
-            dataKey="appels" 
-            stroke="#3b82f6"
-            fill="#3b82f650"
-          />
-        </TabsContent>
-        
-        <TabsContent value="rdv">
-          <PerformanceChart 
-            title="Rendez-vous honorés" 
-            data={chartData} 
-            dataKey="rdv" 
-            stroke="#10b981"
-            fill="#10b98150"
-          />
-        </TabsContent>
-        
-        <TabsContent value="dossiers">
-          <PerformanceChart 
-            title="Dossiers validés et signés" 
-            data={chartData} 
-            dataKey="dossiers" 
-            stroke="#8b5cf6"
-            fill="#8b5cf650"
-          />
-        </TabsContent>
-        
-        <TabsContent value="chiffre">
-          <PerformanceChart 
-            title="Évolution du chiffre d'affaires" 
-            data={chartData} 
-            dataKey="chiffre" 
-            stroke="#f59e0b"
-            fill="#f59e0b50"
-          />
-        </TabsContent>
-      </Tabs>
-    </Card>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <Card className="bg-dark-card border-slate-800">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-lg font-medium">Performance d'appels</CardTitle>
+          <BarChart4 className="h-5 w-5 text-slate-400" />
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <RechartsBarChart
+              data={chartData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#2D3748" />
+              <XAxis 
+                dataKey="period" 
+                stroke="#CBD5E0" 
+                tick={{ fill: '#CBD5E0' }}
+              />
+              <YAxis stroke="#CBD5E0" tick={{ fill: '#CBD5E0' }} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1A1F2C', borderColor: '#2D3748', color: '#E2E8F0' }}
+                labelStyle={{ color: '#E2E8F0' }}
+              />
+              <Legend />
+              <Bar dataKey="appelsEmis" stackId="a" fill="#3B82F6" name="Appels émis" />
+              <Bar dataKey="appelsDecroches" stackId="a" fill="#10B981" name="Appels décrochés" />
+              <Bar dataKey="appelsTransformes" stackId="a" fill="#8B5CF6" name="Appels transformés" />
+            </RechartsBarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-dark-card border-slate-800">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-lg font-medium">
+            {showAllData ? "Tendance du chiffre d'affaires" : "Tendance des rendez-vous"}
+          </CardTitle>
+          <AreaChart className="h-5 w-5 text-slate-400" />
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <RechartsAreaChart
+              data={chartData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#2D3748" />
+              <XAxis 
+                dataKey="period" 
+                stroke="#CBD5E0" 
+                tick={{ fill: '#CBD5E0' }}
+              />
+              <YAxis stroke="#CBD5E0" tick={{ fill: '#CBD5E0' }} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1A1F2C', borderColor: '#2D3748', color: '#E2E8F0' }}
+                labelStyle={{ color: '#E2E8F0' }}
+              />
+              <Legend />
+              
+              {showAllData ? (
+                <Area 
+                  type="monotone" 
+                  dataKey="chiffreAffaires" 
+                  stroke="#F59E0B" 
+                  fill="#F59E0B33" 
+                  name="Chiffre d'affaires" 
+                />
+              ) : (
+                <>
+                  <Area 
+                    type="monotone" 
+                    dataKey="rendezVousHonores" 
+                    stroke="#10B981" 
+                    fill="#10B98133" 
+                    name="RDV honorés" 
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="rendezVousNonHonores" 
+                    stroke="#EF4444" 
+                    fill="#EF444433" 
+                    name="RDV non honorés" 
+                  />
+                </>
+              )}
+            </RechartsAreaChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useCommunication } from '@/contexts/CommunicationContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,6 +11,8 @@ import { Appel } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
+import { clientService } from '@/services';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AppelFormProps {
   appelId?: string | null;
@@ -22,6 +25,9 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
   const { toast } = useToast();
   
   const [loading, setLoading] = useState(false);
+  const [clients, setClients] = useState<Array<{ id: string, nom: string, prenom: string }>>([]);
+  const [agents, setAgents] = useState<Array<{ id: string, nom: string, prenom: string, role: string }>>([]);
+  
   const [formData, setFormData] = useState<{
     clientId: string;
     agentId: string;
@@ -49,6 +55,43 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
     email: '',
     codePostal: '',
   });
+
+  // Chargement des clients et agents pour les dropdowns
+  useEffect(() => {
+    const fetchClientsAndAgents = async () => {
+      try {
+        // Chargement des clients
+        const { data: clientsData, error: clientsError } = await supabase
+          .from('profiles')
+          .select('id, nom, prenom')
+          .eq('role', 'client');
+          
+        if (clientsError) {
+          console.error("Erreur lors du chargement des clients:", clientsError);
+          return;
+        }
+        
+        setClients(clientsData || []);
+        
+        // Chargement des agents
+        const { data: agentsData, error: agentsError } = await supabase
+          .from('profiles')
+          .select('id, nom, prenom, role')
+          .in('role', ['agent_phoner', 'agent_visio', 'superviseur', 'responsable']);
+          
+        if (agentsError) {
+          console.error("Erreur lors du chargement des agents:", agentsError);
+          return;
+        }
+        
+        setAgents(agentsData || []);
+      } catch (error) {
+        console.error("Erreur inattendue:", error);
+      }
+    };
+    
+    fetchClientsAndAgents();
+  }, []);
 
   // Show fields related to RDV only when statut is RDV
   const showRdvFields = formData.statut === 'RDV';
@@ -233,23 +276,49 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="clientId">ID du client</Label>
-          <Input
-            id="clientId"
-            name="clientId"
+          <Label htmlFor="clientId">Client</Label>
+          <Select
             value={formData.clientId}
-            onChange={handleChange}
-          />
+            onValueChange={(value) => handleSelectChange('clientId', value)}
+          >
+            <SelectTrigger id="clientId">
+              <SelectValue placeholder="Sélectionner un client" />
+            </SelectTrigger>
+            <SelectContent>
+              {clients.length === 0 ? (
+                <SelectItem value="none" disabled>Aucun client disponible</SelectItem>
+              ) : (
+                clients.map(client => (
+                  <SelectItem key={client.id} value={client.id}>
+                    {client.prenom} {client.nom}
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="agentId">ID de l'agent</Label>
-          <Input
-            id="agentId"
-            name="agentId"
+          <Label htmlFor="agentId">Agent</Label>
+          <Select
             value={formData.agentId}
-            onChange={handleChange}
-          />
+            onValueChange={(value) => handleSelectChange('agentId', value)}
+          >
+            <SelectTrigger id="agentId">
+              <SelectValue placeholder="Sélectionner un agent" />
+            </SelectTrigger>
+            <SelectContent>
+              {agents.length === 0 ? (
+                <SelectItem value="none" disabled>Aucun agent disponible</SelectItem>
+              ) : (
+                agents.map(agent => (
+                  <SelectItem key={agent.id} value={agent.id}>
+                    {agent.prenom} {agent.nom} ({agent.role})
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
         </div>
         
         <div className="space-y-2">
@@ -283,7 +352,7 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
             value={formData.statut || "planifie"}
             onValueChange={(value) => handleSelectChange('statut', value)}
           >
-            <SelectTrigger>
+            <SelectTrigger id="statut">
               <SelectValue placeholder="Sélectionner un statut" />
             </SelectTrigger>
             <SelectContent>
@@ -305,7 +374,7 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
 
       {/* Champs conditionnels pour RDV */}
       {showRdvFields && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 border rounded-md bg-gray-50">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 border rounded-md bg-gray-50 dark:bg-gray-800">
           <div className="space-y-2">
             <Label htmlFor="dateRdv">Date du RDV</Label>
             <Input

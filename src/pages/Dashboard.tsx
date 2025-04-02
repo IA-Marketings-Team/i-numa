@@ -10,16 +10,16 @@ import AgentVisioStats from "@/components/stats/AgentVisioStats";
 import { Statistique } from "@/types";
 import { fetchStatistiques } from "@/services/statistiqueService";
 import { ArrowRight, BarChart4, Briefcase, Calendar, RefreshCw } from "lucide-react";
-import MarketCard from "@/components/dashboard/MarketCard";
-import PerformanceChart from "@/components/dashboard/PerformanceChart";
 import OverviewSection from "@/components/dashboard/OverviewSection";
 import PerformanceSection from "@/components/dashboard/PerformanceSection";
 import StatisticsCard from "@/components/dashboard/StatisticsCard";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { filteredDossiers, dossiers } = useDossier();
-  const { statistiques: contextStats, isLoading: statsLoading } = useStatistique();
+  const { filteredDossiers, dossiers, loading: dossiersLoading } = useDossier();
+  const { statistiques: contextStats, isLoading: statsContextLoading } = useStatistique();
   const navigate = useNavigate();
   const [statistiques, setStatistiques] = useState<Statistique[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -77,8 +77,11 @@ const Dashboard = () => {
     .sort((a, b) => new Date(b.dateCreation).getTime() - new Date(a.dateCreation).getTime())
     .slice(0, 5);
 
-  // Filtrer les statistiques mensuelles
-  const monthlyStats = statistiques.filter(stat => stat.periode === "mois");
+  // Limiter la visibilité des données selon le rôle
+  const isAdmin = user?.role === 'responsable';
+  const isSupervisor = user?.role === 'superviseur';
+  const isPhoner = user?.role === 'agent_phoner';
+  const isClient = user?.role === 'client';
 
   return (
     <div className="container mx-auto p-4 space-y-6 bg-slate-950 text-slate-50">
@@ -99,59 +102,125 @@ const Dashboard = () => {
         </Button>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center items-center h-48">
-          <p className="text-slate-400">Chargement des données...</p>
+      {isLoading || dossiersLoading ? (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i} className="bg-dark-card border-slate-800">
+                <CardHeader className="pb-2">
+                  <Skeleton className="h-4 w-1/3 bg-slate-700" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-10 w-1/2 bg-slate-700 mb-2" />
+                  <Skeleton className="h-4 w-2/3 bg-slate-700" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          
+          <Card className="bg-dark-card border-slate-800">
+            <CardHeader>
+              <Skeleton className="h-5 w-1/4 bg-slate-700" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[200px] w-full bg-slate-700" />
+            </CardContent>
+          </Card>
         </div>
       ) : (
         <>
-          {/* Section de statistiques principales */}
-          <OverviewSection statistiques={statistiques} />
+          {/* Section de statistiques principales - visible pour tous sauf clients */}
+          {!isClient && (
+            <OverviewSection 
+              statistiques={statistiques} 
+              showRevenueData={isAdmin || isSupervisor}
+            />
+          )}
           
-          {/* Section de graphiques de performance */}
-          <PerformanceSection statistiques={statistiques} />
+          {/* Section de graphiques de performance - visible pour tous sauf clients */}
+          {!isClient && (
+            <PerformanceSection 
+              statistiques={statistiques}
+              showAllData={isAdmin || isSupervisor} 
+            />
+          )}
           
-          {/* Section des statistiques de conversion */}
+          {/* Section des statistiques de conversion - adaptée selon le rôle */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <StatisticsCard
-              title="Taux de validation des dossiers"
-              current={dossierStats.valides + dossierStats.signes}
-              max={dossierStats.rdv + dossierStats.valides + dossierStats.signes}
-              progressColor="bg-green-600"
-            />
-            <StatisticsCard
-              title="Taux de transformation d'appels"
-              current={statistiques.reduce((sum, stat) => sum + stat.appelsTransformes, 0)}
-              max={statistiques.reduce((sum, stat) => sum + stat.appelsDecroches, 0)}
-              progressColor="bg-blue-600"
-            />
-            <StatisticsCard
-              title="Rendez-vous honorés"
-              current={statistiques.reduce((sum, stat) => sum + stat.rendezVousHonores, 0)}
-              max={statistiques.reduce((sum, stat) => sum + (stat.rendezVousHonores + stat.rendezVousNonHonores), 0)}
-              progressColor="bg-purple-600"
-            />
+            {(isAdmin || isSupervisor || isPhoner) && (
+              <StatisticsCard
+                title="Taux de validation des dossiers"
+                current={dossierStats.valides + dossierStats.signes}
+                max={dossierStats.rdv + dossierStats.valides + dossierStats.signes}
+                progressColor="bg-green-600"
+              />
+            )}
+            
+            {(isAdmin || isSupervisor || isPhoner) && (
+              <StatisticsCard
+                title="Taux de transformation d'appels"
+                current={statistiques.reduce((sum, stat) => sum + stat.appelsTransformes, 0)}
+                max={statistiques.reduce((sum, stat) => sum + stat.appelsDecroches, 0)}
+                progressColor="bg-blue-600"
+              />
+            )}
+            
+            {(isAdmin || isSupervisor || isPhoner) && (
+              <StatisticsCard
+                title="Rendez-vous honorés"
+                current={statistiques.reduce((sum, stat) => sum + stat.rendezVousHonores, 0)}
+                max={statistiques.reduce((sum, stat) => sum + (stat.rendezVousHonores + stat.rendezVousNonHonores), 0)}
+                progressColor="bg-purple-600"
+              />
+            )}
+
+            {/* Pour les clients, montrer des statistiques spécifiques */}
+            {isClient && (
+              <>
+                <StatisticsCard
+                  title="Mes offres actives"
+                  current={3} // À remplacer par des données réelles du client
+                  max={5}
+                  progressColor="bg-blue-600"
+                />
+                <StatisticsCard
+                  title="Contrats signés"
+                  current={2} // À remplacer par des données réelles du client
+                  max={5}
+                  progressColor="bg-green-600"
+                />
+                <StatisticsCard
+                  title="Performances marketing"
+                  current={75} // À remplacer par des données réelles du client
+                  max={100}
+                  progressColor="bg-purple-600"
+                  isPercentage
+                />
+              </>
+            )}
           </div>
           
-          {/* Dossiers récents */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold flex items-center">
-                <Briefcase className="mr-2 h-5 w-5" />
-                Dossiers récents
-              </h2>
-              <Button 
-                variant="outline" 
-                onClick={() => navigate("/dossiers")}
-                className="bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
-              >
-                Voir tous
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+          {/* Dossiers récents - adapté selon le rôle */}
+          {(isAdmin || isSupervisor || isPhoner || (isClient && recentDossiers.length > 0)) && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold flex items-center">
+                  <Briefcase className="mr-2 h-5 w-5" />
+                  {isClient ? "Mes dossiers" : "Dossiers récents"}
+                </h2>
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate("/dossiers")}
+                  className="bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
+                >
+                  Voir tous
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+              
+              <DossierList dossiers={recentDossiers} />
             </div>
-            
-            <DossierList dossiers={recentDossiers} />
-          </div>
+          )}
         </>
       )}
     </div>
