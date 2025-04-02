@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -203,7 +202,6 @@ const MarketplacePage = () => {
         </div>
       </div>
       
-      {/* Navigation horizontale des secteurs */}
       <SectorsHorizontalNav 
         selectedSector={selectedSecteur}
         onSelectSector={handleSectorSelect}
@@ -301,7 +299,6 @@ const MarketplacePage = () => {
         categories={offerCategories}
       />
       
-      {/* Affiche le panier fixe */}
       {isClient && <FixedCartDrawer />}
     </div>
   );

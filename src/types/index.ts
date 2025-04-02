@@ -1,4 +1,3 @@
-
 export type UserRole = 'client' | 'agent_phoner' | 'agent_visio' | 'agent_developpeur' | 'agent_marketing' | 'superviseur' | 'responsable';
 
 export type DossierStatus = 'prospect' | 'rdv_en_cours' | 'valide' | 'signe' | 'archive';
@@ -52,6 +51,7 @@ export interface Offre {
   prix?: number;
   prixMensuel?: string;
   fraisCreation?: string;
+  secteurActivite?: string;
   secteurs?: SecteurActivite[];
   sections?: OffreSection[];
 }

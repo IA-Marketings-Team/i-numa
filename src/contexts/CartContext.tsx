@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +14,8 @@ export interface CartItem {
   category?: string;
   price?: string;
   setupFee?: string;
+  prixMensuel?: string;
+  fraisCreation?: string;
 }
 
 interface CartContextType {
@@ -35,7 +36,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
   const [cartCount, setCartCount] = useState(0);
 
-  // Load cart from localStorage on initial load
   useEffect(() => {
     const savedCart = localStorage.getItem("cart");
     if (savedCart) {
@@ -49,23 +49,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // Save cart to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
     setCartCount(cart.length);
   }, [cart]);
 
   const addToCart = (item: Omit<CartItem, "id">) => {
-    // Check if item is already in cart
     const existingItemIndex = cart.findIndex(cartItem => cartItem.offreId === item.offreId);
     
     if (existingItemIndex !== -1) {
-      // Update quantity if item already exists
       const updatedCart = [...cart];
       updatedCart[existingItemIndex].quantity += item.quantity;
       setCart(updatedCart);
     } else {
-      // Add new item to cart with a unique ID
       setCart([...cart, { ...item, id: crypto.randomUUID() }]);
     }
   };
@@ -88,11 +84,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const getCartTotal = () => {
     return cart.reduce((total, item) => {
-      // Handle both price formats (number and string)
       if (item.prix) {
         return total + item.prix * item.quantity;
       } else if (item.price) {
-        // Extract the number from a string like "39€/mois"
         const priceNumber = parseFloat(item.price.replace(/[^\d.,]/g, ''));
         return total + priceNumber * item.quantity;
       }

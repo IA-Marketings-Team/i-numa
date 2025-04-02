@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,9 +22,7 @@ const OffreDetailCard: React.FC<OffreDetailCardProps> = ({ offre }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Extraire les détails des sections de l'offre
-  const sections = offre.details && typeof offre.details === 'object' ? 
-    Array.isArray(offre.details) ? offre.details : [] : 
-    offre.sections || [];
+  const sections = offre.sections || [];
 
   const handleAddToCart = () => {
     addToCart({
@@ -104,7 +101,6 @@ const OffreDetailCard: React.FC<OffreDetailCardProps> = ({ offre }) => {
             </div>
           )}
           
-          {/* Prévisualisation des fonctionnalités/détails */}
           {sections && sections.length > 0 && (
             <div className="mt-3">
               <h4 className="text-sm font-medium mb-2">Fonctionnalités</h4>
@@ -147,7 +143,6 @@ const OffreDetailCard: React.FC<OffreDetailCardProps> = ({ offre }) => {
         </CardFooter>
       </Card>
       
-      {/* Dialogue des détails */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-h-[80vh] overflow-auto sm:max-w-lg">
           <DialogHeader>
@@ -180,7 +175,6 @@ const OffreDetailCard: React.FC<OffreDetailCardProps> = ({ offre }) => {
             </div>
           )}
           
-          {/* Détails complets avec accordéon */}
           {sections && sections.length > 0 ? (
             <Accordion type="multiple" className="w-full">
               {sections.map((section, idx) => (
