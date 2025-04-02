@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -25,9 +26,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchOffres } from "@/services/offreService";
 import { offerCategories } from "@/data/offerData";
 import { useAuth } from "@/contexts/AuthContext";
-import CartDrawer from "@/components/cart/CartDrawer";
+import CartDrawer, { FixedCartDrawer } from "@/components/cart/CartDrawer";
 import EmailOfferDialog from "@/components/offers/EmailOfferDialog";
 import OffreDetailCard from "@/components/offers/OffreDetailCard";
+import SectorsHorizontalNav from "@/components/marketplace/SectorsHorizontalNav";
 import { Offre } from "@/types";
 
 const MarketplacePage = () => {
@@ -35,7 +37,7 @@ const MarketplacePage = () => {
   const [filteredOffres, setFilteredOffres] = useState<Offre[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSecteur, setSelectedSecteur] = useState<string>("");
+  const [selectedSecteur, setSelectedSecteur] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<string>("asc");
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
   const { addToCart, isInCart } = useCart();
@@ -78,8 +80,8 @@ const MarketplacePage = () => {
       );
     }
     
-    if (selectedSecteur && selectedSecteur !== "all_categories") {
-      result = result.filter(offre => offre.type === selectedSecteur);
+    if (selectedSecteur && selectedSecteur !== "all") {
+      result = result.filter(offre => offre.secteurActivite === selectedSecteur);
     }
     
     result.sort((a, b) => {
@@ -107,26 +109,8 @@ const MarketplacePage = () => {
     });
   };
 
-  const getUniqueSecteurs = () => {
-    const secteurs = new Set(offres.map(offre => offre.type));
-    return Array.from(secteurs);
-  };
-
-  const getBadgeColor = (type: string) => {
-    switch (type.toLowerCase()) {
-      case "seo":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
-      case "google ads":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
-      case "email x":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
-      case "foner":
-        return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300";
-      case "devis":
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
-      default:
-        return "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300";
-    }
+  const handleSectorSelect = (sectorId: string) => {
+    setSelectedSecteur(sectorId);
   };
 
   return (
@@ -219,6 +203,12 @@ const MarketplacePage = () => {
         </div>
       </div>
       
+      {/* Navigation horizontale des secteurs */}
+      <SectorsHorizontalNav 
+        selectedSector={selectedSecteur}
+        onSelectSector={handleSectorSelect}
+      />
+      
       <div className="grid grid-cols-1 md:grid-cols-[250px_1fr] gap-6 mt-6">
         <div className="space-y-6">
           <div className="bg-gradient-to-br from-white to-purple-50 dark:from-gray-900 dark:to-indigo-950 p-5 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
@@ -238,26 +228,6 @@ const MarketplacePage = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium mb-1 block">Secteur d'activité</label>
-                <Select 
-                  value={selectedSecteur} 
-                  onValueChange={setSelectedSecteur}
-                >
-                  <SelectTrigger className="w-full bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800">
-                    <SelectValue placeholder="Tous les secteurs" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all_categories">Tous les secteurs</SelectItem>
-                    {getUniqueSecteurs().map(secteur => (
-                      <SelectItem key={secteur} value={secteur}>
-                        {secteur}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
               
               <div>
@@ -283,7 +253,7 @@ const MarketplacePage = () => {
             <Button 
               variant="default" 
               className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-              onClick={() => setSelectedSecteur("")}
+              onClick={() => setSelectedSecteur("all")}
             >
               Voir tout
             </Button>
@@ -308,13 +278,13 @@ const MarketplacePage = () => {
               <p className="text-sm text-gray-500 text-center mt-1">
                 Essayez de modifier vos critères de recherche ou de réinitialiser les filtres.
               </p>
-              {(searchQuery || selectedSecteur) && (
+              {(searchQuery || selectedSecteur !== "all") && (
                 <Button 
                   variant="outline" 
                   className="mt-4 bg-white dark:bg-gray-900"
                   onClick={() => {
                     setSearchQuery("");
-                    setSelectedSecteur("");
+                    setSelectedSecteur("all");
                   }}
                 >
                   Réinitialiser les filtres
@@ -330,6 +300,9 @@ const MarketplacePage = () => {
         onOpenChange={setIsEmailDialogOpen}
         categories={offerCategories}
       />
+      
+      {/* Affiche le panier fixe */}
+      {isClient && <FixedCartDrawer />}
     </div>
   );
 };

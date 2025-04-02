@@ -294,29 +294,35 @@ export type Database = {
       offres: {
         Row: {
           description: string | null
+          details: Json | null
           frais_creation: string | null
           id: string
           nom: string | null
           prix: number | null
           prix_mensuel: string | null
+          secteur_activite: string | null
           type: string | null
         }
         Insert: {
           description?: string | null
+          details?: Json | null
           frais_creation?: string | null
           id?: string
           nom?: string | null
           prix?: number | null
           prix_mensuel?: string | null
+          secteur_activite?: string | null
           type?: string | null
         }
         Update: {
           description?: string | null
+          details?: Json | null
           frais_creation?: string | null
           id?: string
           nom?: string | null
           prix?: number | null
           prix_mensuel?: string | null
+          secteur_activite?: string | null
           type?: string | null
         }
         Relationships: []

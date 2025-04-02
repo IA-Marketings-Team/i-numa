@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Sheet,
   SheetContent,
@@ -20,12 +20,21 @@ import { Card, CardContent } from "@/components/ui/card";
 
 interface CartDrawerProps {
   children?: React.ReactNode;
+  alwaysOpen?: boolean;
 }
 
-const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
+const CartDrawer: React.FC<CartDrawerProps> = ({ children, alwaysOpen = false }) => {
   const { cart, removeFromCart, clearCart, updateQuantity, cartCount, getCartTotal } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [sheetOpen, setSheetOpen] = useState(alwaysOpen);
+
+  // Si alwaysOpen est à true, ouvrir le drawer automatiquement
+  useEffect(() => {
+    if (alwaysOpen) {
+      setSheetOpen(true);
+    }
+  }, [alwaysOpen]);
 
   const handleCheckout = () => {
     toast({
@@ -37,7 +46,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
   };
 
   return (
-    <Sheet>
+    <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
       <SheetTrigger asChild>
         {children || (
           <Button variant="ghost" size="icon" className="relative text-white hover:bg-white/10">
@@ -50,7 +59,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
           </Button>
         )}
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md flex flex-col bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800">
+      <SheetContent 
+        className={`w-full sm:max-w-md flex flex-col bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 ${alwaysOpen ? 'fixed right-0 top-0 bottom-0 h-screen' : ''}`}
+        side="right"
+      >
         <SheetHeader className="border-b pb-4 mb-2 border-gray-200 dark:border-gray-800">
           <SheetTitle className="flex items-center">
             <ShoppingBag className="mr-2 h-5 w-5 text-inuma-blue" /> 
@@ -182,6 +194,11 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
       </SheetContent>
     </Sheet>
   );
+};
+
+// Composant pour afficher le panier en permanence sur le côté droit
+export const FixedCartDrawer: React.FC = () => {
+  return <CartDrawer alwaysOpen={true} />;
 };
 
 export default CartDrawer;

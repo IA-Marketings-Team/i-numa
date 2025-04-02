@@ -1,12 +1,15 @@
 
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, ShoppingCart, Check } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Check, Info, ShoppingCart } from "lucide-react";
+import { Offre } from "@/types";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
-import { Offre, OffreSection } from "@/types";
-import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 interface OffreDetailCardProps {
   offre: Offre;
@@ -15,14 +18,14 @@ interface OffreDetailCardProps {
 const OffreDetailCard: React.FC<OffreDetailCardProps> = ({ offre }) => {
   const { addToCart, isInCart } = useCart();
   const { toast } = useToast();
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const { user } = useAuth();
+  const isClient = user?.role === 'client';
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const toggleSection = (sectionId: string) => {
-    setOpenSections((prev) => ({
-      ...prev,
-      [sectionId]: !prev[sectionId],
-    }));
-  };
+  // Extraire les détails des sections de l'offre
+  const sections = offre.details && typeof offre.details === 'object' ? 
+    Array.isArray(offre.details) ? offre.details : [] : 
+    offre.sections || [];
 
   const handleAddToCart = () => {
     addToCart({
@@ -32,97 +35,204 @@ const OffreDetailCard: React.FC<OffreDetailCardProps> = ({ offre }) => {
       description: offre.description,
       type: offre.type,
       prix: offre.prix,
+      prixMensuel: offre.prixMensuel,
+      fraisCreation: offre.fraisCreation
     });
-
+    
     toast({
       title: "Ajouté au panier",
-      description: `${offre.nom} a été ajouté à votre panier.`,
+      description: `${offre.nom} a été ajouté à votre panier.`
     });
   };
 
-  // Déterminer l'icône en fonction du type d'offre
-  const getIconClass = (type: string) => {
+  const getBadgeColor = (type: string) => {
     switch (type.toLowerCase()) {
-      case "e-réputation":
-        return "text-blue-500";
-      case "deliver":
-        return "text-green-500";
-      case "facebook/instagram ads":
-        return "text-purple-500";
-      case "google ads":
-        return "text-yellow-500";
       case "seo":
-        return "text-red-500";
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+      case "google ads":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
       case "email x":
-        return "text-teal-500";
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
+      case "foner":
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300";
+      case "devis":
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
+      case "e-réputation":
+        return "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300";
+      case "deliver":
+        return "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300";
+      case "facebook/instagram ads":
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
       default:
-        return "text-indigo-500";
+        return "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300";
     }
   };
 
   return (
-    <Card className="lnk-product-pricing-card h-full flex flex-col border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
-      <CardHeader className="p-4 border-b bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950">
-        <div className="flex flex-col space-y-1">
-          <Badge variant="outline" className={`self-start ${getIconClass(offre.type)}`}>
-            {offre.type}
-          </Badge>
-          <h3 className="text-xl font-bold">{offre.nom}</h3>
-          <p className="text-sm">
-            <em>À partir de</em> <strong>{offre.prixMensuel}</strong> HT/mois
-          </p>
-          {offre.fraisCreation && (
-            <small className="text-xs text-gray-600 dark:text-gray-400">
-              <strong>{offre.fraisCreation}</strong> HT de Frais de création
-            </small>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="flex-1 p-0">
-        {offre.sections?.map((section) => {
-          const isOpen = openSections[section.id] ?? section.estOuvertParDefaut;
-          return (
-            <div key={section.id} className="border-t border-gray-200 dark:border-gray-800">
-              <button
-                onClick={() => toggleSection(section.id)}
-                className="w-full px-4 py-3 flex justify-between items-center text-left font-medium hover:bg-gray-50 dark:hover:bg-gray-900"
-              >
-                {section.titre}
-                {isOpen ? (
-                  <ChevronUp className="h-4 w-4 text-gray-500" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-gray-500" />
-                )}
-              </button>
-              {isOpen && (
-                <div className="px-4 py-2 bg-gray-50 dark:bg-gray-900">
-                  <ul className="space-y-2">
-                    {section.items.map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm">
-                        <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+    <>
+      <Card className="flex flex-col h-full transition-shadow hover:shadow-lg border border-gray-200 dark:border-gray-800">
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-start">
+            <Badge className={getBadgeColor(offre.type)}>
+              {offre.type}
+            </Badge>
+            {offre.secteurActivite && (
+              <Badge variant="outline" className="text-xs">
+                {offre.secteurActivite}
+              </Badge>
+            )}
+          </div>
+          <CardTitle className="mt-2">{offre.nom}</CardTitle>
+          <CardDescription className="mt-1 line-clamp-2">
+            {offre.description}
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent className="flex-grow pt-2">
+          <div className="flex items-baseline gap-2 mb-4">
+            <div className="text-xl font-bold text-primary">
+              {offre.prix ? `${offre.prix} €` : offre.prixMensuel || "Prix sur demande"}
             </div>
-          );
-        })}
-      </CardContent>
-      <div className="p-4 border-t mt-auto">
-        <Button
-          variant={isInCart(offre.id) ? "outline" : "default"}
-          size="sm"
-          onClick={handleAddToCart}
-          disabled={isInCart(offre.id)}
-          className="w-full"
-        >
-          <ShoppingCart className="mr-2 h-4 w-4" />
-          {isInCart(offre.id) ? "Déjà dans le panier" : "Ajouter au panier"}
-        </Button>
-      </div>
-    </Card>
+            {offre.prixMensuel && offre.prix && (
+              <div className="text-sm text-muted-foreground">{offre.prixMensuel}</div>
+            )}
+          </div>
+          
+          {offre.fraisCreation && (
+            <div className="text-sm text-muted-foreground mb-3">
+              + {offre.fraisCreation} (frais d'installation)
+            </div>
+          )}
+          
+          {/* Prévisualisation des fonctionnalités/détails */}
+          {sections && sections.length > 0 && (
+            <div className="mt-3">
+              <h4 className="text-sm font-medium mb-2">Fonctionnalités</h4>
+              <ul className="space-y-1.5">
+                {sections.map((section, idx) => (
+                  section.items && section.items.length > 0 && 
+                  <li key={idx} className="flex items-start gap-1.5">
+                    <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">{section.titre}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </CardContent>
+        
+        <CardFooter className="pt-0 flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={() => setIsDialogOpen(true)}
+          >
+            <Info className="h-4 w-4 mr-1" />
+            Détails
+          </Button>
+          
+          {isClient && (
+            <Button
+              variant="default"
+              size="sm"
+              className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+              onClick={handleAddToCart}
+              disabled={isInCart(offre.id)}
+            >
+              <ShoppingCart className="h-4 w-4 mr-1" />
+              {isInCart(offre.id) ? "Dans le panier" : "Ajouter"}
+            </Button>
+          )}
+        </CardFooter>
+      </Card>
+      
+      {/* Dialogue des détails */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-h-[80vh] overflow-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-xl">{offre.nom}</DialogTitle>
+            <DialogDescription>
+              <Badge className={`mt-2 ${getBadgeColor(offre.type)}`}>
+                {offre.type}
+              </Badge>
+              {offre.secteurActivite && (
+                <Badge variant="outline" className="ml-2 mt-2">
+                  {offre.secteurActivite}
+                </Badge>
+              )}
+              <p className="mt-3">{offre.description}</p>
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex items-baseline gap-2 my-4">
+            <div className="text-xl font-bold text-primary">
+              {offre.prix ? `${offre.prix} €` : offre.prixMensuel || "Prix sur demande"}
+            </div>
+            {offre.prixMensuel && offre.prix && (
+              <div className="text-sm text-muted-foreground">{offre.prixMensuel}</div>
+            )}
+          </div>
+          
+          {offre.fraisCreation && (
+            <div className="text-sm text-muted-foreground mb-4">
+              + {offre.fraisCreation} (frais d'installation)
+            </div>
+          )}
+          
+          {/* Détails complets avec accordéon */}
+          {sections && sections.length > 0 ? (
+            <Accordion type="multiple" className="w-full">
+              {sections.map((section, idx) => (
+                <AccordionItem 
+                  key={idx} 
+                  value={`section-${idx}`}
+                  defaultChecked={section.estOuvertParDefaut}
+                >
+                  <AccordionTrigger className="text-sm font-medium hover:no-underline">
+                    {section.titre}
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    {section.items && section.items.length > 0 && (
+                      <ul className="space-y-1.5 py-2">
+                        {section.items.map((item, itemIdx) => (
+                          <li key={itemIdx} className="flex items-start gap-1.5">
+                            <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          ) : (
+            <p className="text-sm text-muted-foreground">Aucun détail supplémentaire disponible pour cette offre.</p>
+          )}
+          
+          <DialogFooter className="mt-4 gap-2">
+            {isClient && (
+              <Button
+                variant="default"
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                onClick={() => {
+                  handleAddToCart();
+                  setIsDialogOpen(false);
+                }}
+                disabled={isInCart(offre.id)}
+              >
+                <ShoppingCart className="h-4 w-4 mr-1" />
+                {isInCart(offre.id) ? "Déjà dans le panier" : "Ajouter au panier"}
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

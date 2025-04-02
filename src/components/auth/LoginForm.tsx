@@ -28,16 +28,16 @@ const LoginForm: React.FC = () => {
 
       if (success) {
         toast({
-          title: "Login successful",
-          description: "Welcome back!",
+          title: "Connexion réussie",
+          description: "Bienvenue !",
         });
         navigate("/dashboard");
       } else {
-        setError(error || "Login failed. Please check your credentials.");
+        setError(error || "Échec de la connexion. Veuillez vérifier vos identifiants.");
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
-      console.error("Login error:", err);
+      setError("Une erreur inattendue s'est produite. Veuillez réessayer.");
+      console.error("Erreur de connexion:", err);
     } finally {
       setIsLoading(false);
     }
@@ -46,8 +46,11 @@ const LoginForm: React.FC = () => {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl">Sign In</CardTitle>
-        <CardDescription>Enter your email and password to access your account</CardDescription>
+        <div className="flex justify-center mb-4">
+          <img src="/logo-inuma.png" alt="i-numa Logo" className="h-12" />
+        </div>
+        <CardTitle className="text-2xl">Connexion</CardTitle>
+        <CardDescription>Entrez votre email et mot de passe pour accéder à votre compte</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -64,19 +67,19 @@ const LoginForm: React.FC = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              placeholder="Entrez votre email"
               required
             />
           </div>
           
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Mot de passe</Label>
               <a
                 href="/forgot-password"
                 className="text-sm text-blue-600 hover:text-blue-800"
               >
-                Forgot password?
+                Mot de passe oublié ?
               </a>
             </div>
             <Input
@@ -84,7 +87,7 @@ const LoginForm: React.FC = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
+              placeholder="Entrez votre mot de passe"
               required
             />
           </div>
@@ -97,15 +100,15 @@ const LoginForm: React.FC = () => {
           className="w-full"
           disabled={isLoading}
         >
-          {isLoading ? "Signing in..." : "Sign In"}
+          {isLoading ? "Connexion en cours..." : "Se connecter"}
         </Button>
         <div className="text-center text-sm">
-          Don't have an account?{" "}
+          Vous n'avez pas de compte ?{" "}
           <a
             href="/register"
             className="text-blue-600 hover:text-blue-800 font-medium"
           >
-            Sign up
+            S'inscrire
           </a>
         </div>
       </CardFooter>
