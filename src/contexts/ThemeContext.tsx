@@ -10,8 +10,9 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-// Safe access to browser APIs
+// Function to safely get the initial theme
 const getInitialTheme = (): Theme => {
+  // Check if we're in a browser environment
   if (typeof window === 'undefined') return "light";
   
   try {
@@ -20,17 +21,22 @@ const getInitialTheme = (): Theme => {
       return savedTheme;
     }
     
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    return prefersDark ? "dark" : "light";
-  } catch (e) {
-    console.error("Error accessing localStorage:", e);
+    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      return "dark";
+    }
+    
+    return "light";
+  } catch (error) {
+    console.error("Error accessing theme preferences:", error);
     return "light";
   }
 };
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  // Using a regular value to initialize state (not a function that could cause errors)
+  const [theme, setTheme] = useState<Theme>(getInitialTheme());
 
+  // Effect to apply the theme to the document
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
@@ -43,8 +49,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       
       // Save to localStorage
       localStorage.setItem("theme", theme);
-    } catch (e) {
-      console.error("Error updating theme:", e);
+    } catch (error) {
+      console.error("Error updating theme:", error);
     }
   }, [theme]);
 
