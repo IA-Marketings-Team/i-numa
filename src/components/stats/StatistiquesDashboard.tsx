@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Statistique } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchAgentById } from "@/services/agentService";
+import { useToast } from "@/hooks/use-toast";
 
 export interface StatistiquesDashboardProps {
   statistiques: Statistique[];
@@ -18,18 +19,28 @@ const StatistiquesDashboard: React.FC<StatistiquesDashboardProps> = ({
   const [periodStats, setPeriodStats] = useState<Statistique | null>(null);
   const [agent, setAgent] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Trouver la statistique la plus récente pour cette période
     if (statistiques && statistiques.length > 0) {
-      const latestStat = statistiques.reduce((prev, current) => {
-        return new Date(prev.dateFin) > new Date(current.dateFin) ? prev : current;
-      }, statistiques[0]);
-      setPeriodStats(latestStat);
+      try {
+        const latestStat = statistiques.reduce((prev, current) => {
+          return new Date(prev.dateFin) > new Date(current.dateFin) ? prev : current;
+        }, statistiques[0]);
+        setPeriodStats(latestStat);
+      } catch (error) {
+        console.error("Erreur lors du traitement des statistiques:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de traiter les statistiques",
+          variant: "destructive"
+        });
+      }
     } else {
       setPeriodStats(null);
     }
-  }, [statistiques]);
+  }, [statistiques, toast]);
 
   useEffect(() => {
     const loadAgentData = async () => {
@@ -40,17 +51,22 @@ const StatistiquesDashboard: React.FC<StatistiquesDashboardProps> = ({
       
       try {
         setIsLoading(true);
-        const agentData = await fetchAgentById("agent1"); // Exemple d'ID
+        const agentData = await fetchAgentById("agent1"); // Exemple d'ID - idéalement utiliser un ID dynamique
         setAgent(agentData);
       } catch (error) {
         console.error("Erreur lors du chargement des données de l'agent:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les données de l'agent",
+          variant: "destructive"
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     loadAgentData();
-  }, [periodStats]);
+  }, [periodStats, toast]);
 
   if (isLoading) {
     return (

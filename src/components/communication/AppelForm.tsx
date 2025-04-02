@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Appel } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useToast } from '@/hooks/use-toast';
 
 interface AppelFormProps {
   appelId?: string | null;
@@ -19,6 +20,7 @@ interface AppelFormProps {
 export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
   const { user } = useAuth();
   const { getAppelById, addAppel, editAppel, removeAppel } = useCommunication();
+  const { toast } = useToast();
   
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<{
@@ -60,8 +62,8 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
           const appel = await getAppelById(appelId);
           if (appel) {
             setFormData({
-              clientId: appel.clientId,
-              agentId: appel.agentId,
+              clientId: appel.clientId || '',
+              agentId: appel.agentId || user?.id || '',
               date: format(new Date(appel.date), "yyyy-MM-dd'T'HH:mm"),
               duree: appel.duree,
               notes: appel.notes,
@@ -77,6 +79,11 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
           }
         } catch (error) {
           console.error("Erreur lors du chargement de l'appel:", error);
+          toast({
+            title: "Erreur",
+            description: "Impossible de charger les données de l'appel",
+            variant: "destructive"
+          });
         } finally {
           setLoading(false);
         }
@@ -84,7 +91,7 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
     };
 
     loadAppel();
-  }, [appelId, getAppelById]);
+  }, [appelId, getAppelById, user, toast]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -118,12 +125,25 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
 
       if (appelId) {
         await editAppel(appelId, appelData);
+        toast({
+          title: "Succès",
+          description: "L'appel a été mis à jour avec succès",
+        });
       } else {
         await addAppel(appelData);
+        toast({
+          title: "Succès",
+          description: "L'appel a été ajouté avec succès",
+        });
       }
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error("Erreur lors de la sauvegarde de l'appel:", error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la sauvegarde de l'appel",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -136,9 +156,18 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
       setLoading(true);
       try {
         await removeAppel(appelId);
+        toast({
+          title: "Succès",
+          description: "L'appel a été supprimé avec succès",
+        });
         if (onSuccess) onSuccess();
       } catch (error) {
         console.error("Erreur lors de la suppression de l'appel:", error);
+        toast({
+          title: "Erreur",
+          description: "Erreur lors de la suppression de l'appel",
+          variant: "destructive"
+        });
       } finally {
         setLoading(false);
       }
