@@ -1,99 +1,128 @@
 
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, UserRole } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-import { Session } from "@supabase/supabase-js";
-import { useAuthState } from "@/hooks/useAuthState";
-import { loginWithEmail, registerWithEmail, signOut, hasPermission } from "@/utils/authUtils";
+import { login as loginService, logoutUser, getUserProfile } from "@/services/authService";
+import { getCurrentUser } from "@/lib/realm";
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
-  session: Session | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string, userData: Partial<User>) => Promise<boolean>;
-  logout: () => void;
   isAuthenticated: boolean;
-  hasPermission: (requiredRoles: UserRole[]) => boolean;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
+  hasPermission: (roles: UserRole[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, session, isAuthenticated, setUser, setSession, setIsAuthenticated } = useAuthState();
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const { toast } = useToast();
 
+  // Vérification de l'état d'authentification au chargement
+  useEffect(() => {
+    const checkAuthState = async () => {
+      try {
+        const realmUser = getCurrentUser();
+        if (realmUser) {
+          const userProfile = await getUserProfile(realmUser.id);
+          if (userProfile) {
+            setUser(userProfile);
+            setIsAuthenticated(true);
+          } else {
+            setUser(null);
+            setIsAuthenticated(false);
+          }
+        } else {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error("Erreur lors de la vérification de l'authentification:", error);
+        setUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuthState();
+  }, []);
+
   const login = async (email: string, password: string): Promise<boolean> => {
-    const { success, error } = await loginWithEmail(email, password);
+    setIsLoading(true);
     
-    if (success) {
-      toast({
-        title: "Connexion réussie",
-        description: "Vous êtes maintenant connecté.",
-      });
-      return true;
-    } else {
-      toast({
-        title: "Échec de connexion",
-        description: error?.message || "Une erreur est survenue lors de la connexion.",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
-  const register = async (email: string, password: string, userData: Partial<User>): Promise<boolean> => {
-    const { success, error } = await registerWithEmail(email, password, userData);
-    
-    if (success) {
-      toast({
-        title: "Inscription réussie",
-        description: "Votre compte a été créé avec succès.",
-      });
-      return true;
-    } else {
-      toast({
-        title: "Échec d'inscription",
-        description: error?.message || "Une erreur est survenue lors de l'inscription.",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
-  const logout = async () => {
-    const { success, error } = await signOut();
-    
-    if (success) {
-      setUser(null);
-      setSession(null);
-      setIsAuthenticated(false);
+    try {
+      const loggedInUser = await loginService(email, password);
       
+      if (loggedInUser) {
+        setUser(loggedInUser);
+        setIsAuthenticated(true);
+        toast({
+          title: "Connexion réussie",
+          description: `Bienvenue, ${loggedInUser.prenom} ${loggedInUser.nom}!`,
+        });
+        return true;
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Échec de la connexion",
+          description: "Email ou mot de passe incorrect.",
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error("Erreur de connexion:", error);
       toast({
-        title: "Déconnexion",
-        description: "Vous avez été déconnecté avec succès",
-      });
-    } else {
-      toast({
-        title: "Erreur de déconnexion",
-        description: error?.message || "Une erreur est survenue lors de la déconnexion.",
         variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur s'est produite lors de la connexion.",
       });
+      return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const checkPermission = (requiredRoles: UserRole[]): boolean => {
-    return hasPermission(user, requiredRoles);
+  const logout = async (): Promise<void> => {
+    setIsLoading(true);
+    
+    try {
+      await logoutUser();
+      setUser(null);
+      setIsAuthenticated(false);
+      toast({
+        title: "Déconnexion réussie",
+        description: "Vous avez été déconnecté avec succès.",
+      });
+    } catch (error) {
+      console.error("Erreur de déconnexion:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur s'est produite lors de la déconnexion.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const hasPermission = (roles: UserRole[]): boolean => {
+    if (!user) return false;
+    return roles.includes(user.role as UserRole);
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      session, 
-      login, 
-      register, 
-      logout, 
-      isAuthenticated, 
-      hasPermission: checkPermission 
+    <AuthContext.Provider value={{
+      user,
+      isAuthenticated,
+      isLoading,
+      login,
+      logout,
+      hasPermission,
     }}>
       {children}
     </AuthContext.Provider>

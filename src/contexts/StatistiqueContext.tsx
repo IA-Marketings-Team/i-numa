@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { Statistique, Agent, UserRole } from "@/types";
 import { useAuth } from "./AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { getRealmApp, getCurrentUser } from "@/lib/realm";
 
 interface StatistiqueContextType {
   statistiques: Statistique[];
@@ -21,7 +22,7 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [statistiques, setStatistiques] = useState<Statistique[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user, getToken } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
 
   // Chargement initial des statistiques
@@ -31,20 +32,32 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
       
       setIsLoading(true);
       try {
-        const token = await getToken();
-        const response = await fetch('/api/statistiques', {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-auth-token': token || ''
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error('Erreur lors du chargement des statistiques');
+        // Utilisation de MongoDB Realm pour récupérer les statistiques
+        const realmUser = getCurrentUser();
+        if (!realmUser) {
+          throw new Error("Utilisateur Realm non connecté");
         }
         
-        const data = await response.json();
-        setStatistiques(data);
+        const statsCollection = realmUser.mongoClient("mongodb-atlas").db("inuma").collection("statistiques");
+        const result = await statsCollection.find({});
+        
+        // Conversion des données pour correspondre à notre type Statistique
+        const statsData: Statistique[] = result.map((item: any) => ({
+          id: item._id.toString(),
+          periode: item.periode,
+          dateDebut: new Date(item.date_debut),
+          dateFin: new Date(item.date_fin),
+          appelsEmis: item.appels_emis,
+          appelsDecroches: item.appels_decroches,
+          appelsTransformes: item.appels_transformes,
+          rendezVousHonores: item.rendez_vous_honores,
+          rendezVousNonHonores: item.rendez_vous_non_honores,
+          dossiersValides: item.dossiers_valides,
+          dossiersSigne: item.dossiers_signe,
+          chiffreAffaires: item.chiffre_affaires,
+        }));
+        
+        setStatistiques(statsData);
       } catch (err) {
         console.error('Erreur lors du chargement des statistiques:', err);
         setError(err instanceof Error ? err.message : 'Erreur inconnue');
@@ -59,7 +72,7 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
     };
     
     fetchStatistiques();
-  }, [user, getToken, toast]);
+  }, [user, toast]);
 
   const getStatistiquesForPeriod = (debut: Date, fin: Date): Statistique[] => {
     return statistiques.filter(stat => 
@@ -69,19 +82,28 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const getStatistiquesByPeriodeType = async (periode: "jour" | "semaine" | "mois"): Promise<Statistique[]> => {
     try {
-      const token = await getToken();
-      const response = await fetch(`/api/statistiques/periode/${periode}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': token || ''
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Erreur lors du chargement des statistiques par période: ${periode}`);
+      const realmUser = getCurrentUser();
+      if (!realmUser) {
+        throw new Error("Utilisateur Realm non connecté");
       }
       
-      return await response.json();
+      const statsCollection = realmUser.mongoClient("mongodb-atlas").db("inuma").collection("statistiques");
+      const result = await statsCollection.find({ periode: periode });
+      
+      return result.map((item: any) => ({
+        id: item._id.toString(),
+        periode: item.periode,
+        dateDebut: new Date(item.date_debut),
+        dateFin: new Date(item.date_fin),
+        appelsEmis: item.appels_emis,
+        appelsDecroches: item.appels_decroches,
+        appelsTransformes: item.appels_transformes,
+        rendezVousHonores: item.rendez_vous_honores,
+        rendezVousNonHonores: item.rendez_vous_non_honores,
+        dossiersValides: item.dossiers_valides,
+        dossiersSigne: item.dossiers_signe,
+        chiffreAffaires: item.chiffre_affaires,
+      }));
     } catch (error) {
       console.error('Erreur lors du chargement des statistiques par période:', error);
       return [];
@@ -90,19 +112,35 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const getAgentStatistics = async (agentId: string): Promise<Agent | undefined> => {
     try {
-      const token = await getToken();
-      const response = await fetch(`/api/users/${agentId}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': token || ''
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Erreur lors du chargement des statistiques de l\'agent');
+      const realmUser = getCurrentUser();
+      if (!realmUser) {
+        throw new Error("Utilisateur Realm non connecté");
       }
       
-      return await response.json();
+      const usersCollection = realmUser.mongoClient("mongodb-atlas").db("inuma").collection("users");
+      const agent = await usersCollection.findOne({ _id: agentId });
+      
+      if (!agent) return undefined;
+      
+      return {
+        id: agent._id.toString(),
+        nom: agent.nom,
+        prenom: agent.prenom,
+        email: agent.email,
+        telephone: agent.telephone || '',
+        role: agent.role,
+        dateCreation: new Date(agent.date_creation),
+        equipeId: agent.equipe_id,
+        statistiques: {
+          appelsEmis: agent.appels_emis || 0,
+          appelsDecroches: agent.appels_decroches || 0,
+          appelsTransformes: agent.appels_transformes || 0,
+          rendezVousHonores: agent.rendez_vous_honores || 0,
+          rendezVousNonHonores: agent.rendez_vous_non_honores || 0,
+          dossiersValides: agent.dossiers_valides || 0,
+          dossiersSigne: agent.dossiers_signe || 0
+        }
+      };
     } catch (error) {
       console.error('Erreur lors du chargement des statistiques de l\'agent:', error);
       return undefined;
@@ -111,18 +149,26 @@ export const StatistiqueProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const resetAgentStatistics = async (agentId: string): Promise<void> => {
     try {
-      const token = await getToken();
-      const response = await fetch(`/api/users/${agentId}/reset-stats`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': token || ''
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Erreur lors de la réinitialisation des statistiques');
+      const realmUser = getCurrentUser();
+      if (!realmUser) {
+        throw new Error("Utilisateur Realm non connecté");
       }
+      
+      const usersCollection = realmUser.mongoClient("mongodb-atlas").db("inuma").collection("users");
+      await usersCollection.updateOne(
+        { _id: agentId },
+        { 
+          $set: {
+            appels_emis: 0,
+            appels_decroches: 0,
+            appels_transformes: 0,
+            rendez_vous_honores: 0,
+            rendez_vous_non_honores: 0,
+            dossiers_valides: 0,
+            dossiers_signe: 0
+          }
+        }
+      );
       
       // Mettre à jour les statistiques locales
       toast({
