@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -30,13 +30,11 @@ const OfferCard: React.FC<OfferCardProps> = ({
   const { user } = useAuth();
   const { toast } = useToast();
   const isClient = user?.role === 'client';
+  const [offreId] = useState(`offer-${Math.random().toString(36).substring(2, 11)}`);
 
   const handleAddToCart = () => {
-    // Generate a random string to use as offreId
-    const randomOffreId = `offer-${Math.random().toString(36).substring(2, 11)}`;
-    
     addToCart({
-      offreId: randomOffreId,
+      offreId,
       quantity: 1,
       title,
       category,
@@ -91,10 +89,10 @@ const OfferCard: React.FC<OfferCardProps> = ({
             onClick={handleAddToCart}
             variant="default"
             size="sm"
-            disabled={isInCart(randomOffreId)}
+            disabled={isInCart(offreId)}
           >
             <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
-            {isInCart(randomOffreId) ? "Déjà dans le panier" : "Ajouter au panier"}
+            {isInCart(offreId) ? "Déjà dans le panier" : "Ajouter au panier"}
           </Button>
         )}
       </CardFooter>

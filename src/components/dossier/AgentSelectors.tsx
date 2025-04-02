@@ -99,7 +99,7 @@ const AgentSelectors: React.FC<AgentSelectorsProps> = ({
             <SelectValue placeholder="Sélectionner un agent phoner" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="none">Aucun</SelectItem>
+            <SelectItem value="no_agent">Aucun</SelectItem>
             {phonerAgents.map((agent) => (
               <SelectItem key={agent.id} value={agent.id}>
                 {agent.prenom} {agent.nom}
@@ -119,7 +119,7 @@ const AgentSelectors: React.FC<AgentSelectorsProps> = ({
             <SelectValue placeholder="Sélectionner un agent visio" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="none">Aucun</SelectItem>
+            <SelectItem value="no_agent">Aucun</SelectItem>
             {visioAgents.map((agent) => (
               <SelectItem key={agent.id} value={agent.id}>
                 {agent.prenom} {agent.nom}

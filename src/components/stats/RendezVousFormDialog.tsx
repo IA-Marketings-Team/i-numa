@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@radix-ui/react-label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dossier } from "@/types";
 
 interface RendezVousFormValues {
@@ -57,20 +58,22 @@ const RendezVousFormDialog: React.FC<RendezVousFormDialogProps> = ({
           {!isEditMode && (
             <div className="grid gap-2">
               <Label htmlFor="dossier">Dossier</Label>
-              <select 
-                id="dossier"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
-                value={values.dossierId}
-                onChange={(e) => onChange({ dossierId: e.target.value })}
-                required
+              <Select 
+                value={values.dossierId || "select_dossier"}
+                onValueChange={(value) => onChange({ dossierId: value })}
               >
-                <option value="">Sélectionnez un dossier</option>
-                {dossiers.map(dossier => (
-                  <option key={dossier.id} value={dossier.id}>
-                    {dossier.client.nom} {dossier.client.prenom} - {dossier.client.secteurActivite}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger id="dossier" className="w-full">
+                  <SelectValue placeholder="Sélectionnez un dossier" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="select_dossier" disabled>Sélectionnez un dossier</SelectItem>
+                  {dossiers.map(dossier => (
+                    <SelectItem key={dossier.id} value={dossier.id}>
+                      {dossier.client.nom} {dossier.client.prenom} - {dossier.client.secteurActivite || "Non spécifié"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
           <div className="grid grid-cols-2 gap-4">
