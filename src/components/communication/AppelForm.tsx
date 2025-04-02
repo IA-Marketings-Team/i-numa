@@ -305,9 +305,9 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
           </div>
         </div>
       )}
-      
+
       <div className="space-y-2">
-        <Label htmlFor="notes">Commentaires</Label>
+        <Label htmlFor="notes">Notes</Label>
         <Textarea
           id="notes"
           name="notes"
@@ -316,8 +316,8 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
           onChange={handleChange}
         />
       </div>
-      
-      <div className="flex justify-between">
+
+      <div className="flex justify-end space-x-2">
         {appelId && (
           <Button 
             type="button" 
@@ -328,22 +328,23 @@ export const AppelForm: React.FC<AppelFormProps> = ({ appelId, onSuccess }) => {
             Supprimer
           </Button>
         )}
-        <div className="flex gap-2 ml-auto">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={onSuccess}
-          >
-            Annuler
-          </Button>
-          <Button 
-            type="submit" 
-            disabled={loading}
-          >
-            {appelId ? "Mettre à jour" : "Créer"}
-          </Button>
-        </div>
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={onSuccess}
+          disabled={loading}
+        >
+          Annuler
+        </Button>
+        <Button 
+          type="submit"
+          disabled={loading}
+        >
+          {loading ? 'Chargement...' : appelId ? 'Mettre à jour' : 'Ajouter'}
+        </Button>
       </div>
     </form>
   );
 };
+
+export default AppelForm;
