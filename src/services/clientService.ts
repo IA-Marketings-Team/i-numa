@@ -75,26 +75,28 @@ export const fetchClientById = async (id: string): Promise<Client | null> => {
 };
 
 export const createClient = async (clientData: Omit<Client, 'id'>): Promise<Client> => {
+  // Transform our Client type to match the Supabase profiles table structure
   const clientForSupabase = {
     nom: clientData.nom,
     prenom: clientData.prenom,
     email: clientData.email,
     telephone: clientData.telephone,
     adresse: clientData.adresse,
-    ville: clientData.ville,
-    code_postal: clientData.codePostal,
+    ville: clientData.ville || '',
+    code_postal: clientData.codePostal || '',
     secteur_activite: clientData.secteurActivite,
     type_entreprise: clientData.typeEntreprise,
     besoins: clientData.besoins,
-    iban: clientData.iban,
-    bic: clientData.bic,
-    nom_banque: clientData.nomBanque,
+    iban: clientData.iban || '',
+    bic: clientData.bic || '',
+    nom_banque: clientData.nomBanque || '',
     role: 'client'
   };
 
+  // Insert the client into the profiles table
   const { data, error } = await supabase
     .from('profiles')
-    .insert(clientForSupabase)  // Pass the object directly without array wrapper
+    .insert([clientForSupabase])  // Wrap in array as required by Supabase
     .select()
     .single();
   
@@ -103,6 +105,7 @@ export const createClient = async (clientData: Omit<Client, 'id'>): Promise<Clie
     throw new Error(error.message);
   }
   
+  // Transform the Supabase data back to our Client type
   const client: Client = {
     id: data.id,
     nom: data.nom || '',
