@@ -17,20 +17,7 @@ export const fetchStatistiques = async (): Promise<Statistique[]> => {
       return [];
     }
 
-    return data.map(stat => ({
-      id: stat.id,
-      periode: convertPeriodeType(stat.periode),
-      dateDebut: new Date(stat.date_debut),
-      dateFin: new Date(stat.date_fin),
-      appelsEmis: stat.appels_emis,
-      appelsDecroches: stat.appels_decroches,
-      appelsTransformes: stat.appels_transformes,
-      rendezVousHonores: stat.rendez_vous_honores,
-      rendezVousNonHonores: stat.rendez_vous_non_honores,
-      dossiersValides: stat.dossiers_valides,
-      dossiersSigne: stat.dossiers_signe,
-      chiffreAffaires: stat.chiffre_affaires
-    }));
+    return data.map(convertDbStatToStatistique);
   } catch (error) {
     console.error("Erreur inattendue lors de la récupération des statistiques:", error);
     return [];
@@ -55,20 +42,7 @@ export const fetchStatistiquesByPeriode = async (
       return [];
     }
 
-    return data.map(stat => ({
-      id: stat.id,
-      periode: convertPeriodeType(stat.periode),
-      dateDebut: new Date(stat.date_debut),
-      dateFin: new Date(stat.date_fin),
-      appelsEmis: stat.appels_emis,
-      appelsDecroches: stat.appels_decroches,
-      appelsTransformes: stat.appels_transformes,
-      rendezVousHonores: stat.rendez_vous_honores,
-      rendezVousNonHonores: stat.rendez_vous_non_honores,
-      dossiersValides: stat.dossiers_valides,
-      dossiersSigne: stat.dossiers_signe,
-      chiffreAffaires: stat.chiffre_affaires
-    }));
+    return data.map(convertDbStatToStatistique);
   } catch (error) {
     console.error(`Erreur inattendue lors de la récupération des statistiques pour la période ${periode}:`, error);
     return [];
@@ -95,20 +69,7 @@ export const fetchStatistiquesBetweenDates = async (
       return [];
     }
 
-    return data.map(stat => ({
-      id: stat.id,
-      periode: convertPeriodeType(stat.periode),
-      dateDebut: new Date(stat.date_debut),
-      dateFin: new Date(stat.date_fin),
-      appelsEmis: stat.appels_emis,
-      appelsDecroches: stat.appels_decroches,
-      appelsTransformes: stat.appels_transformes,
-      rendezVousHonores: stat.rendez_vous_honores,
-      rendezVousNonHonores: stat.rendez_vous_non_honores,
-      dossiersValides: stat.dossiers_valides,
-      dossiersSigne: stat.dossiers_signe,
-      chiffreAffaires: stat.chiffre_affaires
-    }));
+    return data.map(convertDbStatToStatistique);
   } catch (error) {
     console.error("Erreur inattendue lors de la récupération des statistiques par plage de dates:", error);
     return [];
@@ -133,20 +94,7 @@ export const fetchStatistiqueById = async (id: string): Promise<Statistique | nu
 
     if (!data) return null;
 
-    return {
-      id: data.id,
-      periode: convertPeriodeType(data.periode),
-      dateDebut: new Date(data.date_debut),
-      dateFin: new Date(data.date_fin),
-      appelsEmis: data.appels_emis,
-      appelsDecroches: data.appels_decroches,
-      appelsTransformes: data.appels_transformes,
-      rendezVousHonores: data.rendez_vous_honores,
-      rendezVousNonHonores: data.rendez_vous_non_honores,
-      dossiersValides: data.dossiers_valides,
-      dossiersSigne: data.dossiers_signe,
-      chiffreAffaires: data.chiffre_affaires
-    };
+    return convertDbStatToStatistique(data);
   } catch (error) {
     console.error(`Erreur inattendue lors de la récupération de la statistique ${id}:`, error);
     return null;
@@ -181,20 +129,7 @@ export const createStatistique = async (statistique: Omit<Statistique, "id">): P
       return null;
     }
 
-    return {
-      id: data.id,
-      periode: convertPeriodeType(data.periode),
-      dateDebut: new Date(data.date_debut),
-      dateFin: new Date(data.date_fin),
-      appelsEmis: data.appels_emis,
-      appelsDecroches: data.appels_decroches,
-      appelsTransformes: data.appels_transformes,
-      rendezVousHonores: data.rendez_vous_honores,
-      rendezVousNonHonores: data.rendez_vous_non_honores,
-      dossiersValides: data.dossiers_valides,
-      dossiersSigne: data.dossiers_signe,
-      chiffreAffaires: data.chiffre_affaires
-    };
+    return convertDbStatToStatistique(data);
   } catch (error) {
     console.error("Erreur inattendue lors de la création de la statistique:", error);
     return null;
@@ -257,6 +192,24 @@ export const deleteStatistique = async (id: string): Promise<boolean> => {
     console.error(`Erreur inattendue lors de la suppression de la statistique ${id}:`, error);
     return false;
   }
+};
+
+// Fonction auxiliaire pour convertir les données de Supabase vers le type Statistique
+const convertDbStatToStatistique = (dbStat: any): Statistique => {
+  return {
+    id: dbStat.id,
+    periode: convertPeriodeType(dbStat.periode),
+    dateDebut: new Date(dbStat.date_debut),
+    dateFin: new Date(dbStat.date_fin),
+    appelsEmis: dbStat.appels_emis,
+    appelsDecroches: dbStat.appels_decroches,
+    appelsTransformes: dbStat.appels_transformes,
+    rendezVousHonores: dbStat.rendez_vous_honores,
+    rendezVousNonHonores: dbStat.rendez_vous_non_honores,
+    dossiersValides: dbStat.dossiers_valides,
+    dossiersSigne: dbStat.dossiers_signe,
+    chiffreAffaires: dbStat.chiffre_affaires
+  };
 };
 
 // Fonction auxiliaire pour convertir le type de période
