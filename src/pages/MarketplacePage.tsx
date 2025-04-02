@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -142,12 +141,15 @@ const MarketplacePage = () => {
               
               <div>
                 <label className="text-sm font-medium mb-1 block">Catégorie</label>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <Select 
+                  value={selectedCategory} 
+                  onValueChange={setSelectedCategory}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Toutes les catégories" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Toutes les catégories</SelectItem>
+                    <SelectItem value="all_categories">Toutes les catégories</SelectItem>
                     {getUniqueCategories().map(category => (
                       <SelectItem key={category} value={category}>
                         {category}

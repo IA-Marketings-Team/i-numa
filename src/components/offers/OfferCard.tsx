@@ -30,11 +30,12 @@ const OfferCard: React.FC<OfferCardProps> = ({
   const { user } = useAuth();
   const { toast } = useToast();
   const isClient = user?.role === 'client';
-  const [offreId] = useState(`offer-${Math.random().toString(36).substring(2, 11)}`);
+  // Assurer un identifiant stable pour les offres
+  const [offerId] = useState(`offer-${Math.random().toString(36).substring(2, 11)}`);
 
   const handleAddToCart = () => {
     addToCart({
-      offreId,
+      offreId: offerId,
       quantity: 1,
       title,
       category,
@@ -89,10 +90,10 @@ const OfferCard: React.FC<OfferCardProps> = ({
             onClick={handleAddToCart}
             variant="default"
             size="sm"
-            disabled={isInCart(offreId)}
+            disabled={isInCart(offerId)}
           >
             <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
-            {isInCart(offreId) ? "Déjà dans le panier" : "Ajouter au panier"}
+            {isInCart(offerId) ? "Déjà dans le panier" : "Ajouter au panier"}
           </Button>
         )}
       </CardFooter>

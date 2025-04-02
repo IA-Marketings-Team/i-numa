@@ -86,13 +86,17 @@ const AgentSelectors: React.FC<AgentSelectorsProps> = ({
     );
   }
 
+  // S'assurer que les valeurs par défaut ne sont jamais vides
+  const phonerValue = selectedAgentPhoner || "no_agent";
+  const visioValue = selectedAgentVisio || "no_agent";
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="space-y-2">
         <Label htmlFor="agent_phoner">Agent Phoner</Label>
         <Select 
           disabled={isPhonerDisabled} 
-          value={selectedAgentPhoner} 
+          value={phonerValue} 
           onValueChange={onPhonerChange}
         >
           <SelectTrigger id="agent_phoner">
@@ -112,7 +116,7 @@ const AgentSelectors: React.FC<AgentSelectorsProps> = ({
       <div className="space-y-2">
         <Label htmlFor="agent_visio">Agent Visio</Label>
         <Select 
-          value={selectedAgentVisio} 
+          value={visioValue} 
           onValueChange={onVisioChange}
         >
           <SelectTrigger id="agent_visio">
