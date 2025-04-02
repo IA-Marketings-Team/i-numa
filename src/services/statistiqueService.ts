@@ -1,4 +1,3 @@
-
 import { Statistique } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -67,6 +66,42 @@ export const fetchStatistiquesByPeriode = async (periode: "jour" | "semaine" | "
     }));
   } catch (error) {
     console.error(`Erreur inattendue lors de la récupération des statistiques ${periode}:`, error);
+    return [];
+  }
+};
+
+/**
+ * Récupère les statistiques entre deux dates
+ */
+export const fetchStatistiquesBetweenDates = async (debut: Date, fin: Date): Promise<Statistique[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('statistiques')
+      .select('*')
+      .gte('date_debut', debut.toISOString())
+      .lte('date_fin', fin.toISOString())
+      .order('date_debut', { ascending: false });
+
+    if (error) {
+      console.error(`Erreur lors de la récupération des statistiques entre ${debut} et ${fin}:`, error);
+      return [];
+    }
+
+    return data.map(stat => ({
+      periode: stat.periode as "jour" | "semaine" | "mois",
+      dateDebut: new Date(stat.date_debut),
+      dateFin: new Date(stat.date_fin),
+      appelsEmis: stat.appels_emis || 0,
+      appelsDecroches: stat.appels_decroches || 0,
+      appelsTransformes: stat.appels_transformes || 0,
+      rendezVousHonores: stat.rendez_vous_honores || 0,
+      rendezVousNonHonores: stat.rendez_vous_non_honores || 0,
+      dossiersValides: stat.dossiers_valides || 0,
+      dossiersSigne: stat.dossiers_signe || 0,
+      chiffreAffaires: stat.chiffre_affaires
+    }));
+  } catch (error) {
+    console.error(`Erreur inattendue lors de la récupération des statistiques entre ${debut} et ${fin}:`, error);
     return [];
   }
 };

@@ -1,4 +1,3 @@
-
 import { Agent } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -248,6 +247,38 @@ export const updateAgentStats = async (
     return true;
   } catch (error) {
     console.error(`Erreur inattendue lors de la mise à jour des statistiques de l'agent ${id}:`, error);
+    return false;
+  }
+};
+
+/**
+ * Réinitialise les statistiques d'un agent
+ */
+export const resetAgentStats = async (id: string): Promise<boolean> => {
+  try {
+    const updateData = {
+      appels_emis: 0,
+      appels_decroches: 0,
+      appels_transformes: 0,
+      rendez_vous_honores: 0,
+      rendez_vous_non_honores: 0,
+      dossiers_valides: 0,
+      dossiers_signe: 0
+    };
+
+    const { error } = await supabase
+      .from('profiles')
+      .update(updateData)
+      .eq('id', id);
+
+    if (error) {
+      console.error(`Erreur lors de la réinitialisation des statistiques de l'agent ${id}:`, error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error(`Erreur inattendue lors de la réinitialisation des statistiques de l'agent ${id}:`, error);
     return false;
   }
 };

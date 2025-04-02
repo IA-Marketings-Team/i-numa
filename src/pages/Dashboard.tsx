@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import { useDossier } from "@/contexts/DossierContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +16,6 @@ const Dashboard = () => {
   const { filteredDossiers, dossiers } = useDossier();
   const navigate = useNavigate();
 
-  // Afficher le tableau de bord spécifique pour les agents visio
   if (user?.role === 'agent_visio') {
     return (
       <div className="container mx-auto px-4 md:px-6 py-6 space-y-6 md:space-y-8">
@@ -26,7 +24,6 @@ const Dashboard = () => {
     );
   }
 
-  // Calcul des statistiques de dossiers
   const dossierStats = {
     prospects: dossiers.filter(d => d.status === "prospect").length,
     rdv: dossiers.filter(d => d.status === "rdv_en_cours").length,
@@ -35,7 +32,6 @@ const Dashboard = () => {
     archives: dossiers.filter(d => d.status === "archive").length,
   };
 
-  // Données pour le graphique en donut
   const donutData = [
     { name: "Prospects", value: dossierStats.prospects, color: "#6366F1" },
     { name: "RDV en cours", value: dossierStats.rdv, color: "#3B82F6" },
@@ -44,7 +40,6 @@ const Dashboard = () => {
     { name: "Archivés", value: dossierStats.archives, color: "#6B7280" },
   ];
 
-  // Données pour le graphique à barres
   const barData = [
     { name: "Jan", dossiers: 10, revenus: 5500 },
     { name: "Fév", dossiers: 15, revenus: 8200 },
@@ -54,7 +49,6 @@ const Dashboard = () => {
     { name: "Juin", dossiers: 22, revenus: 13500 },
   ];
 
-  // Récupérer les 5 derniers dossiers
   const recentDossiers = [...filteredDossiers]
     .sort((a, b) => new Date(b.dateCreation).getTime() - new Date(a.dateCreation).getTime())
     .slice(0, 5);
@@ -191,7 +185,11 @@ const Dashboard = () => {
       </div>
       
       {(user?.role === 'superviseur' || user?.role === 'responsable') && (
-        <StatistiquesDashboard />
+        <StatistiquesDashboard 
+          statistiques={[]} 
+          periode="mois"
+          showMonetaryStats={user?.role === 'responsable'} 
+        />
       )}
     </div>
   );

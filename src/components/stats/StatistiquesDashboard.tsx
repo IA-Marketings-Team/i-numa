@@ -4,7 +4,7 @@ import { Statistique } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchAgentById } from "@/services/agentService";
 
-interface StatistiquesDashboardProps {
+export interface StatistiquesDashboardProps {
   statistiques: Statistique[];
   periode: "jour" | "semaine" | "mois";
   showMonetaryStats?: boolean;
