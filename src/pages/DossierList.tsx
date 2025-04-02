@@ -1,80 +1,140 @@
 
-import React, { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
 import { useDossier } from "@/contexts/DossierContext";
-import { useAuth } from "@/contexts/AuthContext";
 import DossierList from "@/components/dossier/DossierList";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DossierStatus } from "@/types";
+import { Plus, Search } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 
 const DossierListPage = () => {
+  const { filteredDossiers, setStatusFilter, statusFilter, fetchDossiers } = useDossier();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { user, hasPermission } = useAuth();
-  const { fetchDossiers, dossiers, isLoading } = useDossier();
-  const [activeTab, setActiveTab] = useState("tous");
+  const { hasPermission, user } = useAuth();
+  const { toast } = useToast();
 
+  // Chargement initial des dossiers depuis l'API
   useEffect(() => {
-    const loadDossiers = async () => {
-      await fetchDossiers();
-    };
-    
-    loadDossiers();
-  }, []);
-
-  const filteredDossiers = dossiers.filter((dossier) => {
-    if (activeTab === "tous") return true;
-    if (activeTab === "mes-dossiers" && user) {
-      if (user.role === "agent_phoner") {
-        return dossier.agentPhonerId === user.id;
-      } else if (user.role === "agent_visio") {
-        return dossier.agentVisioId === user.id;
-      }
+    if (user) {
+      setIsLoading(true);
+      fetchDossiers()
+        .then(() => {
+          console.log("[DossierListPage] Dossiers chargés avec succès");
+        })
+        .catch((error) => {
+          console.error("[DossierListPage] Erreur lors du chargement des dossiers:", error);
+          toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Impossible de charger les dossiers"
+          });
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     }
-    return dossier.statut === activeTab;
-  });
+  }, [user, fetchDossiers, toast]);
+
+  // Log component initialization
+  useEffect(() => {
+    console.log("[DossierListPage] Component initialized:", { 
+      userRole: user?.role,
+      hasPermissions: hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable']),
+      dossierCount: filteredDossiers.length,
+      statusFilter
+    });
+  }, [statusFilter, filteredDossiers.length, user, hasPermission]);
+
+  // Filtrer les dossiers en fonction du terme de recherche
+  const searchFilteredDossiers = filteredDossiers.filter(
+    (dossier) =>
+      (dossier.client?.nom || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (dossier.client?.prenom || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (dossier.client?.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (dossier.client?.secteurActivite || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleStatusChange = (status: string) => {
+    console.log("[DossierListPage] Status filter changed:", status);
+    setStatusFilter(status as DossierStatus | 'all');
+  };
+
+  const handleNewDossierClick = () => {
+    console.log("[DossierListPage] New dossier button clicked, navigating to /dossiers/nouveau");
+    // Ajouter une pause pour debug
+    setTimeout(() => {
+      console.log("[DossierListPage] Executing navigation to /dossiers/nouveau");
+      navigate("/dossiers/nouveau");
+      console.log("[DossierListPage] Navigation executed");
+    }, 100);
+  };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Dossiers</h1>
-        {hasPermission(["agent_phoner", "agent_visio", "superviseur", "responsable"]) && (
-          <Button onClick={() => navigate("/dossiers/nouveau")}>
-            <Plus className="mr-2 h-4 w-4" /> Nouveau dossier
-          </Button>
-        )}
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Liste des dossiers</CardTitle>
-          <CardDescription>
-            Consultez et gérez tous les dossiers clients
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-4 mb-4">
-              <TabsTrigger value="tous">Tous</TabsTrigger>
-              <TabsTrigger value="mes-dossiers">Mes dossiers</TabsTrigger>
-              <TabsTrigger value="en_cours">En cours</TabsTrigger>
+    <Card className="border shadow-sm h-full">
+      <CardHeader className="pb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <CardTitle className="text-xl">Dossiers</CardTitle>
+          
+          {hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable']) && (
+            <Button 
+              onClick={handleNewDossierClick}
+              size="sm"
+              className="flex items-center gap-2"
+              data-testid="nouveau-dossier-btn"
+            >
+              <Plus className="w-4 h-4" />
+              Nouveau dossier
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+          <Tabs 
+            defaultValue={statusFilter} 
+            onValueChange={handleStatusChange}
+            className="w-full md:w-auto"
+          >
+            <TabsList className="grid grid-cols-3 sm:grid-cols-6">
+              <TabsTrigger value="all">Tous</TabsTrigger>
+              <TabsTrigger value="prospect">Prospects</TabsTrigger>
+              <TabsTrigger value="rdv_en_cours">RDV</TabsTrigger>
+              <TabsTrigger value="valide">Validés</TabsTrigger>
               <TabsTrigger value="signe">Signés</TabsTrigger>
+              <TabsTrigger value="archive">Archivés</TabsTrigger>
             </TabsList>
-
-            <TabsContent value={activeTab}>
-              <DossierList dossiers={filteredDossiers} isLoading={isLoading} />
-            </TabsContent>
           </Tabs>
-        </CardContent>
-      </Card>
-    </div>
+          
+          <div className="relative w-full md:w-64 self-end">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              type="text"
+              placeholder="Rechercher..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+        
+        <div className="bg-background rounded-md border p-1 overflow-auto">
+          {isLoading ? (
+            <div className="flex justify-center items-center p-8">
+              <p>Chargement des dossiers...</p>
+            </div>
+          ) : (
+            <DossierList dossiers={searchFilteredDossiers} />
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

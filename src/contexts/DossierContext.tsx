@@ -1,190 +1,226 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Dossier, RendezVous } from '@/types';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { getCurrentUser } from '@/lib/realm';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { Dossier, DossierStatus, Offre, RendezVous } from "@/types";
+import { dossiers as mockDossiers, rendezVous as mockRendezVous } from "@/data/mockData";
+import { useAuth } from "./AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface DossierContextType {
   dossiers: Dossier[];
   rendezVous: RendezVous[];
-  isLoading: boolean;
-  fetchDossiers: () => Promise<Dossier[]>;
-  fetchDossierById: (id: string) => Promise<Dossier | null>;
-  fetchRendezVousByDossierId: (dossierId: string) => Promise<RendezVous[]>;
+  filteredDossiers: Dossier[];
+  currentDossier: Dossier | null;
+  statusFilter: DossierStatus | 'all';
+  addDossier: (dossier: Omit<Dossier, "id" | "dateCreation" | "dateMiseAJour">) => void;
+  updateDossier: (id: string, updates: Partial<Dossier>) => void;
+  deleteDossier: (id: string) => void;
+  getDossierById: (id: string) => Dossier | undefined;
+  setStatusFilter: (status: DossierStatus | 'all') => void;
+  setCurrentDossier: (dossier: Dossier | null) => void;
+  getRendezVousByDossierId: (dossierId: string) => RendezVous[];
+  addRendezVous: (rendezVous: Omit<RendezVous, "id">) => void;
+  updateRendezVous: (id: string, updates: Partial<RendezVous>) => void;
+  deleteRendezVous: (id: string) => void;
+  updateDossierStatus: (dossierId: string, newStatus: DossierStatus) => void;
 }
 
-const DossierContext = createContext<DossierContextType>({
-  dossiers: [],
-  rendezVous: [],
-  isLoading: false,
-  fetchDossiers: async () => [],
-  fetchDossierById: async () => null,
-  fetchRendezVousByDossierId: async () => [],
-});
+const DossierContext = createContext<DossierContextType | undefined>(undefined);
 
 export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [dossiers, setDossiers] = useState<Dossier[]>([]);
-  const [rendezVous, setRendezVous] = useState<RendezVous[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { getToken } = useAuth();
+  const [dossiers, setDossiers] = useState<Dossier[]>(mockDossiers);
+  const [rendezVous, setRendezVous] = useState<RendezVous[]>(mockRendezVous);
+  const [statusFilter, setStatusFilter] = useState<DossierStatus | 'all'>('all');
+  const [currentDossier, setCurrentDossier] = useState<Dossier | null>(null);
+  const { user } = useAuth();
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Chargement initial des dossiers
-    fetchDossiers();
-  }, []);
-
-  const fetchDossiers = async (): Promise<Dossier[]> => {
-    setIsLoading(true);
-    try {
-      const token = await getToken();
-      if (!token) {
-        throw new Error("Pas de token d'authentification disponible");
-      }
-
-      const realmUser = getCurrentUser();
-      if (!realmUser) {
-        throw new Error("Utilisateur Realm non connecté");
-      }
-
-      const dossiersCollection = realmUser.mongoClient("mongodb-atlas").db("inuma").collection("dossiers");
-      const result = await dossiersCollection.find({});
-      
-      const dossiersData = result.map((doc: any) => ({
-        id: doc._id.toString(),
-        clientId: doc.clientId,
-        agentPhonerId: doc.agentPhonerId,
-        agentVisioId: doc.agentVisioId || null,
-        statut: doc.statut,
-        dateCreation: new Date(doc.dateCreation),
-        dateModification: new Date(doc.dateModification),
-        notes: doc.notes || '',
-        montant: doc.montant || 0,
-        offres: doc.offres || []
-      }));
-      
-      setDossiers(dossiersData);
-      return dossiersData;
-    } catch (error) {
-      console.error("Erreur lors de la récupération des dossiers:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de charger les dossiers",
-      });
-      return [];
-    } finally {
-      setIsLoading(false);
+  const filteredDossiers = React.useMemo(() => {
+    let filtered = [...dossiers];
+    
+    // Filtrer par statut si un filtre est appliqué
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(d => d.status === statusFilter);
     }
+    
+    // Filtrer selon le rôle de l'utilisateur
+    if (user) {
+      switch (user.role) {
+        case 'agent_phoner':
+          // Les agents phoner voient les dossiers qui leur sont assignés
+          filtered = filtered.filter(d => 
+            d.agentPhonerId === user.id && 
+            d.status !== 'archive' // Les dossiers archivés ne sont pas visibles pour les agents
+          );
+          break;
+          
+        case 'agent_visio':
+          // Les agents visio voient les dossiers qui leur sont assignés
+          filtered = filtered.filter(d => 
+            d.agentVisioId === user.id && 
+            d.status !== 'archive' // Les dossiers archivés ne sont pas visibles pour les agents
+          );
+          break;
+          
+        case 'superviseur':
+          // Les superviseurs voient tous les dossiers sauf les montants
+          // Pas de filtrage spécifique ici
+          break;
+          
+        case 'responsable':
+          // Les responsables voient tout
+          // Pas de filtrage
+          break;
+          
+        case 'client':
+          // Les clients ne voient que leurs propres dossiers
+          filtered = filtered.filter(d => d.clientId === user.id);
+          break;
+      }
+    }
+    
+    return filtered;
+  }, [dossiers, statusFilter, user]);
+
+  const addDossier = (newDossier: Omit<Dossier, "id" | "dateCreation" | "dateMiseAJour">) => {
+    const dossier: Dossier = {
+      ...newDossier,
+      id: `dossier${dossiers.length + 1}`,
+      dateCreation: new Date(),
+      dateMiseAJour: new Date(),
+    };
+    
+    setDossiers(prev => [...prev, dossier]);
+    toast({
+      title: "Dossier créé",
+      description: `Le dossier a été créé avec succès`,
+    });
   };
 
-  const fetchDossierById = async (id: string): Promise<Dossier | null> => {
-    setIsLoading(true);
-    try {
-      const token = await getToken();
-      if (!token) {
-        throw new Error("Pas de token d'authentification disponible");
-      }
-
-      const realmUser = getCurrentUser();
-      if (!realmUser) {
-        throw new Error("Utilisateur Realm non connecté");
-      }
-
-      const dossiersCollection = realmUser.mongoClient("mongodb-atlas").db("inuma").collection("dossiers");
-      const dossier = await dossiersCollection.findOne({ _id: id });
-      
-      if (!dossier) {
-        return null;
-      }
-      
-      return {
-        id: dossier._id.toString(),
-        clientId: dossier.clientId,
-        agentPhonerId: dossier.agentPhonerId,
-        agentVisioId: dossier.agentVisioId || null,
-        statut: dossier.statut,
-        dateCreation: new Date(dossier.dateCreation),
-        dateModification: new Date(dossier.dateModification),
-        notes: dossier.notes || '',
-        montant: dossier.montant || 0,
-        offres: dossier.offres || []
-      };
-    } catch (error) {
-      console.error(`Erreur lors de la récupération du dossier ${id}:`, error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de charger le dossier",
-      });
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
+  const updateDossier = (id: string, updates: Partial<Dossier>) => {
+    setDossiers(prev => 
+      prev.map(dossier => 
+        dossier.id === id 
+          ? { ...dossier, ...updates, dateMiseAJour: new Date() } 
+          : dossier
+      )
+    );
+    toast({
+      title: "Dossier mis à jour",
+      description: `Le dossier a été mis à jour avec succès`,
+    });
   };
 
-  const fetchRendezVousByDossierId = async (dossierId: string): Promise<RendezVous[]> => {
-    setIsLoading(true);
-    try {
-      const token = await getToken();
-      if (!token) {
-        throw new Error("Pas de token d'authentification disponible");
-      }
+  const deleteDossier = (id: string) => {
+    setDossiers(prev => prev.filter(dossier => dossier.id !== id));
+    setRendezVous(prev => prev.filter(rdv => rdv.dossierId !== id));
+    toast({
+      title: "Dossier supprimé",
+      description: `Le dossier a été supprimé avec succès`,
+    });
+  };
 
-      const realmUser = getCurrentUser();
-      if (!realmUser) {
-        throw new Error("Utilisateur Realm non connecté");
-      }
+  const getDossierById = (id: string) => {
+    return dossiers.find(dossier => dossier.id === id);
+  };
 
-      const rendezVousCollection = realmUser.mongoClient("mongodb-atlas").db("inuma").collection("rendezVous");
-      const result = await rendezVousCollection.find({ dossierId });
-      
-      const rendezVousData = result.map((doc: any) => ({
-        id: doc._id.toString(),
-        dossierId: doc.dossierId,
-        date: new Date(doc.date),
-        duree: doc.duree,
-        statut: doc.statut,
-        notes: doc.notes || '',
-        type: doc.type
-      }));
-      
-      setRendezVous(prevRDV => {
-        // Filtrer les anciens rendez-vous du même dossier
-        const filteredRDV = prevRDV.filter(rdv => rdv.dossierId !== dossierId);
-        // Ajouter les nouveaux rendez-vous
-        return [...filteredRDV, ...rendezVousData];
-      });
-      
-      return rendezVousData;
-    } catch (error) {
-      console.error(`Erreur lors de la récupération des rendez-vous pour le dossier ${dossierId}:`, error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de charger les rendez-vous",
-      });
-      return [];
-    } finally {
-      setIsLoading(false);
+  const getRendezVousByDossierId = (dossierId: string) => {
+    return rendezVous.filter(rdv => rdv.dossierId === dossierId);
+  };
+
+  const addRendezVous = (newRendezVous: Omit<RendezVous, "id">) => {
+    const rdv: RendezVous = {
+      ...newRendezVous,
+      id: `rdv${rendezVous.length + 1}`,
+    };
+    
+    setRendezVous(prev => [...prev, rdv]);
+    toast({
+      title: "Rendez-vous créé",
+      description: `Le rendez-vous a été créé avec succès`,
+    });
+  };
+
+  const updateRendezVous = (id: string, updates: Partial<RendezVous>) => {
+    setRendezVous(prev => 
+      prev.map(rdv => 
+        rdv.id === id 
+          ? { ...rdv, ...updates } 
+          : rdv
+      )
+    );
+    toast({
+      title: "Rendez-vous mis à jour",
+      description: `Le rendez-vous a été mis à jour avec succès`,
+    });
+  };
+
+  const deleteRendezVous = (id: string) => {
+    setRendezVous(prev => prev.filter(rdv => rdv.id !== id));
+    toast({
+      title: "Rendez-vous supprimé",
+      description: `Le rendez-vous a été supprimé avec succès`,
+    });
+  };
+
+  const updateDossierStatus = (dossierId: string, newStatus: DossierStatus) => {
+    const dossier = getDossierById(dossierId);
+    if (!dossier) return;
+    
+    const updates: Partial<Dossier> = { status: newStatus };
+    
+    // Mettre à jour les dates en fonction du nouveau statut
+    const now = new Date();
+    
+    switch (newStatus) {
+      case 'rdv_en_cours':
+        updates.dateRdv = now;
+        break;
+      case 'valide':
+        updates.dateValidation = now;
+        break;
+      case 'signe':
+        updates.dateSignature = now;
+        break;
+      case 'archive':
+        updates.dateArchivage = now;
+        break;
     }
+    
+    updateDossier(dossierId, updates);
+    toast({
+      title: "Statut mis à jour",
+      description: `Le statut du dossier a été mis à jour en "${newStatus}"`,
+    });
   };
 
   return (
-    <DossierContext.Provider
-      value={{
-        dossiers,
-        rendezVous,
-        isLoading,
-        fetchDossiers,
-        fetchDossierById,
-        fetchRendezVousByDossierId,
-      }}
-    >
+    <DossierContext.Provider value={{
+      dossiers,
+      rendezVous,
+      filteredDossiers,
+      currentDossier,
+      statusFilter,
+      addDossier,
+      updateDossier,
+      deleteDossier,
+      getDossierById,
+      setStatusFilter,
+      setCurrentDossier,
+      getRendezVousByDossierId,
+      addRendezVous,
+      updateRendezVous,
+      deleteRendezVous,
+      updateDossierStatus,
+    }}>
       {children}
     </DossierContext.Provider>
   );
 };
 
-export const useDossier = () => useContext(DossierContext);
+export const useDossier = () => {
+  const context = useContext(DossierContext);
+  if (context === undefined) {
+    throw new Error("useDossier must be used within a DossierProvider");
+  }
+  return context;
+};
