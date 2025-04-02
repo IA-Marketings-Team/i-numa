@@ -294,23 +294,29 @@ export type Database = {
       offres: {
         Row: {
           description: string | null
+          frais_creation: string | null
           id: string
           nom: string | null
           prix: number | null
+          prix_mensuel: string | null
           type: string | null
         }
         Insert: {
           description?: string | null
+          frais_creation?: string | null
           id?: string
           nom?: string | null
           prix?: number | null
+          prix_mensuel?: string | null
           type?: string | null
         }
         Update: {
           description?: string | null
+          frais_creation?: string | null
           id?: string
           nom?: string | null
           prix?: number | null
+          prix_mensuel?: string | null
           type?: string | null
         }
         Relationships: []
