@@ -6,20 +6,29 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/contexts/CartContext";
-import { CheckCircle2, FileText, LockIcon } from "lucide-react";
+import { CheckCircle2, FileText, LockIcon, Calendar } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { useDossier } from "@/contexts/DossierContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import MeetingRequestForm from "@/components/rendezVous/MeetingRequestForm";
 
 const ContractAcceptance = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { cartItems, clearCart } = useCart();
+  const { user } = useAuth();
+  const { addRendezVous } = useDossier();
   const [accepted, setAccepted] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [requestMeeting, setRequestMeeting] = useState(false);
+  const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
   
   const handleAcceptContract = () => {
-    if (!accepted) {
+    if (!accepted || !termsAccepted) {
       toast({
         title: "Erreur",
-        description: "Vous devez accepter les conditions du contrat pour continuer.",
+        description: "Vous devez accepter toutes les conditions du contrat pour continuer.",
         variant: "destructive",
       });
       return;
@@ -31,6 +40,7 @@ const ContractAcceptance = () => {
       items: cartItems,
       date: contractDate,
       id: `CONTRACT-${Date.now()}`,
+      meetingRequested: requestMeeting
     };
     
     // Stocker le contrat dans le localStorage
@@ -40,12 +50,23 @@ const ContractAcceptance = () => {
     // Notification de succès
     toast({
       title: "Contrat validé",
-      description: "Votre contrat a été enregistré avec succès.",
+      description: "Votre contrat a été enregistré avec succès."
     });
     
-    // Vider le panier et rediriger vers la page des paramètres
+    // Si l'utilisateur a demandé une réunion, ouvrir le modal pour planifier
+    if (requestMeeting) {
+      setIsMeetingModalOpen(true);
+    } else {
+      // Vider le panier et rediriger vers la page des paramètres
+      clearCart();
+      navigate("/agenda");
+    }
+  };
+  
+  const handleMeetingScheduled = () => {
+    setIsMeetingModalOpen(false);
     clearCart();
-    navigate("/parametres?tab=contrat");
+    navigate("/agenda");
   };
   
   if (cartItems.length === 0) {
@@ -215,8 +236,8 @@ const ContractAcceptance = () => {
           <div className="flex items-start space-x-2">
             <Checkbox 
               id="terms" 
-              checked={accepted} 
-              onCheckedChange={(checked) => setAccepted(checked === true)}
+              checked={termsAccepted} 
+              onCheckedChange={(checked) => setTermsAccepted(checked === true)}
             />
             <label
               htmlFor="terms"
@@ -225,6 +246,36 @@ const ContractAcceptance = () => {
               J'ai lu et j'accepte les conditions générales du contrat
             </label>
           </div>
+          
+          <div className="flex items-start space-x-2">
+            <Checkbox 
+              id="conditions" 
+              checked={accepted} 
+              onCheckedChange={(checked) => setAccepted(checked === true)}
+            />
+            <label
+              htmlFor="conditions"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              J'accepte les conditions de vente et la politique de confidentialité
+            </label>
+          </div>
+          
+          <div className="flex items-start space-x-2">
+            <Checkbox 
+              id="meeting" 
+              checked={requestMeeting} 
+              onCheckedChange={(checked) => setRequestMeeting(checked === true)}
+            />
+            <label
+              htmlFor="meeting"
+              className="text-sm font-medium leading-none flex items-center gap-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              <Calendar className="h-4 w-4" />
+              Je souhaite planifier une visioconférence pour discuter de mon contrat
+            </label>
+          </div>
+          
           <div className="flex gap-4 w-full">
             <Button variant="outline" className="flex-1" onClick={() => navigate(-1)}>
               Retour au panier
@@ -235,6 +286,18 @@ const ContractAcceptance = () => {
           </div>
         </CardFooter>
       </Card>
+      
+      <Dialog open={isMeetingModalOpen} onOpenChange={setIsMeetingModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Planifier une visioconférence</DialogTitle>
+            <DialogDescription>
+              Choisissez une date et une heure qui vous conviennent pour discuter de votre contrat avec notre équipe.
+            </DialogDescription>
+          </DialogHeader>
+          <MeetingRequestForm onComplete={handleMeetingScheduled} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -10,14 +10,14 @@ import {
   Users, 
   FileText, 
   Package, 
-  Settings, 
   Home, 
   CalendarCheck, 
   User, 
   Phone,
   Mail,
   MessageSquare,
-  ListChecks
+  ListChecks,
+  Calendar
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserRole } from "@/types";
@@ -41,10 +41,11 @@ export function Sidebar({ className, isOpen, onClose, ...props }: SidebarProps) 
     else if (path.includes('/statistiques')) setActiveItem('statistiques');
     else if (path.includes('/equipes')) setActiveItem('equipes');
     else if (path.includes('/profil')) setActiveItem('profil');
-    else if (path.includes('/parametres')) setActiveItem('parametres');
     else if (path.includes('/taches')) setActiveItem('taches');
     else if (path.includes('/appels')) setActiveItem('appels');
     else if (path.includes('/communications')) setActiveItem('communications');
+    else if (path.includes('/agenda')) setActiveItem('agenda');
+    else if (path.includes('/agenda-global')) setActiveItem('agenda-global');
   }, [location]);
 
   const handleItemClick = () => {
@@ -110,6 +111,34 @@ export function Sidebar({ className, isOpen, onClose, ...props }: SidebarProps) 
               <Link to="/mes-offres">
                 <Package className="mr-2 h-4 w-4" />
                 Nos offres
+              </Link>
+            </Button>
+          )}
+
+          {user?.role === 'client' && (
+            <Button
+              variant={activeItem === 'agenda' ? 'default' : 'ghost'}
+              className={`w-full justify-start ${activeItem === 'agenda' ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground' : ''}`}
+              asChild
+              onClick={handleItemClick}
+            >
+              <Link to="/agenda">
+                <CalendarCheck className="mr-2 h-4 w-4" />
+                Mes rendez-vous
+              </Link>
+            </Button>
+          )}
+
+          {hasPermission(['agent_phoner', 'agent_visio', 'superviseur', 'responsable'] as UserRole[]) && (
+            <Button
+              variant={activeItem === 'agenda-global' ? 'default' : 'ghost'}
+              className={`w-full justify-start ${activeItem === 'agenda-global' ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground' : ''}`}
+              asChild
+              onClick={handleItemClick}
+            >
+              <Link to="/agenda-global">
+                <Calendar className="mr-2 h-4 w-4" />
+                Agenda global
               </Link>
             </Button>
           )}
@@ -199,18 +228,6 @@ export function Sidebar({ className, isOpen, onClose, ...props }: SidebarProps) 
               </Link>
             </Button>
           )}
-          
-          <Button
-            variant={activeItem === 'parametres' ? 'default' : 'ghost'}
-            className={`w-full justify-start ${activeItem === 'parametres' ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground' : ''}`}
-            asChild
-            onClick={handleItemClick}
-          >
-            <Link to="/parametres">
-              <Settings className="mr-2 h-4 w-4" />
-              Paramètres
-            </Link>
-          </Button>
         </div>
       </ScrollArea>
     </div>
