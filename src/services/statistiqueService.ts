@@ -213,7 +213,6 @@ export const deleteStatistique = async (id: string): Promise<boolean> => {
 // Fonction auxiliaire pour convertir les données de Supabase vers le type Statistique
 const convertDbStatToStatistique = (dbStat: StatistiqueDB): Statistique => {
   return {
-    id: dbStat.id,
     periode: convertPeriodeType(dbStat.periode),
     dateDebut: new Date(dbStat.date_debut),
     dateFin: new Date(dbStat.date_fin),
