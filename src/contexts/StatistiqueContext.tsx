@@ -2,7 +2,11 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Statistique, Agent, UserRole } from "@/types";
 import { useAuth } from "./AuthContext";
-import { fetchStatistiques, fetchStatistiquesByPeriode, fetchStatistiquesBetweenDates } from "@/services/statistiqueService";
+import { 
+  fetchStatistiques, 
+  fetchStatistiquesByPeriode, 
+  fetchStatistiquesBetweenDates 
+} from "@/services/statistiqueService";
 import { fetchAgentById, resetAgentStats } from "@/services/agentService";
 
 interface StatistiqueContextType {

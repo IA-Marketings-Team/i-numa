@@ -19,7 +19,7 @@ export const fetchStatistiques = async (): Promise<Statistique[]> => {
 
     return data.map(stat => ({
       id: stat.id,
-      periode: stat.periode,
+      periode: convertPeriodeType(stat.periode),
       dateDebut: new Date(stat.date_debut),
       dateFin: new Date(stat.date_fin),
       appelsEmis: stat.appels_emis,
@@ -33,6 +33,44 @@ export const fetchStatistiques = async (): Promise<Statistique[]> => {
     }));
   } catch (error) {
     console.error("Erreur inattendue lors de la récupération des statistiques:", error);
+    return [];
+  }
+};
+
+/**
+ * Récupère les statistiques par type de période (jour, semaine, mois)
+ */
+export const fetchStatistiquesByPeriode = async (
+  periode: "jour" | "semaine" | "mois"
+): Promise<Statistique[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('statistiques')
+      .select('*')
+      .eq('periode', periode)
+      .order('date_debut', { ascending: false });
+
+    if (error) {
+      console.error(`Erreur lors de la récupération des statistiques pour la période ${periode}:`, error);
+      return [];
+    }
+
+    return data.map(stat => ({
+      id: stat.id,
+      periode: convertPeriodeType(stat.periode),
+      dateDebut: new Date(stat.date_debut),
+      dateFin: new Date(stat.date_fin),
+      appelsEmis: stat.appels_emis,
+      appelsDecroches: stat.appels_decroches,
+      appelsTransformes: stat.appels_transformes,
+      rendezVousHonores: stat.rendez_vous_honores,
+      rendezVousNonHonores: stat.rendez_vous_non_honores,
+      dossiersValides: stat.dossiers_valides,
+      dossiersSigne: stat.dossiers_signe,
+      chiffreAffaires: stat.chiffre_affaires
+    }));
+  } catch (error) {
+    console.error(`Erreur inattendue lors de la récupération des statistiques pour la période ${periode}:`, error);
     return [];
   }
 };
@@ -59,7 +97,7 @@ export const fetchStatistiquesBetweenDates = async (
 
     return data.map(stat => ({
       id: stat.id,
-      periode: stat.periode,
+      periode: convertPeriodeType(stat.periode),
       dateDebut: new Date(stat.date_debut),
       dateFin: new Date(stat.date_fin),
       appelsEmis: stat.appels_emis,
@@ -97,7 +135,7 @@ export const fetchStatistiqueById = async (id: string): Promise<Statistique | nu
 
     return {
       id: data.id,
-      periode: data.periode,
+      periode: convertPeriodeType(data.periode),
       dateDebut: new Date(data.date_debut),
       dateFin: new Date(data.date_fin),
       appelsEmis: data.appels_emis,
@@ -145,7 +183,7 @@ export const createStatistique = async (statistique: Omit<Statistique, "id">): P
 
     return {
       id: data.id,
-      periode: data.periode,
+      periode: convertPeriodeType(data.periode),
       dateDebut: new Date(data.date_debut),
       dateFin: new Date(data.date_fin),
       appelsEmis: data.appels_emis,
@@ -219,4 +257,13 @@ export const deleteStatistique = async (id: string): Promise<boolean> => {
     console.error(`Erreur inattendue lors de la suppression de la statistique ${id}:`, error);
     return false;
   }
+};
+
+// Fonction auxiliaire pour convertir le type de période
+const convertPeriodeType = (periode: string): "jour" | "semaine" | "mois" => {
+  if (periode === "jour" || periode === "semaine" || periode === "mois") {
+    return periode as "jour" | "semaine" | "mois";
+  }
+  // Valeur par défaut si le type n'est pas reconnu
+  return "mois";
 };

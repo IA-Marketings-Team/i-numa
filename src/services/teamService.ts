@@ -2,6 +2,8 @@
 import { Team } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
+type TeamFonction = "phoning" | "visio" | "developpement" | "marketing" | "mixte";
+
 /**
  * Récupère toutes les équipes depuis Supabase
  */
@@ -20,7 +22,7 @@ export const fetchTeams = async (): Promise<Team[]> => {
     return data.map(team => ({
       id: team.id,
       nom: team.nom || '',
-      fonction: team.fonction || '',
+      fonction: convertTeamFonction(team.fonction),
       description: team.description || '',
       dateCreation: new Date(team.date_creation)
     }));
@@ -51,7 +53,7 @@ export const fetchTeamById = async (id: string): Promise<Team | null> => {
     return {
       id: data.id,
       nom: data.nom || '',
-      fonction: data.fonction || '',
+      fonction: convertTeamFonction(data.fonction),
       description: data.description || '',
       dateCreation: new Date(data.date_creation)
     };
@@ -84,7 +86,7 @@ export const createTeam = async (team: Omit<Team, "id" | "dateCreation">): Promi
     return {
       id: data.id,
       nom: data.nom || '',
-      fonction: data.fonction || '',
+      fonction: convertTeamFonction(data.fonction),
       description: data.description || '',
       dateCreation: new Date(data.date_creation)
     };
@@ -142,4 +144,13 @@ export const deleteTeam = async (id: string): Promise<boolean> => {
     console.error(`Erreur inattendue lors de la suppression de l'équipe ${id}:`, error);
     return false;
   }
+};
+
+// Fonction auxiliaire pour convertir le type d'équipe
+const convertTeamFonction = (fonction: string): TeamFonction => {
+  if (fonction === "phoning" || fonction === "visio" || fonction === "developpement" || fonction === "marketing" || fonction === "mixte") {
+    return fonction as TeamFonction;
+  }
+  // Valeur par défaut si le type n'est pas reconnu
+  return "mixte";
 };
