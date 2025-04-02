@@ -13,7 +13,7 @@ export const fetchAuthLogs = async (): Promise<AuthLog[]> => {
     
     // Utilisez la fonction RPC définie dans Supabase au lieu d'accéder directement à la table
     const { data, error } = await supabase
-      .rpc('get_auth_logs', params) as unknown as { data: any[]; error: any };
+      .rpc('get_auth_logs', params);
 
     if (error) {
       console.error("Erreur lors de la récupération des journaux d'authentification:", error);
@@ -40,11 +40,11 @@ export const fetchAuthLogs = async (): Promise<AuthLog[]> => {
 export const fetchAuthLogsByUser = async (userId: string): Promise<AuthLog[]> => {
   try {
     // Définition de l'objet paramètre avec un type explicite
-    const params: { user_id_param: string } = { user_id_param: userId };
+    const params = { user_id_param: userId };
     
     // Utilisez la fonction RPC définie dans Supabase avec paramètre
     const { data, error } = await supabase
-      .rpc('get_user_auth_logs', params) as unknown as { data: any[]; error: any };
+      .rpc('get_user_auth_logs', params);
 
     if (error) {
       console.error(`Erreur lors de la récupération des journaux pour l'utilisateur ${userId}:`, error);
@@ -71,12 +71,7 @@ export const fetchAuthLogsByUser = async (userId: string): Promise<AuthLog[]> =>
 export const createAuthLog = async (log: Omit<AuthLog, "id">): Promise<AuthLog | null> => {
   try {
     // Définition de l'objet paramètre avec un type explicite
-    const params: {
-      user_id_param: string;
-      action_param: string;
-      user_agent_param: string | null;
-      ip_address_param: string | null;
-    } = {
+    const params = {
       user_id_param: log.userId,
       action_param: log.action,
       user_agent_param: log.userAgent || null,
@@ -85,7 +80,7 @@ export const createAuthLog = async (log: Omit<AuthLog, "id">): Promise<AuthLog |
     
     // Utilisez la procédure stockée pour insérer dans auth_logs
     const { data, error } = await supabase
-      .rpc('create_auth_log', params) as unknown as { data: any[]; error: any };
+      .rpc('create_auth_log', params);
 
     if (error) {
       console.error("Erreur lors de la création du journal d'authentification:", error);
