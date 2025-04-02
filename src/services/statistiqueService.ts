@@ -1,3 +1,4 @@
+
 import { Statistique } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -17,16 +18,17 @@ export const fetchStatistiques = async (): Promise<Statistique[]> => {
     }
 
     return data.map(stat => ({
-      periode: stat.periode as "jour" | "semaine" | "mois",
+      id: stat.id,
+      periode: stat.periode,
       dateDebut: new Date(stat.date_debut),
       dateFin: new Date(stat.date_fin),
-      appelsEmis: stat.appels_emis || 0,
-      appelsDecroches: stat.appels_decroches || 0,
-      appelsTransformes: stat.appels_transformes || 0,
-      rendezVousHonores: stat.rendez_vous_honores || 0,
-      rendezVousNonHonores: stat.rendez_vous_non_honores || 0,
-      dossiersValides: stat.dossiers_valides || 0,
-      dossiersSigne: stat.dossiers_signe || 0,
+      appelsEmis: stat.appels_emis,
+      appelsDecroches: stat.appels_decroches,
+      appelsTransformes: stat.appels_transformes,
+      rendezVousHonores: stat.rendez_vous_honores,
+      rendezVousNonHonores: stat.rendez_vous_non_honores,
+      dossiersValides: stat.dossiers_valides,
+      dossiersSigne: stat.dossiers_signe,
       chiffreAffaires: stat.chiffre_affaires
     }));
   } catch (error) {
@@ -36,84 +38,87 @@ export const fetchStatistiques = async (): Promise<Statistique[]> => {
 };
 
 /**
- * Récupère les statistiques pour une période spécifique
+ * Récupère les statistiques entre deux dates
  */
-export const fetchStatistiquesByPeriode = async (periode: "jour" | "semaine" | "mois"): Promise<Statistique[]> => {
+export const fetchStatistiquesBetweenDates = async (
+  startDate: Date,
+  endDate: Date
+): Promise<Statistique[]> => {
   try {
     const { data, error } = await supabase
       .from('statistiques')
       .select('*')
-      .eq('periode', periode)
+      .gte('date_debut', startDate.toISOString())
+      .lte('date_fin', endDate.toISOString())
       .order('date_debut', { ascending: false });
 
     if (error) {
-      console.error(`Erreur lors de la récupération des statistiques ${periode}:`, error);
+      console.error("Erreur lors de la récupération des statistiques par plage de dates:", error);
       return [];
     }
 
     return data.map(stat => ({
-      periode: stat.periode as "jour" | "semaine" | "mois",
+      id: stat.id,
+      periode: stat.periode,
       dateDebut: new Date(stat.date_debut),
       dateFin: new Date(stat.date_fin),
-      appelsEmis: stat.appels_emis || 0,
-      appelsDecroches: stat.appels_decroches || 0,
-      appelsTransformes: stat.appels_transformes || 0,
-      rendezVousHonores: stat.rendez_vous_honores || 0,
-      rendezVousNonHonores: stat.rendez_vous_non_honores || 0,
-      dossiersValides: stat.dossiers_valides || 0,
-      dossiersSigne: stat.dossiers_signe || 0,
+      appelsEmis: stat.appels_emis,
+      appelsDecroches: stat.appels_decroches,
+      appelsTransformes: stat.appels_transformes,
+      rendezVousHonores: stat.rendez_vous_honores,
+      rendezVousNonHonores: stat.rendez_vous_non_honores,
+      dossiersValides: stat.dossiers_valides,
+      dossiersSigne: stat.dossiers_signe,
       chiffreAffaires: stat.chiffre_affaires
     }));
   } catch (error) {
-    console.error(`Erreur inattendue lors de la récupération des statistiques ${periode}:`, error);
+    console.error("Erreur inattendue lors de la récupération des statistiques par plage de dates:", error);
     return [];
   }
 };
 
 /**
- * Récupère les statistiques entre deux dates
+ * Récupère une statistique par son ID
  */
-export const fetchStatistiquesBetweenDates = async (debut: Date, fin: Date): Promise<Statistique[]> => {
+export const fetchStatistiqueById = async (id: string): Promise<Statistique | null> => {
   try {
     const { data, error } = await supabase
       .from('statistiques')
       .select('*')
-      .gte('date_debut', debut.toISOString())
-      .lte('date_fin', fin.toISOString())
-      .order('date_debut', { ascending: false });
+      .eq('id', id)
+      .single();
 
     if (error) {
-      console.error(`Erreur lors de la récupération des statistiques entre ${debut} et ${fin}:`, error);
-      return [];
+      console.error(`Erreur lors de la récupération de la statistique ${id}:`, error);
+      return null;
     }
 
-    return data.map(stat => ({
-      periode: stat.periode as "jour" | "semaine" | "mois",
-      dateDebut: new Date(stat.date_debut),
-      dateFin: new Date(stat.date_fin),
-      appelsEmis: stat.appels_emis || 0,
-      appelsDecroches: stat.appels_decroches || 0,
-      appelsTransformes: stat.appels_transformes || 0,
-      rendezVousHonores: stat.rendez_vous_honores || 0,
-      rendezVousNonHonores: stat.rendez_vous_non_honores || 0,
-      dossiersValides: stat.dossiers_valides || 0,
-      dossiersSigne: stat.dossiers_signe || 0,
-      chiffreAffaires: stat.chiffre_affaires
-    }));
+    if (!data) return null;
+
+    return {
+      id: data.id,
+      periode: data.periode,
+      dateDebut: new Date(data.date_debut),
+      dateFin: new Date(data.date_fin),
+      appelsEmis: data.appels_emis,
+      appelsDecroches: data.appels_decroches,
+      appelsTransformes: data.appels_transformes,
+      rendezVousHonores: data.rendez_vous_honores,
+      rendezVousNonHonores: data.rendez_vous_non_honores,
+      dossiersValides: data.dossiers_valides,
+      dossiersSigne: data.dossiers_signe,
+      chiffreAffaires: data.chiffre_affaires
+    };
   } catch (error) {
-    console.error(`Erreur inattendue lors de la récupération des statistiques entre ${debut} et ${fin}:`, error);
-    return [];
+    console.error(`Erreur inattendue lors de la récupération de la statistique ${id}:`, error);
+    return null;
   }
 };
 
 /**
  * Crée une nouvelle statistique
  */
-export const createStatistique = async (statistique: Omit<Statistique, "periode" | "dateDebut" | "dateFin"> & { 
-  periode: "jour" | "semaine" | "mois", 
-  dateDebut: Date,
-  dateFin: Date
-}): Promise<Statistique | null> => {
+export const createStatistique = async (statistique: Omit<Statistique, "id">): Promise<Statistique | null> => {
   try {
     const { data, error } = await supabase
       .from('statistiques')
@@ -139,16 +144,17 @@ export const createStatistique = async (statistique: Omit<Statistique, "periode"
     }
 
     return {
-      periode: data.periode as "jour" | "semaine" | "mois",
+      id: data.id,
+      periode: data.periode,
       dateDebut: new Date(data.date_debut),
       dateFin: new Date(data.date_fin),
-      appelsEmis: data.appels_emis || 0,
-      appelsDecroches: data.appels_decroches || 0,
-      appelsTransformes: data.appels_transformes || 0,
-      rendezVousHonores: data.rendez_vous_honores || 0,
-      rendezVousNonHonores: data.rendez_vous_non_honores || 0,
-      dossiersValides: data.dossiers_valides || 0,
-      dossiersSigne: data.dossiers_signe || 0,
+      appelsEmis: data.appels_emis,
+      appelsDecroches: data.appels_decroches,
+      appelsTransformes: data.appels_transformes,
+      rendezVousHonores: data.rendez_vous_honores,
+      rendezVousNonHonores: data.rendez_vous_non_honores,
+      dossiersValides: data.dossiers_valides,
+      dossiersSigne: data.dossiers_signe,
       chiffreAffaires: data.chiffre_affaires
     };
   } catch (error) {
@@ -158,7 +164,7 @@ export const createStatistique = async (statistique: Omit<Statistique, "periode"
 };
 
 /**
- * Met à jour une statistique existante par son ID
+ * Met à jour une statistique existante
  */
 export const updateStatistique = async (id: string, updates: Partial<Statistique>): Promise<boolean> => {
   try {
@@ -175,17 +181,17 @@ export const updateStatistique = async (id: string, updates: Partial<Statistique
     if (updates.dossiersValides !== undefined) updateData.dossiers_valides = updates.dossiersValides;
     if (updates.dossiersSigne !== undefined) updateData.dossiers_signe = updates.dossiersSigne;
     if (updates.chiffreAffaires !== undefined) updateData.chiffre_affaires = updates.chiffreAffaires;
-
+    
     const { error } = await supabase
       .from('statistiques')
       .update(updateData)
       .eq('id', id);
-
+    
     if (error) {
       console.error(`Erreur lors de la mise à jour de la statistique ${id}:`, error);
       return false;
     }
-
+    
     return true;
   } catch (error) {
     console.error(`Erreur inattendue lors de la mise à jour de la statistique ${id}:`, error);
@@ -194,7 +200,7 @@ export const updateStatistique = async (id: string, updates: Partial<Statistique
 };
 
 /**
- * Supprime une statistique par son ID
+ * Supprime une statistique
  */
 export const deleteStatistique = async (id: string): Promise<boolean> => {
   try {
@@ -202,12 +208,12 @@ export const deleteStatistique = async (id: string): Promise<boolean> => {
       .from('statistiques')
       .delete()
       .eq('id', id);
-
+    
     if (error) {
       console.error(`Erreur lors de la suppression de la statistique ${id}:`, error);
       return false;
     }
-
+    
     return true;
   } catch (error) {
     console.error(`Erreur inattendue lors de la suppression de la statistique ${id}:`, error);

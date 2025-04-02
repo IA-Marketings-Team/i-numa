@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useDossier } from "@/contexts/DossierContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,11 +11,32 @@ import { useNavigate } from "react-router-dom";
 import DossierList from "@/components/dossier/DossierList";
 import StatistiquesDashboard from "@/components/stats/StatistiquesDashboard";
 import AgentVisioStats from "@/components/stats/AgentVisioStats";
+import { useEffect, useState } from "react";
+import { fetchStatistiques } from "@/services/statistiqueService";
+import { Statistique } from "@/types";
 
 const Dashboard = () => {
   const { user } = useAuth();
   const { filteredDossiers, dossiers } = useDossier();
   const navigate = useNavigate();
+  const [statistiques, setStatistiques] = useState<Statistique[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadStatistiques = async () => {
+      try {
+        setIsLoading(true);
+        const stats = await fetchStatistiques();
+        setStatistiques(stats);
+      } catch (error) {
+        console.error("Erreur lors du chargement des statistiques:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadStatistiques();
+  }, []);
 
   if (user?.role === 'agent_visio') {
     return (
@@ -40,18 +62,28 @@ const Dashboard = () => {
     { name: "Archivés", value: dossierStats.archives, color: "#6B7280" },
   ];
 
-  const barData = [
-    { name: "Jan", dossiers: 10, revenus: 5500 },
-    { name: "Fév", dossiers: 15, revenus: 8200 },
-    { name: "Mar", dossiers: 12, revenus: 6800 },
-    { name: "Avr", dossiers: 18, revenus: 9500 },
-    { name: "Mai", dossiers: 20, revenus: 12000 },
-    { name: "Juin", dossiers: 22, revenus: 13500 },
-  ];
+  // Transformons les données de statistiques pour le graphique à barres
+  const barData = statistiques.length > 0 
+    ? statistiques.slice(0, 6).map(stat => ({
+        name: new Date(stat.dateDebut).toLocaleDateString('fr-FR', { month: 'short' }),
+        dossiers: stat.dossiersValides + stat.dossiersSigne,
+        revenus: stat.chiffreAffaires || 0
+      })).reverse()
+    : [
+        { name: "Jan", dossiers: 10, revenus: 5500 },
+        { name: "Fév", dossiers: 15, revenus: 8200 },
+        { name: "Mar", dossiers: 12, revenus: 6800 },
+        { name: "Avr", dossiers: 18, revenus: 9500 },
+        { name: "Mai", dossiers: 20, revenus: 12000 },
+        { name: "Juin", dossiers: 22, revenus: 13500 },
+      ];
 
   const recentDossiers = [...filteredDossiers]
     .sort((a, b) => new Date(b.dateCreation).getTime() - new Date(a.dateCreation).getTime())
     .slice(0, 5);
+
+  // Filtrer les statistiques mensuelles
+  const monthlyStats = statistiques.filter(stat => stat.periode === "mois");
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-6 space-y-6 md:space-y-8">
@@ -186,7 +218,7 @@ const Dashboard = () => {
       
       {(user?.role === 'superviseur' || user?.role === 'responsable') && (
         <StatistiquesDashboard 
-          statistiques={[]} 
+          statistiques={monthlyStats} 
           periode="mois"
           showMonetaryStats={user?.role === 'responsable'} 
         />

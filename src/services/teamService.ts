@@ -19,9 +19,9 @@ export const fetchTeams = async (): Promise<Team[]> => {
 
     return data.map(team => ({
       id: team.id,
-      nom: team.nom,
-      fonction: convertFonctionType(team.fonction),
-      description: team.description || undefined,
+      nom: team.nom || '',
+      fonction: team.fonction || '',
+      description: team.description || '',
       dateCreation: new Date(team.date_creation)
     }));
   } catch (error) {
@@ -50,9 +50,9 @@ export const fetchTeamById = async (id: string): Promise<Team | null> => {
 
     return {
       id: data.id,
-      nom: data.nom,
-      fonction: convertFonctionType(data.fonction),
-      description: data.description || undefined,
+      nom: data.nom || '',
+      fonction: data.fonction || '',
+      description: data.description || '',
       dateCreation: new Date(data.date_creation)
     };
   } catch (error) {
@@ -61,25 +61,16 @@ export const fetchTeamById = async (id: string): Promise<Team | null> => {
   }
 };
 
-// Fonction auxiliaire pour convertir le type de fonction d'équipe
-const convertFonctionType = (fonction: string): "phoning" | "visio" | "developpement" | "marketing" | "mixte" => {
-  if (fonction === "phoning" || fonction === "visio" || fonction === "developpement" || fonction === "marketing" || fonction === "mixte") {
-    return fonction;
-  }
-  // Valeur par défaut si la fonction n'est pas reconnue
-  return "mixte";
-};
-
 /**
  * Crée une nouvelle équipe
  */
-export const createTeam = async (team: Omit<Team, 'id' | 'dateCreation'>): Promise<Team | null> => {
+export const createTeam = async (team: Omit<Team, "id" | "dateCreation">): Promise<Team | null> => {
   try {
     const { data, error } = await supabase
       .from('teams')
       .insert({
         nom: team.nom,
-        fonction: team.fonction, // Déjà du bon type car provenant de l'application
+        fonction: team.fonction,
         description: team.description
       })
       .select()
@@ -92,9 +83,9 @@ export const createTeam = async (team: Omit<Team, 'id' | 'dateCreation'>): Promi
 
     return {
       id: data.id,
-      nom: data.nom,
-      fonction: convertFonctionType(data.fonction),
-      description: data.description || undefined,
+      nom: data.nom || '',
+      fonction: data.fonction || '',
+      description: data.description || '',
       dateCreation: new Date(data.date_creation)
     };
   } catch (error) {
@@ -109,20 +100,21 @@ export const createTeam = async (team: Omit<Team, 'id' | 'dateCreation'>): Promi
 export const updateTeam = async (id: string, updates: Partial<Team>): Promise<boolean> => {
   try {
     const updateData: any = {};
+    
     if (updates.nom !== undefined) updateData.nom = updates.nom;
     if (updates.fonction !== undefined) updateData.fonction = updates.fonction;
     if (updates.description !== undefined) updateData.description = updates.description;
-
+    
     const { error } = await supabase
       .from('teams')
       .update(updateData)
       .eq('id', id);
-
+    
     if (error) {
       console.error(`Erreur lors de la mise à jour de l'équipe ${id}:`, error);
       return false;
     }
-
+    
     return true;
   } catch (error) {
     console.error(`Erreur inattendue lors de la mise à jour de l'équipe ${id}:`, error);
@@ -139,12 +131,12 @@ export const deleteTeam = async (id: string): Promise<boolean> => {
       .from('teams')
       .delete()
       .eq('id', id);
-
+    
     if (error) {
       console.error(`Erreur lors de la suppression de l'équipe ${id}:`, error);
       return false;
     }
-
+    
     return true;
   } catch (error) {
     console.error(`Erreur inattendue lors de la suppression de l'équipe ${id}:`, error);

@@ -1,3 +1,4 @@
+
 import { Offre } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -18,10 +19,10 @@ export const fetchOffres = async (): Promise<Offre[]> => {
 
     return data.map(offre => ({
       id: offre.id,
-      nom: offre.nom,
+      nom: offre.nom || '',
       description: offre.description || '',
-      type: convertOffreType(offre.type),
-      prix: offre.prix
+      type: convertOffreType(offre.type || ''),
+      prix: offre.prix || 0
     }));
   } catch (error) {
     console.error("Erreur inattendue lors de la récupération des offres:", error);
@@ -49,10 +50,10 @@ export const fetchOffreById = async (id: string): Promise<Offre | null> => {
 
     return {
       id: data.id,
-      nom: data.nom,
+      nom: data.nom || '',
       description: data.description || '',
-      type: convertOffreType(data.type),
-      prix: data.prix
+      type: convertOffreType(data.type || ''),
+      prix: data.prix || 0
     };
   } catch (error) {
     console.error(`Erreur inattendue lors de la récupération de l'offre ${id}:`, error);
@@ -83,10 +84,10 @@ export const createOffre = async (offre: Omit<Offre, 'id'>): Promise<Offre | nul
 
     return {
       id: data.id,
-      nom: data.nom,
+      nom: data.nom || '',
       description: data.description || '',
-      type: convertOffreType(data.type),
-      prix: data.prix
+      type: convertOffreType(data.type || ''),
+      prix: data.prix || 0
     };
   } catch (error) {
     console.error("Erreur inattendue lors de la création de l'offre:", error);
@@ -147,7 +148,7 @@ export const deleteOffre = async (id: string): Promise<boolean> => {
 // Fonction auxiliaire pour convertir le type d'offre
 const convertOffreType = (type: string): "SEO" | "Google Ads" | "Email X" | "Foner" | "Devis" => {
   if (type === "SEO" || type === "Google Ads" || type === "Email X" || type === "Foner" || type === "Devis") {
-    return type;
+    return type as "SEO" | "Google Ads" | "Email X" | "Foner" | "Devis";
   }
   // Valeur par défaut si le type n'est pas reconnu
   return "Devis";
