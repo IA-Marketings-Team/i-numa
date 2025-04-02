@@ -4,12 +4,10 @@ import {
   UserCog, 
   Users, 
   FileText, 
-  Package, 
   Home, 
   CalendarCheck, 
   User, 
   Phone,
-  Mail,
   MessageSquare,
   ListChecks,
   Calendar,
@@ -46,13 +44,6 @@ export const navigationConfig: NavigationItem[] = [
     path: '/clients',
     icon: Users,
     permissions: ['agent_phoner', 'agent_visio', 'superviseur', 'responsable']
-  },
-  {
-    id: 'mes-offres',
-    title: 'Nos offres',
-    path: '/mes-offres',
-    icon: Package,
-    permissions: ['client']
   },
   {
     id: 'marketplace',

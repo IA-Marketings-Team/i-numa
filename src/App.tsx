@@ -33,12 +33,10 @@ import AppelsPage from "./pages/AppelsPage";
 import Communications from "./pages/Communications";
 import GlobalAgenda from "./pages/GlobalAgenda";
 import ClientAgenda from "./pages/ClientAgenda";
-import OffresPage from "./pages/OffresPage";
 import DossierCallPage from "./pages/DossierCallPage";
 import DossierMeetingPage from "./pages/DossierMeetingPage";
 import DossierPage from "./pages/DossierPage";
 import MarketplacePage from "./pages/MarketplacePage";
-import OfferList from "./pages/OfferList";
 import ContractAcceptance from "./pages/ContractAcceptance";
 
 // Configuration des routes
@@ -79,18 +77,18 @@ const App: React.FC = () => {
                   <Route path=":id/modifier" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossierEditPage /></DashboardLayout>} />
                   <Route path=":id/appel" element={<DashboardLayout roles={["agent_phoner", "superviseur", "responsable"]}><DossierCallPage /></DashboardLayout>} />
                   <Route path=":id/rdv" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossierMeetingPage /></DashboardLayout>} />
-                  {/* Nouvelle route pour la compatibilité avec /rendez-vous/nouveau */}
+                  {/* Routes pour les rendez-vous */}
                   <Route path=":id/rendez-vous/nouveau" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><RendezVousEdit /></DashboardLayout>} />
-                  {/* Route existante pour l'édition des rendez-vous */}
                   <Route path=":dossierId/rendez-vous/:id" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><RendezVousEdit /></DashboardLayout>} />
                   <Route path="nouveau" element={<DashboardLayout roles={["agent_phoner", "superviseur", "responsable"]}><DossierNewPage /></DashboardLayout>} />
                 </Route>
                 
-                {/* Routes offres */}
-                <Route path="/offres" element={<DashboardLayout roles={["superviseur", "responsable"]}><OffresPage /></DashboardLayout>} />
+                {/* Routes marketplace (remplace offres) */}
                 <Route path="/marketplace" element={<DashboardLayout><MarketplacePage /></DashboardLayout>} />
-                <Route path="/catalogue" element={<DashboardLayout><OfferList /></DashboardLayout>} />
-                <Route path="/mes-offres" element={<DashboardLayout roles={["client"]}><OfferList /></DashboardLayout>} />
+                {/* Rediriger les anciennes routes d'offres vers marketplace */}
+                <Route path="/offres" element={<Navigate to="/marketplace" replace />} />
+                <Route path="/catalogue" element={<Navigate to="/marketplace" replace />} />
+                <Route path="/mes-offres" element={<Navigate to="/marketplace" replace />} />
                 <Route path="/contrat-acceptation" element={<DashboardLayout><ContractAcceptance /></DashboardLayout>} />
                 
                 {/* Routes agents */}
