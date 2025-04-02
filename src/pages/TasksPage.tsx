@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Filter, Plus } from 'lucide-react';
 import KanbanBoard from '@/components/tasks/KanbanBoard';
 import TaskFormDialog from '@/components/tasks/TaskFormDialog';
-import { fetchTasks, createTask, updateTaskStatus, deleteTask } from '@/services/taskService';
+import { fetchTasks, createTask, updateTask, deleteTask } from '@/services/taskService';
 import { Task, TaskStatus } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -30,14 +30,14 @@ const TasksPage: React.FC = () => {
     try {
       let loadedTasks: Task[] = [];
       
+      // Since fetchTasks doesn't accept parameters, we'll filter the results after fetching
+      loadedTasks = await fetchTasks();
+      
       if (selectedFilter === 'mine' && user) {
-        loadedTasks = await fetchTasks({ agentId: user.id });
+        loadedTasks = loadedTasks.filter(task => task.agentId === user.id);
       } else if (selectedFilter === 'team' && user) {
-        // Pour l'instant, chargez toutes les tâches.
-        // Dans le futur, nous pourrions filtrer par équipe quand cette fonctionnalité sera implémentée
-        loadedTasks = await fetchTasks();
-      } else {
-        loadedTasks = await fetchTasks();
+        // For now, load all tasks. In the future, we could filter by team
+        // when this functionality is implemented
       }
       
       // Transform from DB format to our Task interface if needed
@@ -76,12 +76,11 @@ const TasksPage: React.FC = () => {
     if (!data.title) return;
     
     try {
-      const newTask: Omit<Task, 'id'> = {
+      const newTask: Omit<Task, 'id' | 'dateCreation'> = {
         title: data.title,
         status: data.status || 'to_do',
         agentId: data.agentId || (user ? user.id : ''),
         description: data.description || '',
-        dateCreation: new Date(),
         dateEcheance: data.dateEcheance,
         priority: data.priority || 'medium'
       };
@@ -106,7 +105,7 @@ const TasksPage: React.FC = () => {
 
   const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
     try {
-      await updateTaskStatus(taskId, newStatus);
+      await updateTask(taskId, { status: newStatus });
       setTasks(tasks.map(task => 
         task.id === taskId ? { ...task, status: newStatus } : task
       ));
@@ -189,8 +188,8 @@ const TasksPage: React.FC = () => {
         viewMode === 'kanban' ? (
           <KanbanBoard 
             tasks={tasks}
-            onTaskMove={handleStatusChange}
-            onDeleteTask={handleDeleteTask}
+            onTaskClick={(task) => {}}
+            onTaskStatusChange={handleStatusChange}
           />
         ) : (
           <Card>
@@ -209,7 +208,12 @@ const TasksPage: React.FC = () => {
           <DialogHeader>
             <DialogTitle>Créer une nouvelle tâche</DialogTitle>
           </DialogHeader>
-          <TaskFormDialog onSubmit={handleAddTask} onCancel={() => setIsCreateModalOpen(false)} />
+          <TaskFormDialog 
+            open={isCreateModalOpen}
+            onOpenChange={setIsCreateModalOpen}
+            agents={[]}
+            onSubmit={handleAddTask}
+          />
         </DialogContent>
       </Dialog>
     </div>

@@ -14,7 +14,7 @@ import { Droppable } from "./Droppable";
 interface KanbanBoardProps {
   tasks: Task[];
   onTaskClick: (task: Task) => void;
-  onTaskStatusChange?: (taskId: string, newStatus: Task["status"]) => void;
+  onTaskStatusChange?: (taskId: string, newStatus: Task["status"]) => Promise<void>;
 }
 
 const KanbanBoard: React.FC<KanbanBoardProps> = ({ 
