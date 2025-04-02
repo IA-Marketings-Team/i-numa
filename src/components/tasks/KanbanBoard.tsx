@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Task } from "@/types";
+import { Task, TaskStatus } from "@/types";
 import TaskDrag from "./TaskDrag";
 import { 
   DndContext, 
@@ -13,8 +13,8 @@ import { Droppable } from "./Droppable";
 
 interface KanbanBoardProps {
   tasks: Task[];
-  onTaskClick: (task: Task) => void;
-  onTaskStatusChange?: (taskId: string, newStatus: Task["status"]) => Promise<void>;
+  onTaskClick?: (task: Task) => void;
+  onTaskStatusChange?: (taskId: string, newStatus: TaskStatus) => Promise<void>;
 }
 
 const KanbanBoard: React.FC<KanbanBoardProps> = ({ 
@@ -39,7 +39,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
     
     if (over && active.id !== over.id) {
       const taskId = String(active.id);
-      const newStatus = String(over.id) as Task["status"];
+      const newStatus = String(over.id) as TaskStatus;
       
       if (onTaskStatusChange) {
         onTaskStatusChange(taskId, newStatus);

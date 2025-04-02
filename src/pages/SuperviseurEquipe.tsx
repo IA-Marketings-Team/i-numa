@@ -147,7 +147,7 @@ const SuperviseurEquipe = () => {
     return tasks.filter(task => task.agentId === agentId);
   };
 
-  const handleTaskStatusChange = (taskId: string, newStatus: Task["status"]) => {
+  const handleTaskStatusChange = async (taskId: string, newStatus: Task["status"]) => {
     const updatedTasks = tasks.map(task => 
       task.id === taskId
         ? { ...task, status: newStatus }
@@ -166,6 +166,8 @@ const SuperviseurEquipe = () => {
         }`,
       });
     }
+    
+    return Promise.resolve();
   };
 
   const handleAgentClick = (agent: Agent) => {
