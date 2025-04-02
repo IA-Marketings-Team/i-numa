@@ -76,6 +76,10 @@ const App: React.FC = () => {
                   <Route path=":id/modifier" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossierEditPage /></DashboardLayout>} />
                   <Route path=":id/appel" element={<DashboardLayout roles={["agent_phoner", "superviseur", "responsable"]}><DossierCallPage /></DashboardLayout>} />
                   <Route path=":id/rdv" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossierMeetingPage /></DashboardLayout>} />
+                  {/* Nouvelle route pour la compatibilité avec /rendez-vous/nouveau */}
+                  <Route path=":id/rendez-vous/nouveau" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><RendezVousEdit /></DashboardLayout>} />
+                  {/* Route existante pour l'édition des rendez-vous */}
+                  <Route path=":dossierId/rendez-vous/:id" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><RendezVousEdit /></DashboardLayout>} />
                   <Route path="nouveau" element={<DashboardLayout roles={["agent_phoner", "superviseur", "responsable"]}><DossierNewPage /></DashboardLayout>} />
                 </Route>
                 

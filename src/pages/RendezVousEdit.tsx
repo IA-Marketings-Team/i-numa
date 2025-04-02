@@ -4,17 +4,19 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
 import RendezVousForm from "@/components/rendezVous/RendezVousForm";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Dossier, RendezVous } from "@/types";
+import { DossierProvider } from "@/contexts/DossierContext";
 
-const RendezVousEdit = () => {
+const RendezVousEditContent = () => {
   const { dossierId, id } = useParams<{ dossierId: string; id: string }>();
+  const dossierIdParam = dossierId || useParams<{ id: string }>().id; // Récupère l'ID du dossier soit de dossierId soit de id
+  const isCreating = id === "nouveau" || !id;
   const { getDossierById, getRendezVousByDossierId, addRendezVous, updateRendezVous, deleteRendezVous } = useDossier();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isCreating = id === "nouveau";
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [dossier, setDossier] = useState<Dossier | null>(null);
@@ -24,7 +26,7 @@ const RendezVousEdit = () => {
     const loadData = async () => {
       setIsLoading(true);
       
-      if (!dossierId) {
+      if (!dossierIdParam) {
         navigate("/dossiers");
         toast({
           variant: "destructive",
@@ -36,7 +38,7 @@ const RendezVousEdit = () => {
       
       try {
         // Charger le dossier
-        const loadedDossier = await getDossierById(dossierId);
+        const loadedDossier = await getDossierById(dossierIdParam);
         if (!loadedDossier) {
           navigate("/dossiers");
           toast({
@@ -51,11 +53,11 @@ const RendezVousEdit = () => {
         
         // Si on est en mode édition, charger le RDV
         if (!isCreating && id) {
-          const rdvs = await getRendezVousByDossierId(dossierId);
+          const rdvs = await getRendezVousByDossierId(dossierIdParam);
           const rdv = rdvs.find(r => r.id === id);
           
           if (!rdv) {
-            navigate(`/dossiers/${dossierId}`);
+            navigate(`/dossiers/${dossierIdParam}`);
             toast({
               variant: "destructive",
               title: "Erreur",
@@ -80,12 +82,12 @@ const RendezVousEdit = () => {
     };
     
     loadData();
-  }, [dossierId, id, isCreating, getDossierById, getRendezVousByDossierId, navigate, toast]);
+  }, [dossierIdParam, id, isCreating, getDossierById, getRendezVousByDossierId, navigate, toast]);
 
   const handleDelete = async () => {
     if (id && id !== "nouveau") {
       await deleteRendezVous(id);
-      navigate(`/dossiers/${dossierId}`);
+      navigate(`/dossiers/${dossierIdParam}`);
       toast({
         title: "Rendez-vous supprimé",
         description: "Le rendez-vous a été supprimé avec succès."
@@ -130,12 +132,13 @@ const RendezVousEdit = () => {
               variant="destructive" 
               onClick={() => setIsDeleting(true)}
             >
+              <Trash2 className="w-4 h-4 mr-2" />
               Supprimer
             </Button>
           )}
           <Button 
             variant="outline" 
-            onClick={() => navigate(`/dossiers/${dossierId}`)}
+            onClick={() => navigate(`/dossiers/${dossierIdParam}`)}
             className="flex items-center gap-2"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -150,7 +153,7 @@ const RendezVousEdit = () => {
         isEditing={!isCreating}
         onRendezVousAdded={async (newRdv) => {
           await addRendezVous(newRdv);
-          navigate(`/dossiers/${dossierId}`);
+          navigate(`/dossiers/${dossierIdParam}`);
           toast({
             title: "Rendez-vous créé",
             description: "Le rendez-vous a été créé avec succès."
@@ -158,7 +161,7 @@ const RendezVousEdit = () => {
         }}
         onRendezVousUpdated={async (id, updates) => {
           await updateRendezVous(id, updates);
-          navigate(`/dossiers/${dossierId}`);
+          navigate(`/dossiers/${dossierIdParam}`);
           toast({
             title: "Rendez-vous mis à jour",
             description: "Le rendez-vous a été mis à jour avec succès."
@@ -180,6 +183,15 @@ const RendezVousEdit = () => {
         </DialogContent>
       </Dialog>
     </div>
+  );
+};
+
+// Wrapper component that provides the DossierProvider context
+const RendezVousEdit = () => {
+  return (
+    <DossierProvider>
+      <RendezVousEditContent />
+    </DossierProvider>
   );
 };
 
