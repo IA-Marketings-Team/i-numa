@@ -145,7 +145,7 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return dossier;
       }
       
-      throw new Error("Erreur lors de la création du dossier");
+      return null;
     } catch (error) {
       console.error("Error creating dossier:", error);
       toast({
@@ -244,7 +244,7 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
       
-      return dossier;
+      return dossier || null;
     } catch (error) {
       console.error(`Error fetching dossier ${id}:`, error);
       toast({
@@ -297,7 +297,7 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return rdv;
       }
       
-      throw new Error("Erreur lors de la création du rendez-vous");
+      return null;
     } catch (error) {
       console.error("Error creating rendez-vous:", error);
       toast({
@@ -381,16 +381,16 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
       
       switch (newStatus) {
         case 'rdv_en_cours':
-          updates.dateRdv = now;
+          updates.dateRdv = now.toISOString();
           break;
         case 'valide':
-          updates.dateValidation = now;
+          updates.dateValidation = now.toISOString();
           break;
         case 'signe':
-          updates.dateSignature = now;
+          updates.dateSignature = now.toISOString();
           break;
         case 'archive':
-          updates.dateArchivage = now;
+          updates.dateArchivage = now.toISOString();
           break;
       }
       

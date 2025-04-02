@@ -1,221 +1,193 @@
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Filter, Plus } from 'lucide-react';
-import KanbanBoard from '@/components/tasks/KanbanBoard';
-import TaskFormDialog from '@/components/tasks/TaskFormDialog';
-import { fetchTasks, createTask, updateTask, deleteTask } from '@/services/taskService';
-import { Task, TaskStatus } from '@/types';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import KanbanBoard from "@/components/tasks/KanbanBoard";
+import TaskFormDialog from "@/components/tasks/TaskFormDialog";
+import { Task, TaskStatus } from "@/types";
+import { fetchTasks, createTask, updateTask, deleteTask, fetchTasksByAgent } from "@/services/taskService";
+import { useToast } from "@/hooks/use-toast";
+import { fetchAgentById } from "@/services/agentService";
 
 const TasksPage: React.FC = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState<'all' | 'mine' | 'team'>('all');
-  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
-
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const { user, hasPermission } = useAuth();
+  const { toast } = useToast();
+  
   useEffect(() => {
     loadTasks();
-  }, [selectedFilter, user]);
-
+  }, [user]);
+  
   const loadTasks = async () => {
-    setLoading(true);
     try {
-      let loadedTasks: Task[] = [];
+      setIsLoading(true);
+      let loadedTasks;
       
-      // Since fetchTasks doesn't accept parameters, we'll filter the results after fetching
-      loadedTasks = await fetchTasks();
-      
-      if (selectedFilter === 'mine' && user) {
-        loadedTasks = loadedTasks.filter(task => task.agentId === user.id);
-      } else if (selectedFilter === 'team' && user) {
-        // For now, load all tasks. In the future, we could filter by team
-        // when this functionality is implemented
+      if (user && (user.role === 'agent_phoner' || user.role === 'agent_visio')) {
+        // Agents should only see their own tasks
+        loadedTasks = await fetchTasksByAgent(user.id);
+      } else {
+        // Supervisors and responsables see all tasks
+        loadedTasks = await fetchTasks();
       }
       
-      // Transform from DB format to our Task interface if needed
-      const transformedTasks: Task[] = loadedTasks.map(task => ({
-        id: task.id,
-        title: task.title,
-        description: task.description,
-        agentId: task.agentId,
-        status: task.status as TaskStatus,
-        dateCreation: task.dateCreation,
-        dateEcheance: task.dateEcheance,
-        priority: task.priority as 'low' | 'medium' | 'high'
-      }));
-      
-      setTasks(transformedTasks);
+      setTasks(loadedTasks);
     } catch (error) {
-      console.error('Erreur lors du chargement des tâches:', error);
+      console.error("Error loading tasks:", error);
       toast({
-        variant: "destructive",
         title: "Erreur",
-        description: "Impossible de charger les tâches."
+        description: "Impossible de charger les tâches. Veuillez réessayer.",
+        variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
-
-  const handleAddTask = async (data: { 
-    title?: string; 
-    status?: TaskStatus; 
-    agentId?: string; 
-    description?: string; 
-    priority?: 'low' | 'medium' | 'high';
-    dateEcheance?: Date;
-  }) => {
-    if (!data.title) return;
-    
+  
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task);
+    setIsEditMode(true);
+    setIsFormOpen(true);
+  };
+  
+  const handleAddTask = async (taskData: Omit<Task, "id" | "dateCreation">) => {
     try {
-      const newTask: Omit<Task, 'id' | 'dateCreation'> = {
-        title: data.title,
-        status: data.status || 'to_do',
-        agentId: data.agentId || (user ? user.id : ''),
-        description: data.description || '',
-        dateEcheance: data.dateEcheance,
-        priority: data.priority || 'medium'
-      };
+      // If no agentId was provided but the user is an agent, assign to self
+      let assignedAgentId = taskData.agentId;
+      if (!assignedAgentId && user && (user.role === 'agent_phoner' || user.role === 'agent_visio')) {
+        assignedAgentId = user.id;
+      }
       
-      await createTask(newTask);
-      loadTasks();
-      setIsCreateModalOpen(false);
-      
-      toast({
-        title: "Tâche créée",
-        description: "La tâche a été créée avec succès."
+      const newTask = await createTask({
+        ...taskData,
+        agentId: assignedAgentId
       });
+      
+      if (newTask) {
+        setTasks(prev => [...prev, newTask]);
+        setIsFormOpen(false);
+        toast({
+          title: "Tâche créée",
+          description: "La tâche a été créée avec succès.",
+        });
+      }
     } catch (error) {
-      console.error('Erreur lors de la création de la tâche:', error);
+      console.error("Error creating task:", error);
       toast({
-        variant: "destructive",
         title: "Erreur",
-        description: "Impossible de créer la tâche."
+        description: "Impossible de créer la tâche. Veuillez réessayer.",
+        variant: "destructive",
       });
     }
   };
-
-  const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
+  
+  const handleUpdateTask = async (id: string, updates: Partial<Task>) => {
     try {
-      await updateTask(taskId, { status: newStatus });
-      setTasks(tasks.map(task => 
-        task.id === taskId ? { ...task, status: newStatus } : task
-      ));
+      const success = await updateTask(id, updates);
       
-      toast({
-        title: "Statut mis à jour",
-        description: "Le statut de la tâche a été mis à jour."
-      });
+      if (success) {
+        setTasks(prev => prev.map(task => 
+          task.id === id ? { ...task, ...updates } : task
+        ));
+        setIsFormOpen(false);
+        setSelectedTask(null);
+        toast({
+          title: "Tâche mise à jour",
+          description: "La tâche a été mise à jour avec succès.",
+        });
+      }
     } catch (error) {
-      console.error('Erreur lors de la mise à jour du statut:', error);
+      console.error("Error updating task:", error);
       toast({
-        variant: "destructive",
         title: "Erreur",
-        description: "Impossible de mettre à jour le statut de la tâche."
-      });
-    }
-  };
-
-  const handleDeleteTask = async (taskId: string) => {
-    try {
-      await deleteTask(taskId);
-      setTasks(tasks.filter(task => task.id !== taskId));
-      
-      toast({
-        title: "Tâche supprimée",
-        description: "La tâche a été supprimée avec succès."
-      });
-    } catch (error) {
-      console.error('Erreur lors de la suppression de la tâche:', error);
-      toast({
+        description: "Impossible de mettre à jour la tâche. Veuillez réessayer.",
         variant: "destructive",
-        title: "Erreur", 
-        description: "Impossible de supprimer la tâche."
       });
     }
   };
-
+  
+  const handleDeleteTask = async (id: string) => {
+    try {
+      const success = await deleteTask(id);
+      
+      if (success) {
+        setTasks(prev => prev.filter(task => task.id !== id));
+        setIsFormOpen(false);
+        setSelectedTask(null);
+        toast({
+          title: "Tâche supprimée",
+          description: "La tâche a été supprimée avec succès.",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer la tâche. Veuillez réessayer.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const handleTaskStatusChange = async (taskId: string, newStatus: TaskStatus) => {
+    try {
+      const success = await updateTask(taskId, { status: newStatus });
+      
+      if (success) {
+        setTasks(prev => prev.map(task => 
+          task.id === taskId 
+            ? { ...task, status: newStatus } 
+            : task
+        ));
+        toast({
+          title: "Statut mis à jour",
+          description: `Le statut de la tâche a été mis à jour en "${newStatus}".`,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating task status:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le statut de la tâche. Veuillez réessayer.",
+        variant: "destructive",
+      });
+    }
+  };
+  
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Gestion des tâches</h1>
-        <div className="flex space-x-4">
-          <Button 
-            onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" /> Nouvelle tâche
-          </Button>
-        </div>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Tâches</h1>
+        <Button onClick={() => { setIsEditMode(false); setSelectedTask(null); setIsFormOpen(true); }}>
+          <Plus className="mr-2 h-4 w-4" /> Ajouter une tâche
+        </Button>
       </div>
       
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-        <Tabs defaultValue="all" value={selectedFilter} onValueChange={(v) => setSelectedFilter(v as any)}>
-          <TabsList>
-            <TabsTrigger value="all">Toutes les tâches</TabsTrigger>
-            <TabsTrigger value="mine">Mes tâches</TabsTrigger>
-            <TabsTrigger value="team">Équipe</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        
-        <div className="flex items-center gap-2">
-          <Tabs defaultValue="kanban" value={viewMode} onValueChange={(v) => setViewMode(v as any)}>
-            <TabsList>
-              <TabsTrigger value="kanban">Kanban</TabsTrigger>
-              <TabsTrigger value="list">Liste</TabsTrigger>
-            </TabsList>
-          </Tabs>
+      {isLoading ? (
+        <div className="text-center p-6">
+          <p>Chargement des tâches...</p>
         </div>
-      </div>
-      
-      {loading ? (
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex justify-center">
-              <p>Chargement des tâches...</p>
-            </div>
-          </CardContent>
-        </Card>
       ) : (
-        viewMode === 'kanban' ? (
-          <KanbanBoard 
-            tasks={tasks}
-            onTaskClick={(task) => {}}
-            onTaskStatusChange={handleStatusChange}
-          />
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Liste des tâches</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p>Tableau des tâches en mode liste (à implémenter)</p>
-            </CardContent>
-          </Card>
-        )
+        <KanbanBoard 
+          tasks={tasks} 
+          onTaskClick={handleTaskClick}
+          onTaskStatusChange={handleTaskStatusChange}
+        />
       )}
       
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="sm:max-w-xl">
-          <DialogHeader>
-            <DialogTitle>Créer une nouvelle tâche</DialogTitle>
-          </DialogHeader>
-          <TaskFormDialog 
-            open={isCreateModalOpen}
-            onOpenChange={setIsCreateModalOpen}
-            agents={[]}
-            onSubmit={handleAddTask}
-          />
-        </DialogContent>
-      </Dialog>
+      <TaskFormDialog 
+        isOpen={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        task={selectedTask}
+        isEditMode={isEditMode}
+        onSubmit={isEditMode ? handleUpdateTask : handleAddTask}
+        onDelete={handleDeleteTask}
+      />
     </div>
   );
 };
