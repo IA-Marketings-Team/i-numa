@@ -36,6 +36,7 @@ import DossierMeetingPage from "./pages/DossierMeetingPage";
 import DossierPage from "./pages/DossierPage";
 import MarketplacePage from "./pages/MarketplacePage";
 import OfferList from "./pages/OfferList";
+import ContractAcceptance from "./pages/ContractAcceptance";
 
 // Configuration des routes
 const App: React.FC = () => {
@@ -83,6 +84,7 @@ const App: React.FC = () => {
                 <Route path="/marketplace" element={<DashboardLayout><MarketplacePage /></DashboardLayout>} />
                 <Route path="/catalogue" element={<DashboardLayout><OfferList /></DashboardLayout>} />
                 <Route path="/mes-offres" element={<DashboardLayout roles={["client"]}><OfferList /></DashboardLayout>} />
+                <Route path="/contrat-acceptation" element={<DashboardLayout><ContractAcceptance /></DashboardLayout>} />
                 
                 {/* Routes agents */}
                 <Route path="/agents" element={<DashboardLayout roles={["superviseur", "responsable"]}><AgentsPage /></DashboardLayout>} />

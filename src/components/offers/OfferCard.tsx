@@ -25,14 +25,19 @@ const OfferCard: React.FC<OfferCardProps> = ({
   setupFee,
   features,
 }) => {
-  const { addToCart } = useCart();
+  const { addToCart, isInCart } = useCart();
   const { user } = useAuth();
   const isClient = user?.role === 'client';
 
   const handleAddToCart = () => {
+    // Generate a random string to use as offreId
+    const randomOffreId = `offer-${Math.random().toString(36).substring(2, 11)}`;
+    
     addToCart({
-      category,
+      offreId: randomOffreId,
+      quantity: 1,
       title,
+      category,
       price,
       setupFee,
     });

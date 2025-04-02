@@ -23,7 +23,7 @@ interface CartDrawerProps {
 }
 
 const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
-  const { cartItems, removeFromCart, clearCart, updateQuantity, getCartCount } = useCart();
+  const { cart, removeFromCart, clearCart, updateQuantity, cartCount } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -39,9 +39,16 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
 
   // Calculer le total du panier
   const getCartTotal = () => {
-    return cartItems.reduce((total, item) => {
-      const price = parseInt(item.price.replace(/[^\d]/g, ""), 10);
-      return total + (price * item.quantity);
+    return cart.reduce((total, item) => {
+      // Handle both price formats (number and string)
+      if (item.prix) {
+        return total + (item.prix * item.quantity);
+      } else if (item.price) {
+        // Extract the number from a string like "39€/mois"
+        const priceNumber = parseFloat(item.price.replace(/[^\d.,]/g, ''));
+        return total + (priceNumber * item.quantity);
+      }
+      return total;
     }, 0);
   };
 
@@ -51,9 +58,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
         {children || (
           <Button variant="outline" size="icon" className="relative">
             <ShoppingCart className="h-5 w-5" />
-            {getCartCount() > 0 && (
+            {cartCount > 0 && (
               <Badge className="absolute -top-2 -right-2 px-1.5 py-0.5 min-w-[20px] flex items-center justify-center">
-                {getCartCount()}
+                {cartCount}
               </Badge>
             )}
           </Button>
@@ -65,14 +72,14 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
             <ShoppingBag className="mr-2 h-5 w-5" /> Votre panier
           </SheetTitle>
           <SheetDescription>
-            {cartItems.length === 0
+            {cart.length === 0
               ? "Votre panier est vide"
-              : `${cartItems.length} type(s) d'articles dans votre panier`}
+              : `${cart.length} type(s) d'articles dans votre panier`}
           </SheetDescription>
         </SheetHeader>
 
         <div className="flex-grow overflow-y-auto py-4">
-          {cartItems.length === 0 ? (
+          {cart.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
               <ShoppingCart className="h-12 w-12 mb-2 opacity-20" />
               <p>Votre panier est vide</p>
@@ -88,15 +95,15 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
             </div>
           ) : (
             <div className="space-y-4">
-              {cartItems.map((item) => (
+              {cart.map((item) => (
                 <Card key={item.id} className="overflow-hidden">
                   <CardContent className="p-0">
                     <div className="p-4">
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <h3 className="font-medium">{item.title}</h3>
+                          <h3 className="font-medium">{item.title || item.nom}</h3>
                           <Badge variant="outline" className="mt-1">
-                            {item.category}
+                            {item.category || item.type}
                           </Badge>
                         </div>
                         <Button
@@ -109,7 +116,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
                         </Button>
                       </div>
                       <div className="mt-2">
-                        <p className="text-sm font-semibold text-primary">{item.price}</p>
+                        <p className="text-sm font-semibold text-primary">
+                          {item.price || (item.prix && `${item.prix} €`)}
+                        </p>
                         {item.setupFee && (
                           <p className="text-xs text-muted-foreground">
                             + {item.setupFee} (installation)
@@ -122,7 +131,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
                             variant="outline"
                             size="icon"
                             className="h-8 w-8 rounded-full"
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
                           >
                             <Minus className="h-3 w-3" />
                           </Button>
@@ -138,7 +147,12 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-bold">
-                            {parseInt(item.price, 10) * item.quantity} €
+                            {item.prix 
+                              ? `${item.prix * item.quantity} €` 
+                              : item.price 
+                                ? `${parseFloat(item.price.replace(/[^\d.,]/g, '')) * item.quantity} €`
+                                : '0 €'
+                            }
                           </p>
                         </div>
                       </div>
@@ -150,7 +164,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
           )}
         </div>
 
-        {cartItems.length > 0 && (
+        {cart.length > 0 && (
           <>
             <Separator />
             <div className="py-4">

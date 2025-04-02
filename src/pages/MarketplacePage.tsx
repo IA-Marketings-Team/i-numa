@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -112,7 +113,7 @@ const MarketplacePage = () => {
             Découvrez et ajoutez des offres à votre panier
           </p>
         </div>
-        <Button onClick={() => navigate("/dossiers")} variant="outline" className="flex items-center gap-2">
+        <Button onClick={() => navigate("/contrat-acceptation")} variant="outline" className="flex items-center gap-2">
           <ShoppingCart className="h-4 w-4" />
           Voir le panier
         </Button>

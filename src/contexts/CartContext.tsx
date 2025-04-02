@@ -11,6 +11,10 @@ export interface CartItem {
   description?: string;
   type?: string;
   prix?: number;
+  title?: string;
+  category?: string;
+  price?: string;
+  setupFee?: string;
 }
 
 interface CartContextType {
@@ -84,7 +88,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const getCartTotal = () => {
     return cart.reduce((total, item) => {
-      return total + (item.prix || 0) * item.quantity;
+      // Handle both price formats (number and string)
+      if (item.prix) {
+        return total + item.prix * item.quantity;
+      } else if (item.price) {
+        // Extract the number from a string like "39€/mois"
+        const priceNumber = parseFloat(item.price.replace(/[^\d.,]/g, ''));
+        return total + priceNumber * item.quantity;
+      }
+      return total;
     }, 0);
   };
 

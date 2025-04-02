@@ -12,7 +12,7 @@ import { CheckCircle2, FileText, ArrowLeft, ShoppingCart } from "lucide-react";
 
 const ContractAcceptance: React.FC = () => {
   const navigate = useNavigate();
-  const { cartItems, clearCart } = useCart();
+  const { cart, clearCart } = useCart();
   const { toast } = useToast();
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
@@ -20,9 +20,16 @@ const ContractAcceptance: React.FC = () => {
 
   // Calculer le total du panier
   const getCartTotal = () => {
-    return cartItems.reduce((total, item) => {
-      const price = parseInt(item.price.replace(/[^\d]/g, ""), 10);
-      return total + (price * item.quantity);
+    return cart.reduce((total, item) => {
+      // Handle both price formats (number and string)
+      if (item.prix) {
+        return total + item.prix * item.quantity;
+      } else if (item.price) {
+        // Extract the number from a string like "39€/mois"
+        const priceNumber = parseFloat(item.price.replace(/[^\d.,]/g, ''));
+        return total + priceNumber * item.quantity;
+      }
+      return total;
     }, 0);
   };
 
@@ -64,7 +71,7 @@ const ContractAcceptance: React.FC = () => {
     }
   };
 
-  if (cartItems.length === 0) {
+  if (cart.length === 0) {
     return (
       <div className="container mx-auto px-4 py-12 max-w-3xl">
         <Card>
@@ -184,16 +191,21 @@ const ContractAcceptance: React.FC = () => {
               <CardTitle>Récapitulatif de commande</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {cartItems.map((item) => (
+              {cart.map((item) => (
                 <div key={item.id} className="flex justify-between pb-2">
                   <div>
-                    <p className="font-medium">{item.title}</p>
+                    <p className="font-medium">{item.title || item.nom}</p>
                     <p className="text-sm text-muted-foreground">
-                      {item.quantity} x {item.price}
+                      {item.quantity} x {item.price || (item.prix && `${item.prix} €`)}
                     </p>
                   </div>
                   <p className="font-medium">
-                    {parseInt(item.price, 10) * item.quantity} €
+                    {item.prix 
+                      ? `${item.prix * item.quantity} €` 
+                      : item.price 
+                        ? `${parseFloat(item.price.replace(/[^\d.,]/g, '')) * item.quantity} €`
+                        : '0 €'
+                    }
                   </p>
                 </div>
               ))}
