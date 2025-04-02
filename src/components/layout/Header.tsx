@@ -3,16 +3,17 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { useAuth } from "@/contexts/AuthContext";
-import { User, LogOut, Search, Plus, ChevronLeft, Bell, Settings, HelpCircle } from "lucide-react";
+import { User, LogOut, Search, Plus, ChevronLeft, Bell, Settings, HelpCircle, UserCircle, CreditCard } from "lucide-react";
 import CartDrawer from "@/components/cart/CartDrawer";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import NotificationsPanel from "@/components/notifications/NotificationsPanel";
 import HelpDialog from "@/components/support/HelpDialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Header = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const isClient = user?.role === 'client';
@@ -100,6 +101,17 @@ const Header = () => {
     navigate("/dossiers/nouveau");
   };
 
+  const handleLogout = async () => {
+    console.log("[Header] Logging out user");
+    await logout();
+    navigate("/connexion");
+  };
+
+  const getInitials = () => {
+    if (!user) return "?";
+    return `${user.prenom?.charAt(0) || ""}${user.nom?.charAt(0) || ""}`.toUpperCase();
+  };
+
   return (
     <header className="border-b sticky top-0 z-40 w-full bg-card">
       <div className="flex h-16 px-4 items-center justify-between">
@@ -165,13 +177,42 @@ const Header = () => {
           
           {isClient && <CartDrawer />}
           
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/parametres")}
-          >
-            <Settings className="h-5 w-5" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="relative h-8 flex items-center gap-2 font-normal">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.avatarUrl} alt={`${user?.prenom} ${user?.nom}`} />
+                  <AvatarFallback>{getInitials()}</AvatarFallback>
+                </Avatar>
+                <span className="hidden sm:inline-block">
+                  {user?.prenom} {user?.nom}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate("/profil")}>
+                <UserCircle className="mr-2 h-4 w-4" />
+                <span>Profil</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/parametres")}>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Paramètres</span>
+              </DropdownMenuItem>
+              {isClient && (
+                <DropdownMenuItem onClick={() => navigate("/mes-offres")}>
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  <span>Mes offres</span>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Déconnexion</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       

@@ -21,6 +21,7 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import ContractAcceptance from "./pages/ContractAcceptance";
 import AllNotificationsPage from "./pages/AllNotifications";
+import UserProfilePage from "./pages/ProfilePage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { DossierProvider } from "./contexts/DossierContext";
 import { StatistiqueProvider } from "./contexts/StatistiqueContext";
@@ -32,6 +33,7 @@ import SuperviseurEquipes from "./pages/SuperviseurEquipes";
 import SuperviseurEquipe from "./pages/SuperviseurEquipe";
 import MigrationPage from "./pages/MigrationPage";
 import Communications from "./pages/Communications";
+import TasksPage from "./pages/TasksPage";
 
 const queryClient = new QueryClient();
 
@@ -146,10 +148,19 @@ function App() {
                           />
                           
                           <Route 
-                            path="/mes-offres" 
+                            path="/offres" 
                             element={
                               <ProtectedRoute>
                                 <OfferList />
+                              </ProtectedRoute>
+                            } 
+                          />
+
+                          <Route 
+                            path="/tasks" 
+                            element={
+                              <ProtectedRoute roles={['agent_phoner', 'agent_visio', 'superviseur', 'responsable']}>
+                                <TasksPage />
                               </ProtectedRoute>
                             } 
                           />
@@ -180,6 +191,15 @@ function App() {
                               </ProtectedRoute>
                             } 
                           />
+
+                          <Route 
+                            path="/profil" 
+                            element={
+                              <ProtectedRoute>
+                                <UserProfilePage />
+                              </ProtectedRoute>
+                            } 
+                          />
                           
                           <Route 
                             path="/notifications" 
@@ -190,19 +210,32 @@ function App() {
                             } 
                           />
                           
-                          <Route path="/superviseur/equipes" element={
+                          <Route path="/teams" element={
                             <ProtectedRoute roles={['superviseur', 'responsable']}>
                               <SuperviseurEquipes />
                             </ProtectedRoute>
                           } />
                           
-                          <Route path="/superviseur/equipe" element={
+                          <Route path="/teams/:id" element={
                             <ProtectedRoute roles={['superviseur', 'responsable']}>
                               <SuperviseurEquipe />
                             </ProtectedRoute>
                           } />
                           
-                          <Route path="/communications" element={<Communications />} />
+                          <Route path="/communications" element={
+                            <ProtectedRoute>
+                              <Communications />
+                            </ProtectedRoute>
+                          } />
+                          
+                          <Route path="/support" element={
+                            <ProtectedRoute roles={['client']}>
+                              <div className="container mx-auto py-8">
+                                <h1 className="text-2xl font-bold mb-4">Support client</h1>
+                                <p>Cette page est en cours de développement.</p>
+                              </div>
+                            </ProtectedRoute>
+                          } />
                           
                           <Route path="*" element={<NotFound />} />
                         </Route>
