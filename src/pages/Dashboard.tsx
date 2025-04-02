@@ -2,7 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDossier } from "@/contexts/DossierContext";
-import { Dossier, UserRole } from "@/types";
+import { useStatistique } from "@/contexts/StatistiqueContext";
+import { Dossier, UserRole, Statistique } from "@/types";
 
 import OverviewSection from "@/components/dashboard/OverviewSection";
 import PerformanceSection from "@/components/dashboard/PerformanceSection";
@@ -11,14 +12,30 @@ import { hasPermission } from "@/utils/accessControl";
 export default function Dashboard() {
   const { user } = useAuth();
   const { dossiers, isLoading } = useDossier();
+  const { statistiques, getStatistiquesByPeriodeType } = useStatistique();
   const [recentDossiers, setRecentDossiers] = useState<Dossier[]>([]);
   const [userRole, setUserRole] = useState<UserRole | undefined>(undefined);
+  const [stats, setStats] = useState<Statistique[]>([]);
 
   useEffect(() => {
     if (user) {
       setUserRole(user.role);
     }
   }, [user]);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const monthlyStats = await getStatistiquesByPeriodeType("mois");
+        setStats(monthlyStats);
+      } catch (error) {
+        console.error("Error loading statistics:", error);
+        setStats([]);
+      }
+    };
+    
+    loadStats();
+  }, [getStatistiquesByPeriodeType]);
 
   useEffect(() => {
     if (dossiers && !isLoading) {
@@ -40,12 +57,12 @@ export default function Dashboard() {
     <div className="p-4 space-y-6">
       <h1 className="text-3xl font-bold">Tableau de bord</h1>
       
-      {/* Updating to match OverviewSection's expected props */}
-      <OverviewSection />
+      {/* Pass an empty array as statistiques if stats is undefined */}
+      <OverviewSection statistiques={stats || []} />
       
       {/* La section Performance est uniquement visible pour les superviseurs et responsables */}
       {userRole && hasPermission(userRole, ['superviseur', 'responsable']) && (
-        <PerformanceSection statistiques={[]} />
+        <PerformanceSection statistiques={stats || []} />
       )}
     </div>
   );

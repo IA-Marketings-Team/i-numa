@@ -11,14 +11,14 @@ interface OverviewSectionProps {
 }
 
 const OverviewSection: React.FC<OverviewSectionProps> = ({ 
-  statistiques, 
+  statistiques = [], // Provide default empty array
   showRevenueData = false 
 }) => {
-  // Calcul des statistiques
-  const totalAppels = statistiques.reduce((sum, stat) => sum + stat.appelsEmis, 0);
-  const totalRdv = statistiques.reduce((sum, stat) => sum + stat.rendezVousHonores, 0);
-  const totalDossiers = statistiques.reduce((sum, stat) => sum + stat.dossiersSigne, 0);
-  const chiffreAffaires = statistiques.reduce((sum, stat) => sum + (stat.chiffreAffaires || 0), 0);
+  // Calcul des statistiques avec vérification pour éviter les erreurs
+  const totalAppels = statistiques?.reduce((sum, stat) => sum + (stat.appelsEmis || 0), 0) || 0;
+  const totalRdv = statistiques?.reduce((sum, stat) => sum + (stat.rendezVousHonores || 0), 0) || 0;
+  const totalDossiers = statistiques?.reduce((sum, stat) => sum + (stat.dossiersSigne || 0), 0) || 0;
+  const chiffreAffaires = statistiques?.reduce((sum, stat) => sum + (stat.chiffreAffaires || 0), 0) || 0;
 
   // Format monétaire pour afficher le chiffre d'affaires
   const formatCurrency = (value: number) => {
