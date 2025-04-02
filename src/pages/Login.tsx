@@ -2,17 +2,21 @@
 import LoginForm from "@/components/auth/LoginForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Login = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Récupérer le chemin "from" s'il existe, sinon utiliser le tableau de bord
+  const from = location.state?.from || "/tableau-de-bord";
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/tableau-de-bord");
+      navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, from]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">

@@ -96,7 +96,7 @@ const ClientsPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Clients</h1>
-        <Button onClick={() => navigate("/dashboard/clients/nouveau")}>
+        <Button onClick={() => navigate("/clients/nouveau")}>
           <Plus className="mr-2 h-4 w-4" /> Ajouter un client
         </Button>
       </div>
@@ -145,15 +145,15 @@ const ClientsPage: React.FC = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/dashboard/clients/${client.id}`)}>
+                          <DropdownMenuItem onClick={() => navigate(`/clients/${client.id}`)}>
                             <Eye className="mr-2 h-4 w-4" />
                             Voir
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate(`/dashboard/clients/${client.id}/edit`)}>
+                          <DropdownMenuItem onClick={() => navigate(`/clients/${client.id}/modifier`)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Modifier
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate(`/dashboard/dossiers/nouveau`, { state: { client } })}>
+                          <DropdownMenuItem onClick={() => navigate(`/dossiers/nouveau`, { state: { client } })}>
                             <Plus className="mr-2 h-4 w-4" />
                             Créer un dossier
                           </DropdownMenuItem>
