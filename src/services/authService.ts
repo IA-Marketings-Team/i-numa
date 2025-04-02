@@ -41,7 +41,7 @@ export const loginAsGuest = async (): Promise<User | null> => {
       prenom: '',
       email: '',
       telephone: '',
-      role: 'guest',
+      role: 'client', // Changé de 'guest' à 'client' pour correspondre au type UserRole
       dateCreation: new Date(),
     };
   } catch (error) {

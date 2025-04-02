@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, UserRole } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-import { login as loginService, logoutUser, getUserProfile } from "@/services/authService";
+import { login as loginService, loginAsGuest, logoutUser, getUserProfile } from "@/services/authService";
 import { getCurrentUser } from "@/lib/realm";
 
 export interface AuthContextType {
@@ -12,6 +12,7 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   hasPermission: (roles: UserRole[]) => boolean;
+  getToken: () => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -115,6 +116,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return roles.includes(user.role as UserRole);
   };
 
+  // Nouvelle méthode pour obtenir le token d'authentification
+  const getToken = async (): Promise<string | null> => {
+    try {
+      const realmUser = getCurrentUser();
+      if (realmUser) {
+        // Récupérer le token d'accès depuis Realm
+        return await realmUser.accessToken;
+      }
+      return null;
+    } catch (error) {
+      console.error("Erreur lors de la récupération du token:", error);
+      return null;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -123,6 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       login,
       logout,
       hasPermission,
+      getToken,
     }}>
       {children}
     </AuthContext.Provider>
