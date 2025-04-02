@@ -2,25 +2,23 @@
 import { Statistique } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
-// Type pour les données brutes de la table statistiques
-type StatistiqueDB = {
-  id: string;
-  periode: string;
-  date_debut: string;
-  date_fin: string;
-  appels_emis: number;
-  appels_decroches: number;
-  appels_transformes: number;
-  rendez_vous_honores: number;
-  rendez_vous_non_honores: number;
-  dossiers_valides: number;
-  dossiers_signe: number;
-  chiffre_affaires: number;
-};
+// Helper function to convert Supabase table data to Statistique objects
+const mapToStatistique = (data: any): Statistique => ({
+  id: data.id,
+  periode: data.periode,
+  dateDebut: new Date(data.date_debut),
+  dateFin: new Date(data.date_fin),
+  appelsEmis: data.appels_emis,
+  appelsDecroches: data.appels_decroches,
+  appelsTransformes: data.appels_transformes,
+  rendezVousHonores: data.rendez_vous_honores,
+  rendezVousNonHonores: data.rendez_vous_non_honores,
+  dossiersValides: data.dossiers_valides,
+  dossiersSigne: data.dossiers_signe,
+  chiffreAffaires: data.chiffre_affaires
+});
 
-/**
- * Récupère toutes les statistiques depuis Supabase
- */
+// Fetch all statistiques
 export const fetchStatistiques = async (): Promise<Statistique[]> => {
   try {
     const { data, error } = await supabase
@@ -29,23 +27,19 @@ export const fetchStatistiques = async (): Promise<Statistique[]> => {
       .order('date_debut', { ascending: false });
 
     if (error) {
-      console.error("Erreur lors de la récupération des statistiques:", error);
+      console.error("Error fetching statistiques:", error);
       return [];
     }
 
-    return data.map(convertDbStatToStatistique);
+    return data.map(mapToStatistique);
   } catch (error) {
-    console.error("Erreur inattendue lors de la récupération des statistiques:", error);
+    console.error("Unexpected error fetching statistiques:", error);
     return [];
   }
 };
 
-/**
- * Récupère les statistiques par type de période (jour, semaine, mois)
- */
-export const fetchStatistiquesByPeriode = async (
-  periode: "jour" | "semaine" | "mois"
-): Promise<Statistique[]> => {
+// Fetch statistiques by period type (day, week, month)
+export const fetchStatistiquesByPeriode = async (periode: "jour" | "semaine" | "mois"): Promise<Statistique[]> => {
   try {
     const { data, error } = await supabase
       .from('statistiques')
@@ -54,72 +48,40 @@ export const fetchStatistiquesByPeriode = async (
       .order('date_debut', { ascending: false });
 
     if (error) {
-      console.error(`Erreur lors de la récupération des statistiques pour la période ${periode}:`, error);
+      console.error(`Error fetching statistiques for period ${periode}:`, error);
       return [];
     }
 
-    return data.map(convertDbStatToStatistique);
+    return data.map(mapToStatistique);
   } catch (error) {
-    console.error(`Erreur inattendue lors de la récupération des statistiques pour la période ${periode}:`, error);
+    console.error(`Unexpected error fetching statistiques for period ${periode}:`, error);
     return [];
   }
 };
 
-/**
- * Récupère les statistiques entre deux dates
- */
-export const fetchStatistiquesBetweenDates = async (
-  startDate: Date,
-  endDate: Date
-): Promise<Statistique[]> => {
+// Fetch statistiques between two dates
+export const fetchStatistiquesBetweenDates = async (debut: Date, fin: Date): Promise<Statistique[]> => {
   try {
     const { data, error } = await supabase
       .from('statistiques')
       .select('*')
-      .gte('date_debut', startDate.toISOString())
-      .lte('date_fin', endDate.toISOString())
+      .gte('date_debut', debut.toISOString())
+      .lte('date_fin', fin.toISOString())
       .order('date_debut', { ascending: false });
 
     if (error) {
-      console.error("Erreur lors de la récupération des statistiques par plage de dates:", error);
+      console.error("Error fetching statistiques between dates:", error);
       return [];
     }
 
-    return data.map(convertDbStatToStatistique);
+    return data.map(mapToStatistique);
   } catch (error) {
-    console.error("Erreur inattendue lors de la récupération des statistiques par plage de dates:", error);
+    console.error("Unexpected error fetching statistiques between dates:", error);
     return [];
   }
 };
 
-/**
- * Récupère une statistique par son ID
- */
-export const fetchStatistiqueById = async (id: string): Promise<Statistique | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('statistiques')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      console.error(`Erreur lors de la récupération de la statistique ${id}:`, error);
-      return null;
-    }
-
-    if (!data) return null;
-
-    return convertDbStatToStatistique(data);
-  } catch (error) {
-    console.error(`Erreur inattendue lors de la récupération de la statistique ${id}:`, error);
-    return null;
-  }
-};
-
-/**
- * Crée une nouvelle statistique
- */
+// Create a new statistique
 export const createStatistique = async (statistique: Omit<Statistique, "id">): Promise<Statistique | null> => {
   try {
     const { data, error } = await supabase
@@ -141,20 +103,18 @@ export const createStatistique = async (statistique: Omit<Statistique, "id">): P
       .single();
 
     if (error) {
-      console.error("Erreur lors de la création de la statistique:", error);
+      console.error("Error creating statistique:", error);
       return null;
     }
 
-    return convertDbStatToStatistique(data);
+    return mapToStatistique(data);
   } catch (error) {
-    console.error("Erreur inattendue lors de la création de la statistique:", error);
+    console.error("Unexpected error creating statistique:", error);
     return null;
   }
 };
 
-/**
- * Met à jour une statistique existante
- */
+// Update an existing statistique
 export const updateStatistique = async (id: string, updates: Partial<Statistique>): Promise<boolean> => {
   try {
     const updateData: any = {};
@@ -177,20 +137,18 @@ export const updateStatistique = async (id: string, updates: Partial<Statistique
       .eq('id', id);
     
     if (error) {
-      console.error(`Erreur lors de la mise à jour de la statistique ${id}:`, error);
+      console.error(`Error updating statistique ${id}:`, error);
       return false;
     }
     
     return true;
   } catch (error) {
-    console.error(`Erreur inattendue lors de la mise à jour de la statistique ${id}:`, error);
+    console.error(`Unexpected error updating statistique ${id}:`, error);
     return false;
   }
 };
 
-/**
- * Supprime une statistique
- */
+// Delete a statistique
 export const deleteStatistique = async (id: string): Promise<boolean> => {
   try {
     const { error } = await supabase
@@ -199,39 +157,13 @@ export const deleteStatistique = async (id: string): Promise<boolean> => {
       .eq('id', id);
     
     if (error) {
-      console.error(`Erreur lors de la suppression de la statistique ${id}:`, error);
+      console.error(`Error deleting statistique ${id}:`, error);
       return false;
     }
     
     return true;
   } catch (error) {
-    console.error(`Erreur inattendue lors de la suppression de la statistique ${id}:`, error);
+    console.error(`Unexpected error deleting statistique ${id}:`, error);
     return false;
   }
-};
-
-// Fonction auxiliaire pour convertir les données de Supabase vers le type Statistique
-const convertDbStatToStatistique = (dbStat: StatistiqueDB): Statistique => {
-  return {
-    periode: convertPeriodeType(dbStat.periode),
-    dateDebut: new Date(dbStat.date_debut),
-    dateFin: new Date(dbStat.date_fin),
-    appelsEmis: dbStat.appels_emis,
-    appelsDecroches: dbStat.appels_decroches,
-    appelsTransformes: dbStat.appels_transformes,
-    rendezVousHonores: dbStat.rendez_vous_honores,
-    rendezVousNonHonores: dbStat.rendez_vous_non_honores,
-    dossiersValides: dbStat.dossiers_valides,
-    dossiersSigne: dbStat.dossiers_signe,
-    chiffreAffaires: dbStat.chiffre_affaires
-  };
-};
-
-// Fonction auxiliaire pour convertir le type de période
-const convertPeriodeType = (periode: string): "jour" | "semaine" | "mois" => {
-  if (periode === "jour" || periode === "semaine" || periode === "mois") {
-    return periode as "jour" | "semaine" | "mois";
-  }
-  // Valeur par défaut si le type n'est pas reconnu
-  return "mois";
 };

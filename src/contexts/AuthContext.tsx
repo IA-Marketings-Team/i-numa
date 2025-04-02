@@ -1,100 +1,175 @@
 
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, UserRole } from "@/types";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { Session } from "@supabase/supabase-js";
 import { useAuthState } from "@/hooks/useAuthState";
-import { loginWithEmail, registerWithEmail, signOut, hasPermission } from "@/utils/authUtils";
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string, userData: Partial<User>) => Promise<boolean>;
-  logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; error: string | null }>;
+  register: (userData: Partial<User>, password: string) => Promise<{ success: boolean; error: string | null }>;
+  logout: () => Promise<void>;
+  updateUser: (updates: Partial<User>) => Promise<boolean>;
   hasPermission: (requiredRoles: UserRole[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, session, isAuthenticated, setUser, setSession, setIsAuthenticated } = useAuthState();
+  const { 
+    user, 
+    isAuthenticated, 
+    isLoading, 
+    setUser, 
+    setIsAuthenticated
+  } = useAuthState();
+  
+  const navigate = useNavigate();
   const { toast } = useToast();
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    const { success, error } = await loginWithEmail(email, password);
-    
-    if (success) {
-      toast({
-        title: "Connexion réussie",
-        description: "Vous êtes maintenant connecté.",
+  const login = async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
       });
-      return true;
-    } else {
-      toast({
-        title: "Échec de connexion",
-        description: error?.message || "Une erreur est survenue lors de la connexion.",
-        variant: "destructive",
-      });
-      return false;
+
+      if (error) {
+        console.error("Login error:", error.message);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, error: null };
+    } catch (error) {
+      console.error("Unexpected login error:", error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : "An unexpected error occurred" 
+      };
     }
   };
 
-  const register = async (email: string, password: string, userData: Partial<User>): Promise<boolean> => {
-    const { success, error } = await registerWithEmail(email, password, userData);
-    
-    if (success) {
-      toast({
-        title: "Inscription réussie",
-        description: "Votre compte a été créé avec succès.",
+  const register = async (userData: Partial<User>, password: string) => {
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: userData.email!,
+        password,
+        options: {
+          data: {
+            nom: userData.nom,
+            prenom: userData.prenom,
+            role: userData.role || "client"
+          }
+        }
       });
-      return true;
-    } else {
+
+      if (error) {
+        console.error("Registration error:", error.message);
+        return { success: false, error: error.message };
+      }
+
       toast({
-        title: "Échec d'inscription",
-        description: error?.message || "Une erreur est survenue lors de l'inscription.",
-        variant: "destructive",
+        title: "Registration successful!",
+        description: "Please check your email to confirm your account.",
       });
-      return false;
+
+      return { success: true, error: null };
+    } catch (error) {
+      console.error("Unexpected registration error:", error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : "An unexpected error occurred" 
+      };
     }
   };
 
   const logout = async () => {
-    const { success, error } = await signOut();
-    
-    if (success) {
+    try {
+      await supabase.auth.signOut();
       setUser(null);
-      setSession(null);
       setIsAuthenticated(false);
       
+      // Redirect to login page after logout
+      navigate("/login");
+      
       toast({
-        title: "Déconnexion",
-        description: "Vous avez été déconnecté avec succès",
+        title: "Logged out",
+        description: "You have been successfully logged out.",
       });
-    } else {
+    } catch (error) {
+      console.error("Logout error:", error);
       toast({
-        title: "Erreur de déconnexion",
-        description: error?.message || "Une erreur est survenue lors de la déconnexion.",
-        variant: "destructive",
+        title: "Error",
+        description: "An error occurred during logout.",
+        variant: "destructive"
       });
     }
   };
 
-  const checkPermission = (requiredRoles: UserRole[]): boolean => {
-    return hasPermission(user, requiredRoles);
+  const updateUser = async (updates: Partial<User>) => {
+    if (!user) return false;
+
+    try {
+      // Maps JavaScript camelCase properties to Supabase snake_case column names
+      const mappedUpdates: Record<string, any> = {};
+      
+      if (updates.nom !== undefined) mappedUpdates.nom = updates.nom;
+      if (updates.prenom !== undefined) mappedUpdates.prenom = updates.prenom;
+      if (updates.telephone !== undefined) mappedUpdates.telephone = updates.telephone;
+      if (updates.adresse !== undefined) mappedUpdates.adresse = updates.adresse;
+      if (updates.ville !== undefined) mappedUpdates.ville = updates.ville;
+      if (updates.codePostal !== undefined) mappedUpdates.code_postal = updates.codePostal;
+      if (updates.iban !== undefined) mappedUpdates.iban = updates.iban;
+      if (updates.bic !== undefined) mappedUpdates.bic = updates.bic;
+      if (updates.nomBanque !== undefined) mappedUpdates.nom_banque = updates.nomBanque;
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update(mappedUpdates)
+        .eq('id', user.id);
+      
+      if (error) {
+        console.error("Error updating user:", error);
+        return false;
+      }
+      
+      // Update local user state with changes
+      setUser({ ...user, ...updates });
+      
+      return true;
+    } catch (error) {
+      console.error("Unexpected error updating user:", error);
+      return false;
+    }
+  };
+
+  const hasPermission = (requiredRoles: UserRole[]) => {
+    if (!user) return false;
+    
+    // Responsable has access to everything
+    if (user.role === "responsable") return true;
+    
+    return requiredRoles.includes(user.role);
+  };
+
+  // Value to be provided by the context
+  const value = {
+    user,
+    isAuthenticated,
+    isLoading,
+    login,
+    register,
+    logout,
+    updateUser,
+    hasPermission
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      session, 
-      login, 
-      register, 
-      logout, 
-      isAuthenticated, 
-      hasPermission: checkPermission 
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
