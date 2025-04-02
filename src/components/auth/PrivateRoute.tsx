@@ -27,14 +27,14 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
 
   if (!isAuthenticated) {
     // Redirect to login if not authenticated, but save the current path
-    return <Navigate to="/login" state={{ from: location.pathname }} />;
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
   // Check role-based access if roles are specified
   if (requiredRoles.length > 0 && user) {
     if (!hasPermission(requiredRoles as any[])) {
       // Redirect to unauthorized page or dashboard
-      return <Navigate to="/unauthorized" />;
+      return <Navigate to="/unauthorized" replace />;
     }
   }
 

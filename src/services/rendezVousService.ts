@@ -1,203 +1,160 @@
 
 import { RendezVous } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchDossierById } from "./dossierService";
 
-/**
- * Récupère tous les rendez-vous depuis Supabase
- */
 export const fetchRendezVous = async (): Promise<RendezVous[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('rendez_vous')
-      .select('*')
-      .order('date', { ascending: false });
-
-    if (error) {
-      console.error("Erreur lors de la récupération des rendez-vous:", error);
-      return [];
-    }
-
-    const rendezVous: RendezVous[] = [];
-    for (const rdv of data) {
-      const dossier = await fetchDossierById(rdv.dossier_id);
-      if (dossier) {
-        rendezVous.push({
-          id: rdv.id,
-          dossierId: rdv.dossier_id,
-          dossier: dossier,
-          date: new Date(rdv.date),
-          honore: rdv.honore,
-          notes: rdv.notes,
-          meetingLink: rdv.meeting_link,
-          location: rdv.location
-        });
-      }
-    }
-
-    return rendezVous;
-  } catch (error) {
-    console.error("Erreur inattendue lors de la récupération des rendez-vous:", error);
-    return [];
+  const { data, error } = await supabase
+    .from('rendez_vous')
+    .select(`
+      *,
+      dossier (
+        *,
+        client (*),
+        agentPhoner (*),
+        agentVisio (*)
+      )
+    `);
+  
+  if (error) {
+    console.error("Error fetching rendez-vous:", error);
+    throw new Error(error.message);
   }
+  
+  return data || [];
 };
 
-/**
- * Récupère tous les rendez-vous pour un dossier spécifique
- */
-export const fetchRendezVousByDossier = async (dossierId: string): Promise<RendezVous[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('rendez_vous')
-      .select('*')
-      .eq('dossier_id', dossierId)
-      .order('date', { ascending: false });
-
-    if (error) {
-      console.error(`Erreur lors de la récupération des rendez-vous pour le dossier ${dossierId}:`, error);
-      return [];
-    }
-
-    const dossier = await fetchDossierById(dossierId);
-    if (!dossier) {
-      console.error(`Dossier non trouvé pour les rendez-vous: ${dossierId}`);
-      return [];
-    }
-
-    return data.map(rdv => ({
-      id: rdv.id,
-      dossierId: rdv.dossier_id,
-      dossier: dossier,
-      date: new Date(rdv.date),
-      honore: rdv.honore,
-      notes: rdv.notes,
-      meetingLink: rdv.meeting_link,
-      location: rdv.location
-    }));
-  } catch (error) {
-    console.error(`Erreur inattendue lors de la récupération des rendez-vous pour le dossier ${dossierId}:`, error);
-    return [];
-  }
-};
-
-/**
- * Récupère un rendez-vous par son ID
- */
 export const fetchRendezVousById = async (id: string): Promise<RendezVous | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('rendez_vous')
-      .select('*')
-      .eq('id', id)
-      .single();
+  const { data, error } = await supabase
+    .from('rendez_vous')
+    .select(`
+      *,
+      dossier (
+        *,
+        client (*),
+        agentPhoner (*),
+        agentVisio (*)
+      )
+    `)
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error(`Error fetching rendez-vous with ID ${id}:`, error);
+    throw new Error(error.message);
+  }
+  
+  return data;
+};
 
-    if (error) {
-      console.error(`Erreur lors de la récupération du rendez-vous ${id}:`, error);
-      return null;
-    }
+export const createRendezVous = async (rdvData: Omit<RendezVous, 'id'>): Promise<RendezVous> => {
+  const { data, error } = await supabase
+    .from('rendez_vous')
+    .insert([{
+      dossierId: rdvData.dossierId,
+      date: rdvData.date,
+      meetingLink: rdvData.meetingLink,
+      location: rdvData.location,
+      notes: rdvData.notes,
+      honore: rdvData.honore || false
+    }])
+    .select()
+    .single();
+  
+  if (error) {
+    console.error("Error creating rendez-vous:", error);
+    throw new Error(error.message);
+  }
+  
+  return data;
+};
 
-    if (!data) return null;
+export const updateRendezVous = async (id: string, updates: Partial<RendezVous>): Promise<RendezVous> => {
+  const { data, error } = await supabase
+    .from('rendez_vous')
+    .update({
+      dossierId: updates.dossierId,
+      date: updates.date,
+      meetingLink: updates.meetingLink,
+      location: updates.location,
+      notes: updates.notes,
+      honore: updates.honore
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error(`Error updating rendez-vous with ID ${id}:`, error);
+    throw new Error(error.message);
+  }
+  
+  return data;
+};
 
-    const dossier = await fetchDossierById(data.dossier_id);
-    if (!dossier) {
-      console.error(`Dossier non trouvé pour le rendez-vous: ${id}`);
-      return null;
-    }
-
-    return {
-      id: data.id,
-      dossierId: data.dossier_id,
-      dossier: dossier,
-      date: new Date(data.date),
-      honore: data.honore,
-      notes: data.notes,
-      meetingLink: data.meeting_link,
-      location: data.location
-    };
-  } catch (error) {
-    console.error(`Erreur inattendue lors de la récupération du rendez-vous ${id}:`, error);
-    return null;
+export const deleteRendezVous = async (id: string): Promise<void> => {
+  const { error } = await supabase
+    .from('rendez_vous')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error(`Error deleting rendez-vous with ID ${id}:`, error);
+    throw new Error(error.message);
   }
 };
 
-/**
- * Crée un nouveau rendez-vous
- */
-export const createRendezVous = async (rendezVous: Omit<RendezVous, "id">): Promise<RendezVous | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('rendez_vous')
-      .insert({
-        dossier_id: rendezVous.dossierId,
-        date: rendezVous.date.toISOString(),
-        honore: rendezVous.honore,
-        notes: rendezVous.notes,
-        meeting_link: rendezVous.meetingLink,
-        location: rendezVous.location
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Erreur lors de la création du rendez-vous:", error);
-      return null;
-    }
-
-    return await fetchRendezVousById(data.id);
-  } catch (error) {
-    console.error("Erreur inattendue lors de la création du rendez-vous:", error);
-    return null;
+export const fetchRendezVousByDossier = async (dossierId: string): Promise<RendezVous[]> => {
+  const { data, error } = await supabase
+    .from('rendez_vous')
+    .select(`
+      *,
+      dossier (
+        *,
+        client (*),
+        agentPhoner (*),
+        agentVisio (*)
+      )
+    `)
+    .eq('dossierId', dossierId);
+  
+  if (error) {
+    console.error(`Error fetching rendez-vous for dossier ${dossierId}:`, error);
+    throw new Error(error.message);
   }
+  
+  return data || [];
 };
 
-/**
- * Met à jour un rendez-vous existant
- */
-export const updateRendezVous = async (id: string, updates: Partial<RendezVous>): Promise<boolean> => {
-  try {
-    const updateData: any = {};
-
-    if (updates.date !== undefined) updateData.date = updates.date.toISOString();
-    if (updates.honore !== undefined) updateData.honore = updates.honore;
-    if (updates.notes !== undefined) updateData.notes = updates.notes;
-    if (updates.meetingLink !== undefined) updateData.meeting_link = updates.meetingLink;
-    if (updates.location !== undefined) updateData.location = updates.location;
-
-    const { error } = await supabase
-      .from('rendez_vous')
-      .update(updateData)
-      .eq('id', id);
-
-    if (error) {
-      console.error(`Erreur lors de la mise à jour du rendez-vous ${id}:`, error);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error(`Erreur inattendue lors de la mise à jour du rendez-vous ${id}:`, error);
-    return false;
+export const fetchRendezVousByUser = async (userId: string): Promise<RendezVous[]> => {
+  const { data, error } = await supabase
+    .from('rendez_vous')
+    .select(`
+      *,
+      dossier!inner (
+        *,
+        client!inner (*),
+        agentPhoner (*),
+        agentVisio (*)
+      )
+    `)
+    .or(`dossier.clientId.eq.${userId},dossier.agentPhonerId.eq.${userId},dossier.agentVisioId.eq.${userId}`);
+  
+  if (error) {
+    console.error(`Error fetching rendez-vous for user ${userId}:`, error);
+    throw new Error(error.message);
   }
+  
+  return data || [];
 };
 
-/**
- * Supprime un rendez-vous
- */
-export const deleteRendezVous = async (id: string): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('rendez_vous')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error(`Erreur lors de la suppression du rendez-vous ${id}:`, error);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error(`Erreur inattendue lors de la suppression du rendez-vous ${id}:`, error);
-    return false;
+export const updateRendezVousHonore = async (id: string, honore: boolean): Promise<void> => {
+  const { error } = await supabase
+    .from('rendez_vous')
+    .update({ honore })
+    .eq('id', id);
+  
+  if (error) {
+    console.error(`Error updating honore status for rendez-vous ${id}:`, error);
+    throw new Error(error.message);
   }
 };

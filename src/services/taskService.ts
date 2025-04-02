@@ -1,199 +1,109 @@
+
 import { Task, TaskStatus } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
-/**
- * Récupère toutes les tâches
- */
 export const fetchTasks = async (): Promise<Task[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .order('date_echeance', { ascending: true });
-
-    if (error) {
-      console.error("Erreur lors de la récupération des tâches:", error);
-      return [];
-    }
-
-    return data.map(task => ({
-      id: task.id,
-      title: task.title,
-      description: task.description,
-      agentId: task.agent_id,
-      status: task.status as TaskStatus,
-      dateCreation: new Date(task.date_creation),
-      dateEcheance: task.date_echeance ? new Date(task.date_echeance) : undefined,
-      priority: convertPriorityType(task.priority)
-    }));
-  } catch (error) {
-    console.error("Erreur inattendue lors de la récupération des tâches:", error);
-    return [];
+  const { data, error } = await supabase
+    .from('tasks')
+    .select(`
+      *,
+      assignedTo (*)
+    `);
+  
+  if (error) {
+    console.error("Error fetching tasks:", error);
+    throw new Error(error.message);
   }
+  
+  return data || [];
 };
 
-/**
- * Récupère les tâches par agent
- */
-export const fetchTasksByAgent = async (agentId: string): Promise<Task[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('agent_id', agentId)
-      .order('date_echeance', { ascending: true });
-
-    if (error) {
-      console.error(`Erreur lors de la récupération des tâches pour l'agent ${agentId}:`, error);
-      return [];
-    }
-
-    return data.map(task => ({
-      id: task.id,
-      title: task.title,
-      description: task.description,
-      agentId: task.agent_id,
-      status: task.status as TaskStatus,
-      dateCreation: new Date(task.date_creation),
-      dateEcheance: task.date_echeance ? new Date(task.date_echeance) : undefined,
-      priority: convertPriorityType(task.priority)
-    }));
-  } catch (error) {
-    console.error(`Erreur inattendue lors de la récupération des tâches pour l'agent ${agentId}:`, error);
-    return [];
-  }
-};
-
-/**
- * Récupère une tâche par son ID
- */
 export const fetchTaskById = async (id: string): Promise<Task | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('id', id)
-      .single();
+  const { data, error } = await supabase
+    .from('tasks')
+    .select(`
+      *,
+      assignedTo (*)
+    `)
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error(`Error fetching task with ID ${id}:`, error);
+    throw new Error(error.message);
+  }
+  
+  return data;
+};
 
-    if (error) {
-      console.error(`Erreur lors de la récupération de la tâche ${id}:`, error);
-      return null;
-    }
+export const createTask = async (taskData: Omit<Task, 'id'>): Promise<Task> => {
+  const { data, error } = await supabase
+    .from('tasks')
+    .insert([taskData])
+    .select()
+    .single();
+  
+  if (error) {
+    console.error("Error creating task:", error);
+    throw new Error(error.message);
+  }
+  
+  return data;
+};
 
-    if (!data) return null;
+export const updateTask = async (id: string, updates: Partial<Task>): Promise<Task> => {
+  const { data, error } = await supabase
+    .from('tasks')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error(`Error updating task with ID ${id}:`, error);
+    throw new Error(error.message);
+  }
+  
+  return data;
+};
 
-    return {
-      id: data.id,
-      title: data.title,
-      description: data.description,
-      agentId: data.agent_id,
-      status: data.status as TaskStatus,
-      dateCreation: new Date(data.date_creation),
-      dateEcheance: data.date_echeance ? new Date(data.date_echeance) : undefined,
-      priority: convertPriorityType(data.priority)
-    };
-  } catch (error) {
-    console.error(`Erreur inattendue lors de la récupération de la tâche ${id}:`, error);
-    return null;
+export const updateTaskStatus = async (id: string, status: TaskStatus): Promise<void> => {
+  const { error } = await supabase
+    .from('tasks')
+    .update({ status })
+    .eq('id', id);
+  
+  if (error) {
+    console.error(`Error updating status for task ${id}:`, error);
+    throw new Error(error.message);
   }
 };
 
-// Fonction auxiliaire pour convertir le type de priorité
-const convertPriorityType = (priority: string): "low" | "medium" | "high" => {
-  if (priority === "low" || priority === "medium" || priority === "high") {
-    return priority;
-  }
-  // Valeur par défaut si la priorité n'est pas reconnue
-  return "medium";
-};
-
-/**
- * Crée une nouvelle tâche
- */
-export const createTask = async (task: Omit<Task, 'id' | 'dateCreation'>): Promise<Task | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('tasks')
-      .insert({
-        title: task.title,
-        description: task.description,
-        agent_id: task.agentId,
-        status: task.status,
-        date_echeance: task.dateEcheance?.toISOString(),
-        priority: task.priority
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Erreur lors de la création de la tâche:", error);
-      return null;
-    }
-
-    return {
-      id: data.id,
-      title: data.title,
-      description: data.description,
-      agentId: data.agent_id,
-      status: data.status as TaskStatus,
-      dateCreation: new Date(data.date_creation),
-      dateEcheance: data.date_echeance ? new Date(data.date_echeance) : undefined,
-      priority: convertPriorityType(data.priority)
-    };
-  } catch (error) {
-    console.error("Erreur inattendue lors de la création de la tâche:", error);
-    return null;
+export const deleteTask = async (id: string): Promise<void> => {
+  const { error } = await supabase
+    .from('tasks')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error(`Error deleting task with ID ${id}:`, error);
+    throw new Error(error.message);
   }
 };
 
-/**
- * Met à jour une tâche existante
- */
-export const updateTask = async (id: string, updates: Partial<Task>): Promise<boolean> => {
-  try {
-    const updateData: any = {};
-    if (updates.title !== undefined) updateData.title = updates.title;
-    if (updates.description !== undefined) updateData.description = updates.description;
-    if (updates.agentId !== undefined) updateData.agent_id = updates.agentId;
-    if (updates.status !== undefined) updateData.status = updates.status;
-    if (updates.dateEcheance !== undefined) updateData.date_echeance = updates.dateEcheance?.toISOString();
-    if (updates.priority !== undefined) updateData.priority = updates.priority;
-
-    const { error } = await supabase
-      .from('tasks')
-      .update(updateData)
-      .eq('id', id);
-
-    if (error) {
-      console.error(`Erreur lors de la mise à jour de la tâche ${id}:`, error);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error(`Erreur inattendue lors de la mise à jour de la tâche ${id}:`, error);
-    return false;
+export const fetchTasksByUser = async (userId: string): Promise<Task[]> => {
+  const { data, error } = await supabase
+    .from('tasks')
+    .select(`
+      *,
+      assignedTo (*)
+    `)
+    .eq('assignedToId', userId);
+  
+  if (error) {
+    console.error(`Error fetching tasks for user ${userId}:`, error);
+    throw new Error(error.message);
   }
-};
-
-/**
- * Supprime une tâche
- */
-export const deleteTask = async (id: string): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('tasks')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error(`Erreur lors de la suppression de la tâche ${id}:`, error);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error(`Erreur inattendue lors de la suppression de la tâche ${id}:`, error);
-    return false;
-  }
+  
+  return data || [];
 };

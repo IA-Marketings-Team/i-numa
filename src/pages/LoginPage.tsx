@@ -11,6 +11,9 @@ const LoginPage: React.FC = () => {
   const location = useLocation();
   const { toast } = useToast();
   
+  // Get the intended destination from location state, or default to dashboard
+  const from = location.state?.from || "/dashboard";
+  
   // Check for messages passed from other pages
   useEffect(() => {
     if (location.state?.message) {
@@ -26,9 +29,9 @@ const LoginPage: React.FC = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      navigate("/dashboard");
+      navigate(from);
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [isAuthenticated, isLoading, navigate, from]);
 
   if (isLoading) {
     return (
