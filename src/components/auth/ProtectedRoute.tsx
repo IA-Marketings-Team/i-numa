@@ -12,12 +12,23 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children, 
   roles = ['client', 'agent_phoner', 'agent_visio', 'superviseur', 'responsable'] 
 }) => {
-  const { isAuthenticated, hasPermission } = useAuth();
+  const { isAuthenticated, isLoading, user, hasPermission } = useAuth();
   const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-lg">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     // Rediriger vers la page de connexion si l'utilisateur n'est pas authentifié
-    return <Navigate to="/connexion" state={{ from: location }} replace />;
+    // en sauvegardant le chemin actuel pour rediriger après connexion
+    return <Navigate to="/connexion" state={{ from: location.pathname }} replace />;
   }
 
   if (!hasPermission(roles)) {
