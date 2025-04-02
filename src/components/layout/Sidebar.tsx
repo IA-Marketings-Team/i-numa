@@ -15,117 +15,139 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
+import {
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
 
 export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const pathname = location.pathname;
 
+  const menuItems = [
+    {
+      group: "Général",
+      items: [
+        {
+          label: "Tableau de bord",
+          icon: <LayoutDashboard className="mr-2 h-4 w-4" />,
+          path: "/tableau-de-bord",
+          active: pathname === "/tableau-de-bord" || pathname === "/",
+        },
+      ]
+    },
+    {
+      group: "Gestion des clients",
+      items: [
+        {
+          label: "Clients",
+          icon: <User2 className="mr-2 h-4 w-4" />,
+          path: "/clients",
+          active: pathname.startsWith("/clients"),
+        },
+        {
+          label: "Agents",
+          icon: <Users className="mr-2 h-4 w-4" />,
+          path: "/agents",
+          active: pathname.startsWith("/agents"),
+        },
+        {
+          label: "Équipes",
+          icon: <Building2 className="mr-2 h-4 w-4" />,
+          path: "/teams",
+          active: pathname.startsWith("/teams"),
+        },
+      ]
+    },
+    {
+      group: "Gestion commerciale",
+      items: [
+        {
+          label: "Offres",
+          icon: <CreditCard className="mr-2 h-4 w-4" />,
+          path: "/offres",
+          active: pathname.startsWith("/offres"),
+        },
+        {
+          label: "Dossiers",
+          icon: <File className="mr-2 h-4 w-4" />,
+          path: "/dossiers",
+          active: pathname.startsWith("/dossiers"),
+        },
+        {
+          label: "Rendez-vous",
+          icon: <Calendar className="mr-2 h-4 w-4" />,
+          path: "/rendez-vous",
+          active: pathname.startsWith("/rendez-vous"),
+        },
+        {
+          label: "Tâches",
+          icon: <ListChecks className="mr-2 h-4 w-4" />,
+          path: "/tasks",
+          active: pathname.startsWith("/tasks"),
+        },
+      ]
+    },
+    {
+      group: "Analyses",
+      items: [
+        {
+          label: "Statistiques",
+          icon: <BarChart className="mr-2 h-4 w-4" />,
+          path: "/statistiques",
+          active: pathname.startsWith("/statistiques"),
+        },
+        {
+          label: "Communications",
+          icon: <Mail className="mr-2 h-4 w-4" />,
+          path: "/communications",
+          active: pathname.startsWith("/communications"),
+        },
+      ]
+    },
+    {
+      group: "Configuration",
+      items: [
+        {
+          label: "Paramètres",
+          icon: <Settings className="mr-2 h-4 w-4" />,
+          path: "/settings",
+          active: pathname.startsWith("/settings"),
+        },
+      ]
+    }
+  ];
+
   return (
-    <div className="space-y-4 py-4">
-      <div className="px-3 py-2">
-        <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
-          Navigation
-        </h2>
-        <div className="space-y-1">
-          <Button
-            variant={pathname === "/" ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => navigate("/")}
-          >
-            <LayoutDashboard className="mr-2 h-4 w-4" />
-            Dashboard
-          </Button>
-          <Button
-            variant={pathname === "/clients" ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => navigate("/clients")}
-          >
-            <User2 className="mr-2 h-4 w-4" />
-            Clients
-          </Button>
-          <Button
-            variant={pathname === "/agents" ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => navigate("/agents")}
-          >
-            <Users className="mr-2 h-4 w-4" />
-            Agents
-          </Button>
-          <Button
-            variant={pathname === "/teams" ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => navigate("/teams")}
-          >
-            <Building2 className="mr-2 h-4 w-4" />
-            Equipes
-          </Button>
-          <Button
-            variant={pathname === "/offres" ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => navigate("/offres")}
-          >
-            <CreditCard className="mr-2 h-4 w-4" />
-            Offres
-          </Button>
-          <Button
-            variant={pathname === "/dossiers" ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => navigate("/dossiers")}
-          >
-            <File className="mr-2 h-4 w-4" />
-            Dossiers
-          </Button>
-          <Button
-            variant={pathname === "/rendez-vous" ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => navigate("/rendez-vous")}
-          >
-            <Calendar className="mr-2 h-4 w-4" />
-            Rendez-vous
-          </Button>
-          <Button
-            variant={pathname === "/tasks" ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => navigate("/tasks")}
-          >
-            <ListChecks className="mr-2 h-4 w-4" />
-            Tâches
-          </Button>
-          <Button
-            variant={pathname === "/statistiques" ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => navigate("/statistiques")}
-          >
-            <BarChart className="mr-2 h-4 w-4" />
-            Statistiques
-          </Button>
-          
-          <Button
-            variant={pathname === "/communications" ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => navigate("/communications")}
-          >
-            <Mail className="mr-2 h-4 w-4" />
-            Communications
-          </Button>
-        </div>
-      </div>
-      <div className="px-3 py-2">
-        <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
-          Paramètres
-        </h2>
-        <div className="space-y-1">
-          <Button
-            variant={pathname === "/settings" ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => navigate("/settings")}
-          >
-            <Settings className="mr-2 h-4 w-4" />
-            Settings
-          </Button>
-        </div>
-      </div>
+    <div className="h-full border-r bg-background">
+      <SidebarContent className="px-2 py-2">
+        {menuItems.map((group, groupIndex) => (
+          <SidebarGroup key={groupIndex}>
+            <SidebarGroupLabel>{group.group}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item, itemIndex) => (
+                  <SidebarMenuItem key={itemIndex}>
+                    <SidebarMenuButton
+                      onClick={() => navigate(item.path)}
+                      isActive={item.active}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
+      </SidebarContent>
     </div>
   );
 }
