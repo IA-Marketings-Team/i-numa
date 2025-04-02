@@ -20,20 +20,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <p className="text-lg">Chargement...</p>
+          <div className="mt-4 animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
         </div>
       </div>
     );
   }
 
   if (!isAuthenticated) {
-    // Rediriger vers la page de connexion si l'utilisateur n'est pas authentifié
-    // en sauvegardant le chemin actuel pour rediriger après connexion
+    // Redirect to login page with current location for post-login redirect
     return <Navigate to="/connexion" state={{ from: location.pathname }} replace />;
   }
 
   if (!hasPermission(roles)) {
-    // Rediriger vers le tableau de bord si l'utilisateur n'a pas les permissions nécessaires
-    return <Navigate to="/tableau-de-bord" replace />;
+    // Redirect to dashboard if user doesn't have required permissions
+    const fallbackRoute = user?.role === 'client' ? '/mes-offres' : '/tableau-de-bord';
+    return <Navigate to={fallbackRoute} replace />;
   }
 
   return <>{children}</>;

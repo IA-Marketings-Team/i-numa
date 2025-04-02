@@ -38,12 +38,12 @@ export function Sidebar({ className, isOpen, onClose, ...props }: SidebarProps) 
 
   // Filter menu items based on user permissions
   const mainMenuItems = navigationConfig.filter(item => 
-    user && item.permissions.includes(user.role) && 
+    user && hasPermission(item.permissions) && 
     ['tableau-de-bord', 'dossiers', 'clients', 'mes-offres', 'agenda-global', 'agenda', 'taches', 'appels', 'communications', 'statistiques'].includes(item.id)
   );
 
   const accountMenuItems = navigationConfig.filter(item => 
-    user && item.permissions.includes(user.role) && 
+    user && hasPermission(item.permissions) && 
     ['profil', 'equipes'].includes(item.id)
   );
 
