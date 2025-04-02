@@ -228,25 +228,16 @@ const SuperviseurEquipe = () => {
     });
   };
 
-  const handleAddTask = (data: any) => {
-    const newTask: Task = {
-      id: `task${tasks.length + 1}`,
-      title: data.title,
-      description: data.description,
-      agentId: data.agentId,
-      status: data.status,
-      dateCreation: new Date(),
-      dateEcheance: data.dateEcheance,
-      priority: data.priority
-    };
-
-    setTasks([...tasks, newTask]);
-    setIsTaskFormOpen(false);
-    
-    toast({
-      title: "Tâche ajoutée",
-      description: `La tâche "${data.title}" a été ajoutée avec succès`,
-    });
+  const handleSubmitTask = async (data: Omit<Task, "id" | "dateCreation">) => {
+    try {
+      await createTask(data);
+      toast({
+        title: "Tâche ajoutée",
+        description: `La tâche "${data.title}" a été ajoutée avec succès`,
+      });
+    } catch (error) {
+      console.error("Failed to create task:", error);
+    }
   };
 
   const handleEditTask = (data: any) => {
@@ -852,7 +843,7 @@ const SuperviseurEquipe = () => {
         onOpenChange={setIsTaskFormOpen}
         initialData={selectedTask || undefined}
         agents={agents}
-        onSubmit={selectedTask ? handleEditTask : handleAddTask}
+        onSubmit={selectedTask ? handleEditTask : handleSubmitTask}
       />
     </div>
   );

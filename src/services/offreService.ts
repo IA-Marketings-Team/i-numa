@@ -1,4 +1,3 @@
-
 import { Offre } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -17,7 +16,7 @@ export const fetchOffres = async (): Promise<Offre[]> => {
     id: item.id,
     nom: item.nom || '',
     description: item.description || '',
-    type: item.type || '',
+    type: (item.type || 'SEO') as "SEO" | "Google Ads" | "Email X" | "Foner" | "Devis",
     prix: item.prix || 0
   }));
   
@@ -43,7 +42,7 @@ export const fetchOffreById = async (id: string): Promise<Offre | null> => {
     id: data.id,
     nom: data.nom || '',
     description: data.description || '',
-    type: data.type || '',
+    type: (data.type || 'SEO') as "SEO" | "Google Ads" | "Email X" | "Foner" | "Devis",
     prix: data.prix || 0
   };
   
@@ -71,7 +70,7 @@ export const createOffre = async (offreData: Omit<Offre, 'id'>): Promise<Offre |
     id: data.id,
     nom: data.nom || '',
     description: data.description || '',
-    type: data.type || '',
+    type: (data.type || 'SEO') as "SEO" | "Google Ads" | "Email X" | "Foner" | "Devis",
     prix: data.prix || 0
   };
   

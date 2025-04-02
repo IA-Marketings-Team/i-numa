@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Task, TaskStatus, TaskPriority } from "@/types";
+import { Task, TaskStatus, TaskPriority, Agent } from "@/types";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { CalendarIcon, Trash2 } from "lucide-react";
 import { Button as AlertDialogTrigger } from "@/components/ui/button";
@@ -29,7 +29,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { fetchAgents } from "@/services/agentService";
 import { useEffect, useState } from "react";
-import { Agent } from "@/types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -71,7 +70,33 @@ const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
     const loadAgents = async () => {
       try {
         const agentList = await fetchAgents();
-        setAgents(agentList);
+        // Transform the data to match the Agent type
+        const transformedAgents: Agent[] = agentList.map(agent => ({
+          id: agent.id,
+          nom: agent.nom || '',
+          prenom: agent.prenom || '',
+          email: agent.email || '',
+          telephone: agent.telephone || '',
+          role: agent.role as any || 'agent_phoner',
+          dateCreation: new Date(agent.date_creation || new Date()),
+          adresse: agent.adresse,
+          ville: agent.ville,
+          codePostal: agent.code_postal,
+          iban: agent.iban,
+          bic: agent.bic,
+          nomBanque: agent.nom_banque,
+          equipeId: agent.equipe_id,
+          statistiques: {
+            appelsEmis: agent.appels_emis || 0,
+            appelsDecroches: agent.appels_decroches || 0,
+            appelsTransformes: agent.appels_transformes || 0,
+            rendezVousHonores: agent.rendez_vous_honores || 0,
+            rendezVousNonHonores: agent.rendez_vous_non_honores || 0,
+            dossiersValides: agent.dossiers_valides || 0,
+            dossiersSigne: agent.dossiers_signe || 0
+          }
+        }));
+        setAgents(transformedAgents);
       } catch (error) {
         console.error("Error loading agents:", error);
       }

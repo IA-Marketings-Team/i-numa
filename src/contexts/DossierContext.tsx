@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Dossier, DossierStatus, Offre, RendezVous } from "@/types";
 import { useAuth } from "./AuthContext";
@@ -51,7 +50,6 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Initial data loading
   useEffect(() => {
     loadDossiers();
   }, [user]);
@@ -88,42 +86,33 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const filteredDossiers = React.useMemo(() => {
     let filtered = [...dossiers];
     
-    // Filtrer par statut si un filtre est appliqué
     if (statusFilter !== 'all') {
       filtered = filtered.filter(d => d.status === statusFilter);
     }
     
-    // Filtrer selon le rôle de l'utilisateur
     if (user) {
       switch (user.role) {
         case 'agent_phoner':
-          // Les agents phoner voient les dossiers qui leur sont assignés
           filtered = filtered.filter(d => 
             d.agentPhonerId === user.id && 
-            d.status !== 'archive' // Les dossiers archivés ne sont pas visibles pour les agents
+            d.status !== 'archive'
           );
           break;
           
         case 'agent_visio':
-          // Les agents visio voient les dossiers qui leur sont assignés
           filtered = filtered.filter(d => 
             d.agentVisioId === user.id && 
-            d.status !== 'archive' // Les dossiers archivés ne sont pas visibles pour les agents
+            d.status !== 'archive'
           );
           break;
           
         case 'superviseur':
-          // Les superviseurs voient tous les dossiers sauf les montants
-          // Pas de filtrage spécifique ici
           break;
           
         case 'responsable':
-          // Les responsables voient tout
-          // Pas de filtrage
           break;
           
         case 'client':
-          // Les clients ne voient que leurs propres dossiers
           filtered = filtered.filter(d => d.clientId === user.id);
           break;
       }
@@ -162,7 +151,6 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const success = await updateDossierService(id, updates);
       
       if (success) {
-        // Update local state
         setDossiers(prev => 
           prev.map(dossier => 
             dossier.id === id 
@@ -171,7 +159,6 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
           )
         );
         
-        // Update current dossier if it's the one being updated
         if (currentDossier && currentDossier.id === id) {
           setCurrentDossier({ ...currentDossier, ...updates });
         }
@@ -226,15 +213,12 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const getDossierById = async (id: string) => {
     try {
-      // First, check local cache
       let dossier = dossiers.find(d => d.id === id);
       
       if (!dossier) {
-        // If not in cache, fetch from server
         dossier = await fetchDossierById(id);
         
         if (dossier) {
-          // Update local cache
           setDossiers(prev => {
             const exists = prev.some(d => d.id === dossier?.id);
             return exists 
@@ -260,9 +244,7 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       const rdvs = await fetchRendezVousByDossier(dossierId);
       setRendezVous(prev => {
-        // Remove existing RDVs for this dossier
         const filtered = prev.filter(r => r.dossierId !== dossierId);
-        // Add the fetched ones
         return [...filtered, ...rdvs];
       });
       return rdvs;
@@ -284,7 +266,6 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (rdv) {
         setRendezVous(prev => [...prev, rdv]);
         
-        // Update the dossier status if needed
         if (newRendezVous.dossier.status !== 'rdv_en_cours') {
           await updateDossierStatus(newRendezVous.dossierId, 'rdv_en_cours');
         }
@@ -376,21 +357,20 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
       
       const updates: Partial<Dossier> = { status: newStatus };
       
-      // Mettre à jour les dates en fonction du nouveau statut
       const now = new Date();
       
       switch (newStatus) {
         case 'rdv_en_cours':
-          updates.dateRdv = now.toISOString();
+          updates.dateRdv = now;
           break;
         case 'valide':
-          updates.dateValidation = now.toISOString();
+          updates.dateValidation = now;
           break;
         case 'signe':
-          updates.dateSignature = now.toISOString();
+          updates.dateSignature = now;
           break;
         case 'archive':
-          updates.dateArchivage = now.toISOString();
+          updates.dateArchivage = now;
           break;
       }
       

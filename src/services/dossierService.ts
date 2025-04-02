@@ -1,7 +1,8 @@
 
-import { Dossier, Offre } from "@/types";
+import { Dossier, Offre, DossierStatus, Client } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchOffreById } from "./offreService";
+import { fetchClientById } from "./clientService";
 
 export const fetchDossiers = async (): Promise<Dossier[]> => {
   const { data, error } = await supabase
@@ -13,7 +14,7 @@ export const fetchDossiers = async (): Promise<Dossier[]> => {
     throw new Error(error.message);
   }
   
-  // Fetch offres for each dossier
+  // Fetch dossiers with offres and clients
   const dossiers: Dossier[] = await Promise.all(
     data.map(async (item) => {
       // Get related offres
@@ -26,29 +27,62 @@ export const fetchDossiers = async (): Promise<Dossier[]> => {
       
       if (!offresError && offresData) {
         // Fetch full offre details for each offre_id
-        offres = await Promise.all(
-          offresData.map(async (relation) => {
-            const offre = await fetchOffreById(relation.offre_id);
-            return offre || { id: "", nom: "", description: "", type: "", prix: 0 };
-          })
-        );
+        const offresPromises = offresData.map(async (relation) => {
+          const offre = await fetchOffreById(relation.offre_id);
+          return offre;
+        });
+        
+        // Filter out null values and ensure type compatibility
+        const fetchedOffres = await Promise.all(offresPromises);
+        offres = fetchedOffres.filter(Boolean).map(offre => ({
+          id: offre?.id || "",
+          nom: offre?.nom || "",
+          description: offre?.description || "",
+          type: (offre?.type as "SEO" | "Google Ads" | "Email X" | "Foner" | "Devis") || "SEO",
+          prix: offre?.prix
+        }));
       } else {
         console.error("Error fetching dossier offres:", offresError);
+      }
+      
+      // Fetch client details
+      let client: Client | null = null;
+      if (item.client_id) {
+        client = await fetchClientById(item.client_id);
+      }
+      
+      if (!client && item.client_id) {
+        console.error(`Client not found for ID: ${item.client_id}`);
+        // Create a placeholder client to prevent error
+        client = {
+          id: item.client_id,
+          nom: "Client inconnu",
+          prenom: "",
+          email: "",
+          telephone: "",
+          adresse: "",
+          role: "client",
+          dateCreation: new Date(),
+          secteurActivite: "",
+          typeEntreprise: "",
+          besoins: ""
+        };
       }
       
       // Transform Supabase data to match our Dossier type
       return {
         id: item.id,
-        clientId: item.client_id,
+        clientId: item.client_id || "",
+        client: client as Client,
         agentPhonerId: item.agent_phoner_id || undefined,
         agentVisioId: item.agent_visio_id || undefined,
-        status: item.status || 'prospect',
-        dateCreation: new Date(item.date_creation).toISOString(),
-        dateMiseAJour: new Date(item.date_mise_a_jour).toISOString(),
-        dateRdv: item.date_rdv ? new Date(item.date_rdv).toISOString() : undefined,
-        dateValidation: item.date_validation ? new Date(item.date_validation).toISOString() : undefined,
-        dateSignature: item.date_signature ? new Date(item.date_signature).toISOString() : undefined,
-        dateArchivage: item.date_archivage ? new Date(item.date_archivage).toISOString() : undefined,
+        status: (item.status || 'prospect') as DossierStatus,
+        dateCreation: new Date(item.date_creation || new Date()),
+        dateMiseAJour: new Date(item.date_mise_a_jour || new Date()),
+        dateRdv: item.date_rdv ? new Date(item.date_rdv) : undefined,
+        dateValidation: item.date_validation ? new Date(item.date_validation) : undefined,
+        dateSignature: item.date_signature ? new Date(item.date_signature) : undefined,
+        dateArchivage: item.date_archivage ? new Date(item.date_archivage) : undefined,
         montant: item.montant || undefined,
         notes: item.notes || '',
         offres
@@ -83,29 +117,62 @@ export const fetchDossierById = async (id: string): Promise<Dossier | null> => {
   
   if (!offresError && offresData) {
     // Fetch full offre details for each offre_id
-    offres = await Promise.all(
-      offresData.map(async (relation) => {
-        const offre = await fetchOffreById(relation.offre_id);
-        return offre || { id: "", nom: "", description: "", type: "", prix: 0 };
-      })
-    );
+    const offresPromises = offresData.map(async (relation) => {
+      const offre = await fetchOffreById(relation.offre_id);
+      return offre;
+    });
+    
+    // Filter out null values and ensure type compatibility
+    const fetchedOffres = await Promise.all(offresPromises);
+    offres = fetchedOffres.filter(Boolean).map(offre => ({
+      id: offre?.id || "",
+      nom: offre?.nom || "",
+      description: offre?.description || "",
+      type: (offre?.type as "SEO" | "Google Ads" | "Email X" | "Foner" | "Devis") || "SEO",
+      prix: offre?.prix
+    }));
   } else {
     console.error("Error fetching dossier offres:", offresError);
+  }
+  
+  // Fetch client details
+  let client: Client | null = null;
+  if (item.client_id) {
+    client = await fetchClientById(item.client_id);
+  }
+  
+  if (!client && item.client_id) {
+    console.error(`Client not found for ID: ${item.client_id}`);
+    // Create a placeholder client to prevent error
+    client = {
+      id: item.client_id,
+      nom: "Client inconnu",
+      prenom: "",
+      email: "",
+      telephone: "",
+      adresse: "",
+      role: "client",
+      dateCreation: new Date(),
+      secteurActivite: "",
+      typeEntreprise: "",
+      besoins: ""
+    };
   }
   
   // Transform Supabase data to match our Dossier type
   const dossier: Dossier = {
     id: item.id,
-    clientId: item.client_id,
+    clientId: item.client_id || "",
+    client: client as Client,
     agentPhonerId: item.agent_phoner_id || undefined,
     agentVisioId: item.agent_visio_id || undefined,
-    status: item.status || 'prospect',
-    dateCreation: new Date(item.date_creation).toISOString(),
-    dateMiseAJour: new Date(item.date_mise_a_jour).toISOString(),
-    dateRdv: item.date_rdv ? new Date(item.date_rdv).toISOString() : undefined,
-    dateValidation: item.date_validation ? new Date(item.date_validation).toISOString() : undefined,
-    dateSignature: item.date_signature ? new Date(item.date_signature).toISOString() : undefined,
-    dateArchivage: item.date_archivage ? new Date(item.date_archivage).toISOString() : undefined,
+    status: (item.status || 'prospect') as DossierStatus,
+    dateCreation: new Date(item.date_creation || new Date()),
+    dateMiseAJour: new Date(item.date_mise_a_jour || new Date()),
+    dateRdv: item.date_rdv ? new Date(item.date_rdv) : undefined,
+    dateValidation: item.date_validation ? new Date(item.date_validation) : undefined,
+    dateSignature: item.date_signature ? new Date(item.date_signature) : undefined,
+    dateArchivage: item.date_archivage ? new Date(item.date_archivage) : undefined,
     montant: item.montant || undefined,
     notes: item.notes || '',
     offres

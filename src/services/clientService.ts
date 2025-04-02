@@ -1,4 +1,3 @@
-
 import { Client } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -28,7 +27,9 @@ export const fetchClients = async (): Promise<Client[]> => {
     besoins: profile.besoins || '',
     iban: profile.iban || '',
     bic: profile.bic || '',
-    nomBanque: profile.nom_banque || ''
+    nomBanque: profile.nom_banque || '',
+    role: 'client',
+    dateCreation: new Date(profile.date_creation || new Date())
   }));
   
   return clients;
@@ -64,7 +65,9 @@ export const fetchClientById = async (id: string): Promise<Client | null> => {
     besoins: data.besoins || '',
     iban: data.iban || '',
     bic: data.bic || '',
-    nomBanque: data.nom_banque || ''
+    nomBanque: data.nom_banque || '',
+    role: 'client',
+    dateCreation: new Date(data.date_creation || new Date())
   };
   
   return client;
@@ -90,7 +93,7 @@ export const createClient = async (clientData: Omit<Client, 'id'>): Promise<Clie
 
   const { data, error } = await supabase
     .from('profiles')
-    .insert([clientForSupabase])
+    .insert(clientForSupabase)
     .select()
     .single();
   
@@ -113,7 +116,9 @@ export const createClient = async (clientData: Omit<Client, 'id'>): Promise<Clie
     besoins: data.besoins || '',
     iban: data.iban || '',
     bic: data.bic || '',
-    nomBanque: data.nom_banque || ''
+    nomBanque: data.nom_banque || '',
+    role: 'client',
+    dateCreation: new Date(data.date_creation || new Date())
   };
   
   return client;
