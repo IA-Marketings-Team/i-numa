@@ -7,8 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import WorkflowIndicator from "@/components/onboarding/WorkflowIndicator";
-import { useOnboarding } from "@/contexts/OnboardingContext";
 
 const RegisterForm: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -23,7 +21,6 @@ const RegisterForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
-  const { setWorkflowActive } = useOnboarding();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -55,8 +52,7 @@ const RegisterForm: React.FC = () => {
       );
 
       if (success) {
-        // Au lieu de rediriger vers la page de login, on active le workflow d'onboarding
-        setWorkflowActive(true);
+        navigate("/login", { state: { message: "Inscription réussie ! Veuillez vérifier votre email pour confirmer votre compte." } });
       } else {
         setError(error?.message || "L'inscription a échoué. Veuillez réessayer.");
       }
@@ -173,8 +169,6 @@ const RegisterForm: React.FC = () => {
           </a>
         </div>
       </CardFooter>
-      
-      <WorkflowIndicator />
     </Card>
   );
 };
