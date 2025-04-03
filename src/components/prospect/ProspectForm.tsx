@@ -28,7 +28,7 @@ const formSchema = z.object({
   codePostal: z.string().optional(),
   statut: z.string(),
   // Transform the string to a number to fix type errors
-  duree: z.string().transform(val => Number(val)),
+  duree: z.coerce.number().default(0),
   notes: z.string().optional(),
   dateRdv: z.string().optional(),
   heureRdv: z.string().optional(),
@@ -61,7 +61,7 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ appelId, onSuccess }) => {
       email: '',
       codePostal: '',
       statut: 'Injoignable',
-      duree: '0', // Using string for form value, transform to number on submit
+      duree: 0, // Using number now as the form expects number
       notes: '',
       dateRdv: '',
       heureRdv: '',
@@ -86,7 +86,7 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ appelId, onSuccess }) => {
               email: appel.email || '',
               codePostal: appel.codePostal || '',
               statut: appel.statut || 'Injoignable',
-              duree: appel.duree.toString(), // Convert number to string for form
+              duree: appel.duree, // No need to convert, keep as number
               notes: appel.notes || '',
               dateRdv: appel.dateRdv ? new Date(appel.dateRdv).toISOString().split('T')[0] : '',
               heureRdv: appel.heureRdv || '',
@@ -130,7 +130,7 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ appelId, onSuccess }) => {
         email: data.email,
         codePostal: data.codePostal,
         statut: data.statut as Appel['statut'],
-        duree: Number(data.duree), // Ensure duree is a number
+        duree: data.duree, // Already a number
         notes: consolidatedNotes,
         dateRdv: data.dateRdv ? new Date(data.dateRdv) : undefined,
         heureRdv: data.heureRdv,
