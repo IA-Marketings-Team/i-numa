@@ -40,10 +40,7 @@ export const OnboardingModal = () => {
       // Only allow opening, prevent closing
       if (open) setIsOpen(open);
     }}>
-      <DialogContent className="max-w-2xl p-6" onClose={(e) => {
-        // Prevent closing the dialog by hitting Escape
-        e.preventDefault();
-      }}>
+      <DialogContent className="max-w-2xl p-6">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
             Complétez votre profil pour accéder à tous les services
@@ -68,7 +65,7 @@ export const OnboardingModal = () => {
         <div className="py-4">
           {currentStep === 0 && <SecteurActiviteStep />}
           {currentStep === 1 && <BesoinsStep />}
-          {currentStep === 2 && <InformationsStep />}
+          {currentStep === 2 && <InformationsStep onSubmitSuccess={handleComplete} />}
         </div>
         
         {/* Navigation buttons */}

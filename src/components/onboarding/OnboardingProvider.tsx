@@ -25,6 +25,7 @@ interface OnboardingContextType {
   isStepCompleted: (step: number) => boolean;
   completeOnboarding: () => Promise<void>;
   isLastStep: boolean;
+  setIsOnboarded: (value: boolean) => void;
 }
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
@@ -44,6 +45,13 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   });
   
   const isLastStep = currentStep === 2;
+  
+  // Add a state to track if onboarding is completed
+  const [isOnboarded, setIsOnboarded] = useState<boolean>(() => {
+    // Check localStorage for saved state
+    const savedState = localStorage.getItem('isOnboarded');
+    return savedState === 'true';
+  });
   
   const nextStep = () => {
     if (currentStep < 2 && isStepCompleted(currentStep)) {
@@ -105,6 +113,10 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         throw error;
       }
       
+      // Set onboarding as completed
+      setIsOnboarded(true);
+      localStorage.setItem('isOnboarded', 'true');
+      
       // Close the modal
       setIsOpen(false);
       
@@ -140,6 +152,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         isStepCompleted,
         completeOnboarding,
         isLastStep,
+        setIsOnboarded,
       }}
     >
       {children}
