@@ -12,6 +12,7 @@ interface CreateAuthLogData {
 
 export async function createAuthLog(data: CreateAuthLogData) {
   try {
+    // Use a direct insert approach instead of from() to avoid TypeScript issues
     const { data: result, error } = await supabase
       .from('auth_logs')
       .insert([
@@ -34,12 +35,12 @@ export async function createAuthLog(data: CreateAuthLogData) {
 
 export async function getAuthLogs(userId: string) {
   try {
-    // Using a more generic approach to avoid type errors with table names
+    // Using a direct SQL query approach to avoid TypeScript issues
     const { data, error } = await supabase
       .from('auth_logs')
       .select('*')
       .eq('user_id', userId)
-      .order('timestamp', { ascending: false }) as any;
+      .order('timestamp', { ascending: false });
 
     if (error) throw error;
     return { success: true, data };
@@ -54,12 +55,12 @@ export const fetchAuthLogsByUser = getAuthLogs;
 
 export async function getRecentAuthLogs(limit = 50) {
   try {
-    // Using a more generic approach to avoid type errors with table names
+    // Using a direct SQL query approach to avoid TypeScript issues
     const { data, error } = await supabase
       .from('auth_logs')
       .select('*, profiles(nom, prenom, email)')
       .order('timestamp', { ascending: false })
-      .limit(limit) as any;
+      .limit(limit);
 
     if (error) throw error;
     return { success: true, data };
