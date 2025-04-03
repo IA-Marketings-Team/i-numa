@@ -5,7 +5,7 @@ import { useOnboarding } from './OnboardingProvider';
 import OnboardingModal from './OnboardingModal';
 import { Button } from '@/components/ui/button';
 import { Calendar } from 'lucide-react';
-import { useSupabaseClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 const RestrictedOverlay: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -15,7 +15,6 @@ const RestrictedOverlay: React.FC<{ children: React.ReactNode }> = ({ children }
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const supabase = useSupabaseClient();
   
   // Ces paths seront toujours accessibles indépendamment des restrictions
   const allowedPaths = ['/login', '/register', '/agenda', '/connexion', '/inscription'];
@@ -43,7 +42,7 @@ const RestrictedOverlay: React.FC<{ children: React.ReactNode }> = ({ children }
     };
     
     checkAppointment();
-  }, [user, supabase]);
+  }, [user]);
   
   // Afficher le modal d'onboarding uniquement si l'utilisateur n'a pas de rendez-vous
   useEffect(() => {
@@ -110,4 +109,3 @@ const RestrictedOverlay: React.FC<{ children: React.ReactNode }> = ({ children }
 };
 
 export default RestrictedOverlay;
-
