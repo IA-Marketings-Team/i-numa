@@ -1,6 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useOnboarding } from './OnboardingProvider';
@@ -8,163 +7,98 @@ import SecteurActiviteStep from './SecteurActiviteStep';
 import BesoinsStep from './BesoinsStep';
 import InformationsStep from './InformationsStep';
 
-interface OnboardingModalProps {
-  open: boolean;
-  onClose: () => void;
-  closeOnOutsideClick?: boolean;
-}
-
-const OnboardingModal: React.FC<OnboardingModalProps> = ({ 
-  open, 
-  onClose,
-  closeOnOutsideClick = true 
-}) => {
+export const OnboardingModal = () => {
   const { 
-    currentStep, 
-    setCurrentStep, 
-    secteurActivite, 
-    besoins, 
-    completeOnboarding 
+    currentStep,
+    nextStep,
+    prevStep,
+    isStepCompleted,
+    isLastStep,
+    secteurActivite,
+    besoins,
+    completeOnboarding,
+    isOpen,
+    setIsOpen 
   } = useOnboarding();
   
-  const navigate = useNavigate();
-  
-  const [isNextDisabled, setIsNextDisabled] = useState(true);
-  
+  // Force the modal to stay open (prevent closing on outside click)
   useEffect(() => {
-    // Validation logic for each step
-    switch (currentStep) {
-      case 1:
-        setIsNextDisabled(secteurActivite === '');
-        break;
-      case 2:
-        setIsNextDisabled(besoins.length < 3);
-        break;
-      case 3:
-        // This is handled within the InformationsStep component
-        setIsNextDisabled(false);
-        break;
-      default:
-        setIsNextDisabled(true);
+    if (!isOpen) {
+      setIsOpen(true);
     }
-  }, [currentStep, secteurActivite, besoins]);
-  
-  const handleNext = () => {
-    if (currentStep < 3) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      completeOnboarding();
-      onClose();
-      navigate('/marketplace');
-    }
+  }, [isOpen, setIsOpen]);
+
+  const handleComplete = async () => {
+    await completeOnboarding();
   };
-  
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-  
-  const renderStepIndicator = () => {
-    return (
-      <div className="flex justify-center mb-6">
-        {[1, 2, 3].map((step) => (
-          <div 
-            key={step} 
-            className={`flex items-center ${step < 3 ? 'w-1/3' : ''}`}
-          >
-            <div 
-              className={`w-8 h-8 rounded-full flex items-center justify-center font-medium ${
-                step === currentStep 
-                  ? 'bg-primary text-primary-foreground'
-                  : step < currentStep 
-                    ? 'bg-green-500 text-white' 
-                    : 'bg-muted text-muted-foreground'
-              }`}
-            >
-              {step < currentStep ? '✓' : step}
-            </div>
-            
-            {step < 3 && (
-              <div 
-                className={`h-1 flex-1 ${
-                  step < currentStep ? 'bg-green-500' : 'bg-muted'
-                }`}
-              ></div>
-            )}
-          </div>
-        ))}
-      </div>
-    );
-  };
-  
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return <SecteurActiviteStep />;
-      case 2:
-        return <BesoinsStep />;
-      case 3:
-        return <InformationsStep onSubmitSuccess={handleNext} />;
-      default:
-        return null;
-    }
-  };
-  
-  const renderStepTitle = () => {
-    switch (currentStep) {
-      case 1:
-        return "Sélectionnez votre secteur d'activité";
-      case 2:
-        return "Quels sont vos besoins ?";
-      case 3:
-        return "Vos coordonnées";
-      default:
-        return "";
-    }
-  };
-  
-  // Handler qui sera appelé quand l'utilisateur essaie de fermer le dialog
-  const handleOpenChange = (open: boolean) => {
-    if (open === false && !closeOnOutsideClick) {
-      // Empêcher la fermeture si closeOnOutsideClick est false
-      return;
-    }
-    onClose();
-  };
+
+  // Calculate step progress percentage
+  const progressPercentage = ((currentStep + 1) / 3) * 100;
   
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      // Only allow opening, prevent closing
+      if (open) setIsOpen(open);
+    }}>
+      <DialogContent className="max-w-2xl p-6" onClose={(e) => {
+        // Prevent closing the dialog by hitting Escape
+        e.preventDefault();
+      }}>
         <DialogHeader>
-          <DialogTitle className="text-center text-xl">
-            {renderStepTitle()}
+          <DialogTitle className="text-2xl font-bold">
+            Complétez votre profil pour accéder à tous les services
           </DialogTitle>
+          
+          {/* Step indicator */}
+          <div className="mt-4 mb-8">
+            <div className="flex justify-between mb-2">
+              <span className="text-sm">Étape {currentStep + 1} sur 3</span>
+              <span className="text-sm font-medium">{progressPercentage.toFixed(0)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div 
+                className="bg-primary h-2.5 rounded-full" 
+                style={{ width: `${progressPercentage}%` }}
+              ></div>
+            </div>
+          </div>
         </DialogHeader>
         
-        {renderStepIndicator()}
-        
+        {/* Step content */}
         <div className="py-4">
-          {renderStepContent()}
+          {currentStep === 0 && <SecteurActiviteStep />}
+          {currentStep === 1 && <BesoinsStep />}
+          {currentStep === 2 && <InformationsStep />}
         </div>
         
+        {/* Navigation buttons */}
         <div className="flex justify-between mt-6">
-          <Button
-            variant="outline"
-            onClick={handleBack}
-            disabled={currentStep === 1}
-          >
-            Retour
-          </Button>
-          
-          {currentStep !== 3 ? (
+          {currentStep > 0 ? (
             <Button 
-              onClick={handleNext} 
-              disabled={isNextDisabled}
+              variant="outline" 
+              onClick={prevStep}
             >
-              {currentStep === 3 ? 'Terminer' : 'Suivant'}
+              Retour
             </Button>
-          ) : null}
+          ) : (
+            <div></div> // Placeholder for flex alignment
+          )}
+          
+          {!isLastStep ? (
+            <Button 
+              onClick={nextStep}
+              disabled={!isStepCompleted(currentStep)}
+            >
+              Suivant
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleComplete}
+              disabled={!isStepCompleted(currentStep)}
+            >
+              Terminer
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

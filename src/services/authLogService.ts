@@ -19,7 +19,7 @@ export async function createAuthLog(data: CreateAuthLogData) {
       p_timestamp: data.timestamp.toISOString(),
       p_user_agent: data.userAgent || null,
       p_ip_address: data.ipAddress || null
-    });
+    }) as { data: any; error: any };
 
     if (error) throw error;
     return { success: true, data: result };
@@ -34,7 +34,7 @@ export async function getAuthLogs(userId: string) {
     // Use the RPC function we created
     const { data, error } = await supabase.rpc('get_user_auth_logs', {
       p_user_id: userId
-    });
+    }) as { data: any[]; error: any };
 
     if (error) throw error;
     return { success: true, data };
@@ -51,7 +51,7 @@ export async function getRecentAuthLogs(limit = 50) {
     // Use the RPC function we created
     const { data, error } = await supabase.rpc('get_recent_auth_logs', {
       p_limit: limit
-    });
+    }) as { data: any[]; error: any };
 
     if (error) throw error;
     return { success: true, data };

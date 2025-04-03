@@ -24,8 +24,8 @@ const AuthLogsTable: React.FC<AuthLogsTableProps> = ({ userId }) => {
       try {
         const response = await fetchAuthLogsByUser(userId);
         if (response.success && response.data) {
-          // Use a safe type assertion
-          const typedLogs: AuthLog[] = (response.data as any[]).map(log => ({
+          // Cast the response data to AuthLog[]
+          const typedLogs = response.data.map((log: any) => ({
             id: log.id,
             user_id: log.user_id,
             userId: log.user_id,
@@ -35,7 +35,8 @@ const AuthLogsTable: React.FC<AuthLogsTableProps> = ({ userId }) => {
             user_agent: log.user_agent,
             ipAddress: log.ip_address,
             ip_address: log.ip_address
-          }));
+          })) as AuthLog[];
+          
           setLogs(typedLogs);
         } else {
           console.error(`Erreur lors du chargement des journaux:`, response.error);

@@ -29,57 +29,55 @@ const BesoinsStep: React.FC = () => {
   
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <h3 className="text-lg font-medium">Quels sont vos besoins principaux ?</h3>
+      
+      <div className="space-y-4">
         {/* Première rangée - 5 cartes */}
-        <div className="col-span-1 md:col-span-2">
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            {BESOINS.slice(0, 5).map((besoin) => (
-              <Card 
-                key={besoin.id}
-                className={`cursor-pointer transition-all ${
-                  besoins.includes(besoin.id) 
-                    ? 'ring-2 ring-primary border-primary' 
-                    : 'hover:bg-accent'
-                }`}
-                onClick={() => toggleBesoin(besoin.id)}
-              >
-                <CardContent className="p-3 flex flex-col items-center justify-center h-full">
-                  <div className="flex items-center justify-between w-full">
-                    <span className="font-medium text-center w-full">{besoin.nom}</span>
-                    {besoins.includes(besoin.id) && (
-                      <Check className="h-4 w-4 text-primary ml-2 flex-shrink-0" />
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          {BESOINS.slice(0, 5).map((besoin) => (
+            <Card 
+              key={besoin.id}
+              className={`cursor-pointer transition-all ${
+                besoins.includes(besoin.id) 
+                  ? 'ring-2 ring-primary border-primary' 
+                  : 'hover:bg-accent'
+              }`}
+              onClick={() => toggleBesoin(besoin.id)}
+            >
+              <CardContent className="p-3 flex flex-col items-center justify-center h-full">
+                <div className="flex items-center justify-between w-full">
+                  <span className="font-medium text-center w-full">{besoin.nom}</span>
+                  {besoins.includes(besoin.id) && (
+                    <Check className="h-4 w-4 text-primary ml-2 flex-shrink-0" />
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
         
         {/* Deuxième rangée - 4 cartes */}
-        <div className="col-span-1 md:col-span-2">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {BESOINS.slice(5).map((besoin) => (
-              <Card 
-                key={besoin.id}
-                className={`cursor-pointer transition-all ${
-                  besoins.includes(besoin.id) 
-                    ? 'ring-2 ring-primary border-primary' 
-                    : 'hover:bg-accent'
-                }`}
-                onClick={() => toggleBesoin(besoin.id)}
-              >
-                <CardContent className="p-3 flex flex-col items-center justify-center h-full">
-                  <div className="flex items-center justify-between w-full">
-                    <span className="font-medium text-center w-full">{besoin.nom}</span>
-                    {besoins.includes(besoin.id) && (
-                      <Check className="h-4 w-4 text-primary ml-2 flex-shrink-0" />
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {BESOINS.slice(5).map((besoin) => (
+            <Card 
+              key={besoin.id}
+              className={`cursor-pointer transition-all ${
+                besoins.includes(besoin.id) 
+                  ? 'ring-2 ring-primary border-primary' 
+                  : 'hover:bg-accent'
+              }`}
+              onClick={() => toggleBesoin(besoin.id)}
+            >
+              <CardContent className="p-3 flex flex-col items-center justify-center h-full">
+                <div className="flex items-center justify-between w-full">
+                  <span className="font-medium text-center w-full">{besoin.nom}</span>
+                  {besoins.includes(besoin.id) && (
+                    <Check className="h-4 w-4 text-primary ml-2 flex-shrink-0" />
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
       

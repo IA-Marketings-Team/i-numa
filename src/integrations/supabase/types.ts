@@ -60,6 +60,33 @@ export type Database = {
         }
         Relationships: []
       }
+      auth_logs: {
+        Row: {
+          action: string
+          id: string
+          ip_address: string | null
+          timestamp: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          id?: string
+          ip_address?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          id?: string
+          ip_address?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       dossier_offres: {
         Row: {
           dossier_id: string
@@ -629,7 +656,49 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_recent_auth_logs: {
+        Args: {
+          p_limit?: number
+        }
+        Returns: {
+          action: string
+          id: string
+          ip_address: string | null
+          timestamp: string
+          user_agent: string | null
+          user_id: string
+        }[]
+      }
+      get_user_auth_logs: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: {
+          action: string
+          id: string
+          ip_address: string | null
+          timestamp: string
+          user_agent: string | null
+          user_id: string
+        }[]
+      }
+      insert_auth_log: {
+        Args: {
+          p_user_id: string
+          p_action: string
+          p_timestamp?: string
+          p_user_agent?: string
+          p_ip_address?: string
+        }
+        Returns: {
+          action: string
+          id: string
+          ip_address: string | null
+          timestamp: string
+          user_agent: string | null
+          user_id: string
+        }
+      }
     }
     Enums: {
       [_ in never]: never
