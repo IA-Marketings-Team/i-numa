@@ -5,23 +5,55 @@ import { useOnboarding } from './OnboardingProvider';
 import OnboardingModal from './OnboardingModal';
 import { Button } from '@/components/ui/button';
 import { Calendar } from 'lucide-react';
+import { useSupabaseClient } from '@supabase/supabase-js';
+import { useAuth } from '@/contexts/AuthContext';
 
 const RestrictedOverlay: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isOnboardingRequired, restrictInterface, setRestrictInterface } = useOnboarding();
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+  const [hasAppointment, setHasAppointment] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const supabase = useSupabaseClient();
   
-  // These paths will always be accessible regardless of restrictions
+  // Ces paths seront toujours accessibles indépendamment des restrictions
   const allowedPaths = ['/login', '/register', '/agenda'];
   const isAllowedPath = allowedPaths.includes(location.pathname);
   
-  // Handle onboarding modal
+  // Vérifier si l'utilisateur a déjà un rendez-vous
   useEffect(() => {
-    if (isOnboardingRequired) {
+    const checkAppointment = async () => {
+      if (user && user.id) {
+        try {
+          const { data, error } = await supabase
+            .from('rendez_vous')
+            .select('*')
+            .eq('client_id', user.id)
+            .limit(1);
+            
+          if (error) throw error;
+          
+          setHasAppointment(data && data.length > 0);
+        } catch (error) {
+          console.error('Erreur lors de la vérification des rendez-vous:', error);
+          setHasAppointment(false);
+        }
+      }
+    };
+    
+    checkAppointment();
+  }, [user, supabase]);
+  
+  // Afficher le modal d'onboarding uniquement si l'utilisateur n'a pas de rendez-vous
+  useEffect(() => {
+    if (isOnboardingRequired && !hasAppointment) {
       setShowOnboardingModal(true);
+    } else if (hasAppointment) {
+      // Si l'utilisateur a un rendez-vous, ne pas restreindre l'interface
+      setRestrictInterface(false);
     }
-  }, [isOnboardingRequired]);
+  }, [isOnboardingRequired, hasAppointment, setRestrictInterface]);
   
   const handleNavigateToAgenda = () => {
     navigate('/agenda');
@@ -34,15 +66,15 @@ const RestrictedOverlay: React.FC<{ children: React.ReactNode }> = ({ children }
   return (
     <>
       {/* Onboarding Modal */}
-      {showOnboardingModal && (
+      {showOnboardingModal && !hasAppointment && (
         <OnboardingModal
           open={showOnboardingModal}
           onClose={() => setShowOnboardingModal(false)}
         />
       )}
       
-      {/* Either show restricted overlay or normal content */}
-      {restrictInterface && !isAllowedPath ? (
+      {/* Soit montrer l'overlay de restriction, soit le contenu normal */}
+      {restrictInterface && !isAllowedPath && !hasAppointment ? (
         <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-100 dark:bg-gray-900">
           <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
             <div className="flex justify-center mb-6">

@@ -51,11 +51,6 @@ export default function Dashboard() {
     }
   }, [dossiers, isLoading]);
 
-  // Rediriger le client vers la page des offres
-  if (userRole === 'client') {
-    return <Navigate to="/mes-offres" />;
-  }
-
   return (
     <div className="p-4 space-y-6">
       <h1 className="text-3xl font-bold">Tableau de bord</h1>

@@ -11,12 +11,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import OffreCard from "@/components/offres/OffreCard";
 import CreateOffreDialog from "@/components/offres/CreateOffreDialog";
+import OffreImportExport from "@/components/offres/OffreImportExport";
 import { useToast } from "@/hooks/use-toast";
 import { fetchOffresWithSecteurs, deleteOffre, fetchSecteurs } from "@/services/offreService";
 import { Offre, SecteurActivite } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 const OffresPage: React.FC = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [offres, setOffres] = useState<Offre[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,6 +27,8 @@ const OffresPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("tous");
   const [secteurs, setSecteurs] = useState<SecteurActivite[]>([]);
   const [selectedSecteurs, setSelectedSecteurs] = useState<string[]>([]);
+  
+  const isAdmin = user?.role === 'responsable' || user?.role === 'superviseur';
   
   // Charger les offres depuis Supabase
   useEffect(() => {
@@ -96,6 +101,15 @@ const OffresPage: React.FC = () => {
     setOffres([...offres, newOffre]);
   };
 
+  // Gérer l'importation d'offres
+  const handleOffresImported = (newOffres: Offre[]) => {
+    setOffres(prevOffres => [...prevOffres, ...newOffres]);
+    toast({
+      title: "Importation réussie",
+      description: `${newOffres.length} offres ont été importées avec succès.`
+    });
+  };
+
   // Gérer la sélection/désélection d'un secteur
   const handleSecteurChange = (secteurId: string) => {
     setSelectedSecteurs(prev => {
@@ -111,9 +125,11 @@ const OffresPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Gestion des offres</h1>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Nouvelle offre
-        </Button>
+        {isAdmin && (
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Nouvelle offre
+          </Button>
+        )}
       </div>
       
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -173,6 +189,13 @@ const OffresPage: React.FC = () => {
             )}
           </PopoverContent>
         </Popover>
+        
+        {isAdmin && (
+          <OffreImportExport 
+            offres={offres} 
+            onOffreImported={handleOffresImported} 
+          />
+        )}
       </div>
       
       <Tabs defaultValue="tous" value={activeTab} onValueChange={setActiveTab}>
@@ -199,6 +222,7 @@ const OffresPage: React.FC = () => {
                   key={offre.id}
                   offre={offre}
                   onDelete={handleDeleteOffre}
+                  isEditable={isAdmin}
                 />
               ))}
             </div>
@@ -212,11 +236,13 @@ const OffresPage: React.FC = () => {
         </TabsContent>
       </Tabs>
       
-      <CreateOffreDialog
-        open={isCreateDialogOpen}
-        onOpenChange={setIsCreateDialogOpen}
-        onOffreCreated={handleAddOffre}
-      />
+      {isAdmin && (
+        <CreateOffreDialog
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          onOffreCreated={handleAddOffre}
+        />
+      )}
     </div>
   );
 };
