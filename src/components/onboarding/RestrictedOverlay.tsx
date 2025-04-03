@@ -18,8 +18,8 @@ const RestrictedOverlay: React.FC<{ children: React.ReactNode }> = ({ children }
   const supabase = useSupabaseClient();
   
   // Ces paths seront toujours accessibles indépendamment des restrictions
-  const allowedPaths = ['/login', '/register', '/agenda'];
-  const isAllowedPath = allowedPaths.includes(location.pathname);
+  const allowedPaths = ['/login', '/register', '/agenda', '/connexion', '/inscription'];
+  const isAllowedPath = allowedPaths.some(path => location.pathname === path);
   
   // Vérifier si l'utilisateur a déjà un rendez-vous
   useEffect(() => {
@@ -110,3 +110,4 @@ const RestrictedOverlay: React.FC<{ children: React.ReactNode }> = ({ children }
 };
 
 export default RestrictedOverlay;
+
