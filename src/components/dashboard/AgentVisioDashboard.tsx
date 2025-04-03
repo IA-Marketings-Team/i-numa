@@ -2,7 +2,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Users, Video } from "lucide-react";
+import { Calendar, Users, Video, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Statistique } from "@/types";
 import StatistiquesDashboard from "@/components/stats/StatistiquesDashboard";
@@ -18,6 +18,10 @@ const AgentVisioDashboard: React.FC<AgentVisioDashboardProps> = ({
 }) => {
   const navigate = useNavigate();
   
+  // Filtrage des statistiques par période
+  const dailyStats = statistics.filter(s => s.periode === 'jour');
+  const hasStatistics = statistics.length > 0;
+  
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -28,7 +32,7 @@ const AgentVisioDashboard: React.FC<AgentVisioDashboardProps> = ({
           <CardContent>
             <div className="mt-2 flex flex-col">
               <p className="text-3xl font-bold">
-                {statistics.length > 0 ? statistics[0].rendezVousHonores : 0}
+                {hasStatistics ? statistics[0].rendezVousHonores : 0}
               </p>
               <p className="text-white/70">RDV effectués aujourd'hui</p>
               <Button 
@@ -89,11 +93,18 @@ const AgentVisioDashboard: React.FC<AgentVisioDashboardProps> = ({
             <CardTitle>Statistiques journalières</CardTitle>
           </CardHeader>
           <CardContent>
-            <StatistiquesDashboard 
-              statistiques={statistics.filter(s => s.periode === 'jour')} 
-              periode="jour"
-              showMonetaryStats={false}
-            />
+            {dailyStats.length > 0 ? (
+              <StatistiquesDashboard 
+                statistiques={dailyStats} 
+                periode="jour"
+                showMonetaryStats={false}
+              />
+            ) : (
+              <div className="flex items-center justify-center p-4 text-muted-foreground">
+                <AlertCircle className="h-4 w-4 mr-2" />
+                Aucune statistique journalière disponible
+              </div>
+            )}
           </CardContent>
         </Card>
 

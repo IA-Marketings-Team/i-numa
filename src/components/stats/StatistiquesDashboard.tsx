@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import { Statistique } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { fetchAgentById } from "@/services/agentService";
 import { useToast } from "@/hooks/use-toast";
 
 export interface StatistiquesDashboardProps {
@@ -17,7 +16,6 @@ const StatistiquesDashboard: React.FC<StatistiquesDashboardProps> = ({
   showMonetaryStats = false
 }) => {
   const [periodStats, setPeriodStats] = useState<Statistique | null>(null);
-  const [agent, setAgent] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -29,6 +27,7 @@ const StatistiquesDashboard: React.FC<StatistiquesDashboardProps> = ({
           return new Date(prev.dateFin) > new Date(current.dateFin) ? prev : current;
         }, statistiques[0]);
         setPeriodStats(latestStat);
+        setIsLoading(false);
       } catch (error) {
         console.error("Erreur lors du traitement des statistiques:", error);
         toast({
@@ -36,37 +35,13 @@ const StatistiquesDashboard: React.FC<StatistiquesDashboardProps> = ({
           description: "Impossible de traiter les statistiques",
           variant: "destructive"
         });
+        setIsLoading(false);
       }
     } else {
       setPeriodStats(null);
+      setIsLoading(false);
     }
   }, [statistiques, toast]);
-
-  useEffect(() => {
-    const loadAgentData = async () => {
-      if (!periodStats) {
-        setIsLoading(false);
-        return;
-      }
-      
-      try {
-        setIsLoading(true);
-        const agentData = await fetchAgentById("agent1"); // Exemple d'ID - idéalement utiliser un ID dynamique
-        setAgent(agentData);
-      } catch (error) {
-        console.error("Erreur lors du chargement des données de l'agent:", error);
-        toast({
-          title: "Erreur",
-          description: "Impossible de charger les données de l'agent",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadAgentData();
-  }, [periodStats, toast]);
 
   if (isLoading) {
     return (
