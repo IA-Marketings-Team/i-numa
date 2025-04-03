@@ -4,10 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useDossier } from "@/contexts/DossierContext";
 import { useStatistique } from "@/contexts/StatistiqueContext";
 import { Dossier, UserRole, Statistique } from "@/types";
-
-import OverviewSection from "@/components/dashboard/OverviewSection";
-import PerformanceSection from "@/components/dashboard/PerformanceSection";
-import { hasPermission } from "@/utils/accessControl";
+import RoleBasedDashboard from "@/components/dashboard/RoleBasedDashboard";
+import { Navigate } from "react-router-dom";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -26,8 +24,13 @@ export default function Dashboard() {
   useEffect(() => {
     const loadStats = async () => {
       try {
+        // Charger les statistiques pertinentes pour le tableau de bord
         const monthlyStats = await getStatistiquesByPeriodeType("mois");
-        setStats(monthlyStats);
+        const weeklyStats = await getStatistiquesByPeriodeType("semaine");
+        const dailyStats = await getStatistiquesByPeriodeType("jour");
+        
+        // Combiner toutes les statistiques
+        setStats([...dailyStats, ...weeklyStats, ...monthlyStats]);
       } catch (error) {
         console.error("Error loading statistics:", error);
         setStats([]);
@@ -48,22 +51,21 @@ export default function Dashboard() {
     }
   }, [dossiers, isLoading]);
 
-  // Si l'utilisateur a le rôle 'client', rediriger vers une autre page
+  // Rediriger le client vers la page des offres
   if (userRole === 'client') {
-    return <div>Redirection vers la page client...</div>;
+    return <Navigate to="/mes-offres" />;
   }
 
   return (
     <div className="p-4 space-y-6">
       <h1 className="text-3xl font-bold">Tableau de bord</h1>
       
-      {/* Pass an empty array as statistiques if stats is undefined */}
-      <OverviewSection statistiques={stats || []} />
-      
-      {/* La section Performance est uniquement visible pour les superviseurs et responsables */}
-      {userRole && hasPermission(userRole, ['superviseur', 'responsable']) && (
-        <PerformanceSection statistiques={stats || []} />
-      )}
+      <RoleBasedDashboard 
+        userRole={userRole}
+        recentDossiers={recentDossiers}
+        statistics={stats}
+        isLoading={isLoading}
+      />
     </div>
   );
 }

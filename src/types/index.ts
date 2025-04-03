@@ -1,10 +1,6 @@
+// Ce fichier peut déjà exister, nous ajoutons l'exportation des définitions de types
 
-// Exporter tous les types de leurs fichiers respectifs
 export * from './user';
-export * from './dossier';
-export * from './offre';
 export * from './statistique';
-export * from './communication';
-export * from './task';
-export * from './marketplace';
 export * from './auth';
+// Exporter d'autres types au besoin
