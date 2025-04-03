@@ -1,10 +1,11 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, FileText, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ClientDashboardProps {
   recentDossiers: any[];
@@ -13,9 +14,44 @@ interface ClientDashboardProps {
 const ClientDashboard: React.FC<ClientDashboardProps> = ({ recentDossiers }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [clientDossiers, setClientDossiers] = useState<any[]>([]);
+  const [clientOffres, setClientOffres] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Filter dossiers to only include those associated with the current client
-  const clientDossiers = user ? recentDossiers.filter(dossier => dossier.clientId === user.id) : [];
+  useEffect(() => {
+    const fetchClientData = async () => {
+      if (!user) return;
+      
+      try {
+        // Fetch dossiers for current client
+        const { data: dossierData, error: dossierError } = await supabase
+          .from('dossiers')
+          .select('*')
+          .eq('client_id', user.id);
+          
+        if (dossierError) throw dossierError;
+        
+        // Fetch offres separately - this is a separate concept from dossiers
+        const { data: offreData, error: offreError } = await supabase
+          .from('offres')
+          .select('*');
+          
+        if (offreError) throw offreError;
+        
+        setClientDossiers(dossierData || []);
+        
+        // For now, we'll just set the offres count to 0 or the number of available offers
+        // In a real app, you'd fetch the client's purchased offers from a client_offres table
+        setClientOffres(offreData || []);
+      } catch (error) {
+        console.error("Error fetching client data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchClientData();
+  }, [user]);
 
   return (
     <div className="space-y-6">
@@ -26,7 +62,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ recentDossiers }) => 
           </CardHeader>
           <CardContent>
             <div className="mt-2 flex flex-col">
-              <p className="text-3xl font-bold">{clientDossiers.length}</p>
+              <p className="text-3xl font-bold">0</p>
               <p className="text-white/70">Offres actives</p>
               <Button 
                 className="mt-4 bg-white text-blue-600 hover:bg-white/90"
@@ -45,7 +81,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ recentDossiers }) => 
           </CardHeader>
           <CardContent>
             <div className="mt-2 flex flex-col">
-              <p className="text-3xl font-bold">{clientDossiers.length}</p>
+              <p className="text-3xl font-bold">{isLoading ? "..." : clientDossiers.length}</p>
               <p className="text-muted-foreground">Dossiers en cours</p>
               <Button 
                 variant="outline" 
@@ -85,7 +121,9 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ recentDossiers }) => 
           <CardTitle>Mes derniers dossiers</CardTitle>
         </CardHeader>
         <CardContent>
-          {clientDossiers.length === 0 ? (
+          {isLoading ? (
+            <p className="text-muted-foreground">Chargement des dossiers...</p>
+          ) : clientDossiers.length === 0 ? (
             <p className="text-muted-foreground">Aucun dossier récent</p>
           ) : (
             <div className="space-y-4">
@@ -97,7 +135,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ recentDossiers }) => 
                   <div>
                     <p className="font-medium">Dossier #{dossier.id.substring(0, 8)}</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(dossier.dateCreation).toLocaleDateString('fr-FR')}
+                      {new Date(dossier.date_creation).toLocaleDateString('fr-FR')}
                     </p>
                   </div>
                   <div>

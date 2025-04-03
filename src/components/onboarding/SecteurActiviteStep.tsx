@@ -48,12 +48,26 @@ const SecteurActiviteStep: React.FC = () => {
         <RadioGroup
           value={secteurActivite}
           onValueChange={setSecteurActivite}
-          className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-3"
         >
           {secteurs.map((secteur) => (
-            <div key={secteur.id} className="flex items-center space-x-2">
-              <RadioGroupItem value={secteur.id} id={`secteur-${secteur.id}`} />
-              <Label htmlFor={`secteur-${secteur.id}`} className="text-sm cursor-pointer">{secteur.nom}</Label>
+            <div 
+              key={secteur.id} 
+              className={`border rounded-lg p-3 transition-colors ${
+                secteurActivite === secteur.id 
+                  ? 'border-primary bg-primary/5' 
+                  : 'border-border hover:border-primary/50'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value={secteur.id} id={`secteur-${secteur.id}`} />
+                <Label 
+                  htmlFor={`secteur-${secteur.id}`} 
+                  className="text-sm cursor-pointer w-full"
+                >
+                  {secteur.nom}
+                </Label>
+              </div>
             </div>
           ))}
         </RadioGroup>

@@ -16,11 +16,11 @@ const BesoinsStep: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    // Fetch besoins from mock data or API
+    // Fetch from secteurs_activite table instead of offres
     const fetchBesoins = async () => {
       try {
         const { data, error } = await supabase
-          .from('offres')
+          .from('secteurs_activite')
           .select('id, nom')
           .order('nom');
           
@@ -64,20 +64,29 @@ const BesoinsStep: React.FC = () => {
           <p className="text-muted-foreground">Chargement des options...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+        <div className="grid grid-cols-2 gap-3">
           {besoinsOptions.map((besoin) => (
-            <div key={besoin.id} className="flex items-center space-x-2">
-              <Checkbox 
-                id={`besoin-${besoin.id}`}
-                checked={besoins.includes(besoin.id)}
-                onCheckedChange={(checked) => handleBesoinChange(besoin.id, checked === true)}
-              />
-              <Label 
-                htmlFor={`besoin-${besoin.id}`}
-                className="text-sm cursor-pointer"
-              >
-                {besoin.nom}
-              </Label>
+            <div 
+              key={besoin.id} 
+              className={`border rounded-lg p-3 transition-colors ${
+                besoins.includes(besoin.id) 
+                  ? 'border-primary bg-primary/5' 
+                  : 'border-border hover:border-primary/50'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id={`besoin-${besoin.id}`}
+                  checked={besoins.includes(besoin.id)}
+                  onCheckedChange={(checked) => handleBesoinChange(besoin.id, checked === true)}
+                />
+                <Label 
+                  htmlFor={`besoin-${besoin.id}`}
+                  className="text-sm cursor-pointer w-full"
+                >
+                  {besoin.nom}
+                </Label>
+              </div>
             </div>
           ))}
         </div>
