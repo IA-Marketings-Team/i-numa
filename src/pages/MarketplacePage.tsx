@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 import { offreService } from '@/services';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { supabase } from '@/integrations/supabase/client';
 
 const MarketplacePage = () => {
   const [offres, setOffres] = useState<Offre[]>([]);
