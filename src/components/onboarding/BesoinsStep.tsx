@@ -1,95 +1,90 @@
 
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { useOnboarding } from './OnboardingProvider';
+import { supabase } from '@/integrations/supabase/client';
 
-const BESOINS = [
-  { id: 'site-web', nom: 'Site web' },
-  { id: 'referencement', nom: 'Référencement SEO' },
-  { id: 'publicite', nom: 'Publicité en ligne' },
-  { id: 'email-marketing', nom: 'Email marketing' },
-  { id: 'reseaux-sociaux', nom: 'Gestion réseaux sociaux' },
-  { id: 'contenu', nom: 'Création de contenu' },
-  { id: 'ecommerce', nom: 'E-commerce' },
-  { id: 'crm', nom: 'CRM' },
-  { id: 'analyse', nom: 'Analyse de données' },
-];
+interface Besoin {
+  id: string;
+  nom: string;
+}
 
 const BesoinsStep: React.FC = () => {
   const { besoins, addBesoin, removeBesoin } = useOnboarding();
+  const [besoinsOptions, setBesoinsOptions] = useState<Besoin[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  const toggleBesoin = (besoinId: string) => {
-    if (besoins.includes(besoinId)) {
-      removeBesoin(besoinId);
-    } else {
+  useEffect(() => {
+    // Fetch besoins from mock data or API
+    const fetchBesoins = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('offres')
+          .select('id, nom')
+          .order('nom');
+          
+        if (error) throw error;
+        
+        setBesoinsOptions(data || []);
+      } catch (error) {
+        console.error('Erreur lors du chargement des besoins:', error);
+        // Fallback to mock data if API fails
+        setBesoinsOptions([
+          { id: 'site-web', nom: 'Site web' },
+          { id: 'seo', nom: 'Référencement naturel (SEO)' },
+          { id: 'ads', nom: 'Publicité en ligne' },
+          { id: 'social-media', nom: 'Gestion réseaux sociaux' },
+          { id: 'email-marketing', nom: 'Email marketing' },
+          { id: 'content', nom: 'Création de contenu' }
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchBesoins();
+  }, []);
+  
+  const handleBesoinChange = (besoinId: string, checked: boolean) => {
+    if (checked) {
       addBesoin(besoinId);
+    } else {
+      removeBesoin(besoinId);
     }
   };
-  
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Quels sont vos besoins principaux ?</h3>
+      <p className="text-muted-foreground text-sm">Sélectionnez au moins 3 services qui vous intéressent.</p>
       
-      <div className="space-y-4">
-        {/* Première rangée - 5 cartes */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-          {BESOINS.slice(0, 5).map((besoin) => (
-            <Card 
-              key={besoin.id}
-              className={`cursor-pointer transition-all ${
-                besoins.includes(besoin.id) 
-                  ? 'ring-2 ring-primary border-primary' 
-                  : 'hover:bg-accent'
-              }`}
-              onClick={() => toggleBesoin(besoin.id)}
-            >
-              <CardContent className="p-3 flex flex-col items-center justify-center h-full">
-                <div className="flex items-center justify-between w-full">
-                  <span className="font-medium text-center w-full">{besoin.nom}</span>
-                  {besoins.includes(besoin.id) && (
-                    <Check className="h-4 w-4 text-primary ml-2 flex-shrink-0" />
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+      {isLoading ? (
+        <div className="text-center py-2">
+          <p className="text-muted-foreground">Chargement des options...</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+          {besoinsOptions.map((besoin) => (
+            <div key={besoin.id} className="flex items-center space-x-2">
+              <Checkbox 
+                id={`besoin-${besoin.id}`}
+                checked={besoins.includes(besoin.id)}
+                onCheckedChange={(checked) => handleBesoinChange(besoin.id, checked === true)}
+              />
+              <Label 
+                htmlFor={`besoin-${besoin.id}`}
+                className="text-sm cursor-pointer"
+              >
+                {besoin.nom}
+              </Label>
+            </div>
           ))}
         </div>
-        
-        {/* Deuxième rangée - 4 cartes */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {BESOINS.slice(5).map((besoin) => (
-            <Card 
-              key={besoin.id}
-              className={`cursor-pointer transition-all ${
-                besoins.includes(besoin.id) 
-                  ? 'ring-2 ring-primary border-primary' 
-                  : 'hover:bg-accent'
-              }`}
-              onClick={() => toggleBesoin(besoin.id)}
-            >
-              <CardContent className="p-3 flex flex-col items-center justify-center h-full">
-                <div className="flex items-center justify-between w-full">
-                  <span className="font-medium text-center w-full">{besoin.nom}</span>
-                  {besoins.includes(besoin.id) && (
-                    <Check className="h-4 w-4 text-primary ml-2 flex-shrink-0" />
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+      )}
       
-      <p className="text-sm text-muted-foreground text-center mt-4">
-        Sélectionnez au moins 3 besoins principaux pour votre entreprise
-      </p>
-      
-      <div className="mt-4 text-sm">
-        <div className="flex items-center justify-center">
-          <span className="font-semibold mr-2">Sélection actuelle:</span>
-          <span>{besoins.length} / 3 minimum</span>
-        </div>
+      <div className="text-sm text-muted-foreground mt-2">
+        {besoins.length}/3 sélectionnés
       </div>
     </div>
   );

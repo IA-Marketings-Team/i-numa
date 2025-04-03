@@ -1,83 +1,67 @@
 
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import { useOnboarding } from './OnboardingProvider';
 import { supabase } from '@/integrations/supabase/client';
 
 interface SecteurActivite {
   id: string;
   nom: string;
-  description?: string;
 }
 
 const SecteurActiviteStep: React.FC = () => {
   const { secteurActivite, setSecteurActivite } = useOnboarding();
   const [secteurs, setSecteurs] = useState<SecteurActivite[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     const fetchSecteurs = async () => {
       try {
         const { data, error } = await supabase
           .from('secteurs_activite')
-          .select('id, nom, description')
+          .select('id, nom')
           .order('nom');
           
-        if (error) {
-          console.error('Error fetching secteurs:', error);
-          return;
-        }
+        if (error) throw error;
         
         setSecteurs(data || []);
       } catch (error) {
-        console.error('Error fetching secteurs:', error);
+        console.error('Erreur lors du chargement des secteurs:', error);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
     
     fetchSecteurs();
   }, []);
-  
-  if (loading) {
-    return <div className="text-center py-4">Chargement des secteurs d'activité...</div>;
-  }
-  
+
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium">Sélectionnez votre secteur d'activité</h3>
+      <h3 className="text-lg font-medium">Quel est votre secteur d'activité ?</h3>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        {secteurs.map((secteur) => (
-          <Card 
-            key={secteur.id}
-            className={`cursor-pointer transition-all ${
-              secteurActivite === secteur.id 
-                ? 'ring-2 ring-primary border-primary' 
-                : 'hover:bg-accent'
-            }`}
-            onClick={() => setSecteurActivite(secteur.id)}
-          >
-            <CardContent className="p-4 flex items-center justify-between">
-              <div>
-                <h4 className="font-medium">{secteur.nom}</h4>
-                {secteur.description && (
-                  <p className="text-sm text-muted-foreground">{secteur.description}</p>
-                )}
-              </div>
-              
-              {secteurActivite === secteur.id && (
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="text-center py-4">
+          <p className="text-muted-foreground">Chargement des secteurs...</p>
+        </div>
+      ) : (
+        <RadioGroup
+          value={secteurActivite}
+          onValueChange={setSecteurActivite}
+          className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+        >
+          {secteurs.map((secteur) => (
+            <div key={secteur.id} className="flex items-center space-x-2">
+              <RadioGroupItem value={secteur.id} id={`secteur-${secteur.id}`} />
+              <Label htmlFor={`secteur-${secteur.id}`} className="text-sm cursor-pointer">{secteur.nom}</Label>
+            </div>
+          ))}
+        </RadioGroup>
+      )}
       
-      <p className="text-sm text-muted-foreground text-center mt-4">
-        Choisissez le secteur d'activité qui correspond le mieux à votre entreprise
-      </p>
+      {secteurs.length === 0 && !isLoading && (
+        <p className="text-muted-foreground">Aucun secteur d'activité disponible.</p>
+      )}
     </div>
   );
 };

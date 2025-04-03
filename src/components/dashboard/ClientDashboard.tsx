@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, FileText, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ClientDashboardProps {
   recentDossiers: any[];
@@ -11,6 +12,10 @@ interface ClientDashboardProps {
 
 const ClientDashboard: React.FC<ClientDashboardProps> = ({ recentDossiers }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  // Filter dossiers to only include those associated with the current client
+  const clientDossiers = user ? recentDossiers.filter(dossier => dossier.clientId === user.id) : [];
 
   return (
     <div className="space-y-6">
@@ -21,7 +26,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ recentDossiers }) => 
           </CardHeader>
           <CardContent>
             <div className="mt-2 flex flex-col">
-              <p className="text-3xl font-bold">{recentDossiers.length}</p>
+              <p className="text-3xl font-bold">{clientDossiers.length}</p>
               <p className="text-white/70">Offres actives</p>
               <Button 
                 className="mt-4 bg-white text-blue-600 hover:bg-white/90"
@@ -40,7 +45,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ recentDossiers }) => 
           </CardHeader>
           <CardContent>
             <div className="mt-2 flex flex-col">
-              <p className="text-3xl font-bold">{recentDossiers.length}</p>
+              <p className="text-3xl font-bold">{clientDossiers.length}</p>
               <p className="text-muted-foreground">Dossiers en cours</p>
               <Button 
                 variant="outline" 
@@ -80,11 +85,11 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ recentDossiers }) => 
           <CardTitle>Mes derniers dossiers</CardTitle>
         </CardHeader>
         <CardContent>
-          {recentDossiers.length === 0 ? (
+          {clientDossiers.length === 0 ? (
             <p className="text-muted-foreground">Aucun dossier récent</p>
           ) : (
             <div className="space-y-4">
-              {recentDossiers.map((dossier) => (
+              {clientDossiers.map((dossier) => (
                 <div 
                   key={dossier.id} 
                   className="flex items-center justify-between border-b pb-2"

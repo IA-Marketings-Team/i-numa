@@ -1,14 +1,19 @@
+
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import { useOnboarding } from './OnboardingProvider';
 
 interface InformationsStepProps {
   onSubmitSuccess: () => void;
 }
 
 const InformationsStep: React.FC<InformationsStepProps> = ({ onSubmitSuccess }) => {
+  const { updateInformations, informations } = useOnboarding();
+  const { toast } = useToast();
+  
   const [formData, setFormData] = useState({
     nom: '',
     prenom: '',
@@ -16,23 +21,25 @@ const InformationsStep: React.FC<InformationsStepProps> = ({ onSubmitSuccess }) 
     societe: '',
     email: '',
     telephonePortable: '',
-    telephoneFixe: '',
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
   
   useEffect(() => {
-    // Check if all required fields are filled
-    const { nom, prenom, fonction, societe, email, telephonePortable } = formData;
-    setIsFormValid(
-      !!nom && !!prenom && !!fonction && !!societe && !!email && !!telephonePortable
-    );
+    // Check if required fields are filled (only email and telephone portable)
+    const { email, telephonePortable } = formData;
+    setIsFormValid(!!email && !!telephonePortable);
   }, [formData]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Update onboarding context
+    if (name === 'address' || name === 'city' || name === 'postalCode') {
+      updateInformations(name, value);
+    }
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,16 +57,10 @@ const InformationsStep: React.FC<InformationsStepProps> = ({ onSubmitSuccess }) 
     setIsSubmitting(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Save user information (in a real app this would be saved to backend)
-      localStorage.setItem('userInfo', JSON.stringify(formData));
-      
-      toast({
-        title: "Informations enregistrées",
-        description: "Merci pour vos informations, vous allez être redirigé vers votre espace client.",
-      });
+      // Update information in context
+      updateInformations('address', formData.fonction);
+      updateInformations('city', formData.societe);
+      updateInformations('postalCode', formData.telephonePortable);
       
       onSubmitSuccess();
     } catch (error) {
@@ -75,103 +76,85 @@ const InformationsStep: React.FC<InformationsStepProps> = ({ onSubmitSuccess }) 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="prenom">
-            Prénom <span className="text-red-500">*</span>
-          </Label>
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <Label htmlFor="prenom">Prénom</Label>
           <Input
             id="prenom"
             name="prenom"
             value={formData.prenom}
             onChange={handleChange}
-            required
+            placeholder="Votre prénom"
           />
         </div>
         
-        <div className="space-y-2">
-          <Label htmlFor="nom">
-            Nom <span className="text-red-500">*</span>
-          </Label>
+        <div className="space-y-1">
+          <Label htmlFor="nom">Nom</Label>
           <Input
             id="nom"
             name="nom"
             value={formData.nom}
             onChange={handleChange}
+            placeholder="Votre nom"
+          />
+        </div>
+      
+        <div className="space-y-1">
+          <Label htmlFor="fonction">Fonction</Label>
+          <Input
+            id="fonction"
+            name="fonction"
+            value={formData.fonction}
+            onChange={handleChange}
+            placeholder="Votre fonction"
+          />
+        </div>
+        
+        <div className="space-y-1">
+          <Label htmlFor="societe">Société</Label>
+          <Input
+            id="societe"
+            name="societe"
+            value={formData.societe}
+            onChange={handleChange}
+            placeholder="Nom de votre société"
+          />
+        </div>
+      
+        <div className="space-y-1">
+          <Label htmlFor="email">
+            Email <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="votre@email.com"
+            required
+          />
+        </div>
+        
+        <div className="space-y-1">
+          <Label htmlFor="telephonePortable">
+            Téléphone portable <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="telephonePortable"
+            name="telephonePortable"
+            value={formData.telephonePortable}
+            onChange={handleChange}
+            placeholder="06 12 34 56 78"
             required
           />
         </div>
       </div>
       
-      <div className="space-y-2">
-        <Label htmlFor="fonction">
-          Fonction <span className="text-red-500">*</span>
-        </Label>
-        <Input
-          id="fonction"
-          name="fonction"
-          value={formData.fonction}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="societe">
-          Société <span className="text-red-500">*</span>
-        </Label>
-        <Input
-          id="societe"
-          name="societe"
-          value={formData.societe}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="email">
-          Email <span className="text-red-500">*</span>
-        </Label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="telephonePortable">
-          Téléphone portable <span className="text-red-500">*</span>
-        </Label>
-        <Input
-          id="telephonePortable"
-          name="telephonePortable"
-          value={formData.telephonePortable}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="telephoneFixe">
-          Téléphone fixe <span className="text-muted-foreground">(facultatif)</span>
-        </Label>
-        <Input
-          id="telephoneFixe"
-          name="telephoneFixe"
-          value={formData.telephoneFixe}
-          onChange={handleChange}
-        />
-      </div>
-      
       <Button
         type="submit"
-        className="w-full mt-6"
+        className="w-full mt-4"
         disabled={isSubmitting || !isFormValid}
       >
         {isSubmitting ? 'Enregistrement...' : 'Terminer'}

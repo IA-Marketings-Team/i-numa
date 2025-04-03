@@ -14,8 +14,6 @@ export const OnboardingModal = () => {
     prevStep,
     isStepCompleted,
     isLastStep,
-    secteurActivite,
-    besoins,
     completeOnboarding,
     isOpen,
     setIsOpen 
@@ -40,21 +38,21 @@ export const OnboardingModal = () => {
       // Only allow opening, prevent closing
       if (open) setIsOpen(open);
     }}>
-      <DialogContent className="max-w-2xl p-6">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">
-            Complétez votre profil pour accéder à tous les services
+      <DialogContent className="max-w-md p-4 sm:p-6">
+        <DialogHeader className="mb-4">
+          <DialogTitle className="text-xl font-bold">
+            Complétez votre profil
           </DialogTitle>
           
           {/* Step indicator */}
-          <div className="mt-4 mb-8">
-            <div className="flex justify-between mb-2">
-              <span className="text-sm">Étape {currentStep + 1} sur 3</span>
-              <span className="text-sm font-medium">{progressPercentage.toFixed(0)}%</span>
+          <div className="mt-2">
+            <div className="flex justify-between mb-1">
+              <span className="text-xs">Étape {currentStep + 1}/3</span>
+              <span className="text-xs font-medium">{progressPercentage.toFixed(0)}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <div className="w-full bg-gray-200 rounded-full h-1.5">
               <div 
-                className="bg-primary h-2.5 rounded-full" 
+                className="bg-primary h-1.5 rounded-full" 
                 style={{ width: `${progressPercentage}%` }}
               ></div>
             </div>
@@ -62,18 +60,19 @@ export const OnboardingModal = () => {
         </DialogHeader>
         
         {/* Step content */}
-        <div className="py-4">
+        <div className="py-2">
           {currentStep === 0 && <SecteurActiviteStep />}
           {currentStep === 1 && <BesoinsStep />}
           {currentStep === 2 && <InformationsStep onSubmitSuccess={handleComplete} />}
         </div>
         
         {/* Navigation buttons */}
-        <div className="flex justify-between mt-6">
+        <div className="flex justify-between mt-4">
           {currentStep > 0 ? (
             <Button 
               variant="outline" 
               onClick={prevStep}
+              size="sm"
             >
               Retour
             </Button>
@@ -85,6 +84,7 @@ export const OnboardingModal = () => {
             <Button 
               onClick={nextStep}
               disabled={!isStepCompleted(currentStep)}
+              size="sm"
             >
               Suivant
             </Button>
@@ -92,6 +92,7 @@ export const OnboardingModal = () => {
             <Button 
               onClick={handleComplete}
               disabled={!isStepCompleted(currentStep)}
+              size="sm"
             >
               Terminer
             </Button>
