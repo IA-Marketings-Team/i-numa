@@ -38,7 +38,7 @@ export const OnboardingModal = () => {
       // Only allow opening, prevent closing
       if (open) setIsOpen(open);
     }}>
-      <DialogContent className="max-w-md p-4 sm:p-6">
+      <DialogContent className="max-w-2xl p-4 sm:p-6 overflow-y-auto max-h-[90vh]">
         <DialogHeader className="mb-4">
           <DialogTitle className="text-xl font-bold">
             Complétez votre profil

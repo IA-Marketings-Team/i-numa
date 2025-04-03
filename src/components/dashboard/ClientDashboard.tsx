@@ -23,6 +23,8 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ recentDossiers }) => 
       if (!user) return;
       
       try {
+        setIsLoading(true);
+        
         // Fetch dossiers for current client
         const { data: dossierData, error: dossierError } = await supabase
           .from('dossiers')
@@ -31,18 +33,11 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ recentDossiers }) => 
           
         if (dossierError) throw dossierError;
         
-        // Fetch offres separately - this is a separate concept from dossiers
-        const { data: offreData, error: offreError } = await supabase
-          .from('offres')
-          .select('*');
-          
-        if (offreError) throw offreError;
-        
         setClientDossiers(dossierData || []);
         
-        // For now, we'll just set the offres count to 0 or the number of available offers
-        // In a real app, you'd fetch the client's purchased offers from a client_offres table
-        setClientOffres(offreData || []);
+        // In a real app, you'd fetch the client's purchased offers 
+        // For now, we'll just set this to 0
+        setClientOffres([]);
       } catch (error) {
         console.error("Error fetching client data:", error);
       } finally {

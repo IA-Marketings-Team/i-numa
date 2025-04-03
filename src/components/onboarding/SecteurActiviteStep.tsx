@@ -48,12 +48,12 @@ const SecteurActiviteStep: React.FC = () => {
         <RadioGroup
           value={secteurActivite}
           onValueChange={setSecteurActivite}
-          className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2"
         >
           {secteurs.map((secteur) => (
             <div 
               key={secteur.id} 
-              className={`border rounded-lg p-3 transition-colors ${
+              className={`border rounded-lg p-2 transition-colors ${
                 secteurActivite === secteur.id 
                   ? 'border-primary bg-primary/5' 
                   : 'border-border hover:border-primary/50'
@@ -63,7 +63,7 @@ const SecteurActiviteStep: React.FC = () => {
                 <RadioGroupItem value={secteur.id} id={`secteur-${secteur.id}`} />
                 <Label 
                   htmlFor={`secteur-${secteur.id}`} 
-                  className="text-sm cursor-pointer w-full"
+                  className="text-xs sm:text-sm cursor-pointer w-full"
                 >
                   {secteur.nom}
                 </Label>
