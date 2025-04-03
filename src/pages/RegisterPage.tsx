@@ -3,10 +3,18 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import RegisterForm from "@/components/auth/RegisterForm";
+import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 
 const RegisterPage: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
+  const { setIsOnboarded } = useOnboarding();
   const navigate = useNavigate();
+
+  // Mark as not onboarded when visiting register page
+  useEffect(() => {
+    setIsOnboarded(false);
+    localStorage.removeItem('isOnboarded');
+  }, [setIsOnboarded]);
 
   // Redirect if already authenticated
   useEffect(() => {
