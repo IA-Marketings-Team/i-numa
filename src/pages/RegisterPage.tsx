@@ -29,13 +29,8 @@ const RegisterPage: React.FC = () => {
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
       <div className="w-full max-w-md mb-8">
         <h1 className="text-3xl font-bold text-center mb-2">Create Account</h1>
-        <p className="text-center text-gray-600 mb-2">
+        <p className="text-center text-gray-600">
           Join us and manage your business efficiently
-        </p>
-        <p className="text-center text-gray-500 text-sm">
-          Cette inscription est la première étape de notre processus. Vous serez 
-          guidé tout au long de votre parcours avec nous, de la création de votre compte 
-          jusqu'à la signature de votre contrat.
         </p>
       </div>
       

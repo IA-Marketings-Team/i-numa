@@ -8,7 +8,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserRole } from "@/types";
-import WorkflowComponent from "@/components/workflow/WorkflowComponent";
 
 interface RegisterTabProps {
   onRegister: (
@@ -57,17 +56,6 @@ const RegisterTab = ({ onRegister, formError }: RegisterTabProps) => {
   return (
     <>
       <CardContent>
-        {/* Add workflow component */}
-        <div className="mb-4">
-          <WorkflowComponent
-            currentStep={1}
-            completedSteps={[]}
-          />
-          <p className="text-center text-sm text-muted-foreground mt-2">
-            L'inscription est la première étape de votre parcours client
-          </p>
-        </div>
-        
         {(formError || validationError) && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />

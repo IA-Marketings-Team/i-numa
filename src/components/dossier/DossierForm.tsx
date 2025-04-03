@@ -15,7 +15,6 @@ import MontantInput from "./MontantInput";
 import NotesInput from "./NotesInput";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import WorkflowComponent from "@/components/workflow/WorkflowComponent";
 
 interface DossierFormProps {
   dossier?: Dossier;
@@ -55,41 +54,8 @@ const DossierForm: React.FC<DossierFormProps> = ({ dossier, isEditing = false, u
     return hasPermission(roles);
   };
 
-  // Determine current workflow step and completed steps based on status
-  const getWorkflowStepInfo = () => {
-    const statusToStep: Record<string, number> = {
-      'nouveau': 1,
-      'contact_planifie': 2,
-      'contacte': 2,
-      'rdv_planifie': 3,
-      'rdv_en_cours': 4,
-      'valide': 5,
-      'signe': 6
-    };
-    
-    const currentStep = statusToStep[status] || 1;
-    
-    // Define completed steps
-    const completedSteps: number[] = [];
-    Object.entries(statusToStep).forEach(([stepStatus, stepNumber]) => {
-      if (stepNumber < currentStep && statusToStep[stepStatus] <= stepNumber) {
-        completedSteps.push(stepNumber);
-      }
-    });
-    
-    return { currentStep, completedSteps };
-  };
-  
-  const { currentStep, completedSteps } = getWorkflowStepInfo();
-
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Add workflow visualization at the top */}
-      <WorkflowComponent 
-        currentStep={currentStep}
-        completedSteps={completedSteps}
-      />
-      
       <Card>
         <CardHeader>
           <CardTitle>{isEditing ? "Modifier le dossier" : "Créer un nouveau dossier"}</CardTitle>
