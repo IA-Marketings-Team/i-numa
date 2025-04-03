@@ -58,7 +58,8 @@ const ProspectByClient: React.FC = () => {
     const getAppelsByClient = async () => {
       try {
         setLoading(true);
-        const filtered = await fetchAppelsFiltered({ clientId: selectedClientId });
+        // Use the correct parameter name according to the service implementation
+        const filtered = await fetchAppelsFiltered({ agentId: selectedClientId });
         setFilteredAppels(filtered);
       } catch (error) {
         console.error("Erreur lors du filtrage des appels par client:", error);

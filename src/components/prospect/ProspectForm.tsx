@@ -18,6 +18,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCommunication } from '@/contexts/CommunicationContext';
 import { fetchAppelById, updateAppel, createAppel } from '@/services/appelService';
 import { useToast } from '@/hooks/use-toast';
+import { Appel } from '@/types';
 
 const formSchema = z.object({
   entreprise: z.string().optional(),
@@ -116,19 +117,22 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ appelId, onSuccess }) => {
     try {
       setLoading(true);
       
-      const appelData = {
+      // Collect additional information into a consolidated notes field
+      const additionalInfo = `\n\nInformations complémentaires:\nÂge: ${data.age || 'Non spécifié'}\nTéléphone: ${data.telephone || 'Non spécifié'}\nAdresse: ${data.adresse || 'Non spécifié'}\nVille: ${data.ville || 'Non spécifié'}`;
+      
+      const consolidatedNotes = data.notes ? `${data.notes}${additionalInfo}` : additionalInfo;
+      
+      const appelData: Partial<Appel> = {
         entreprise: data.entreprise,
         gerant: data.gerant,
         contact: data.contact,
         email: data.email,
         codePostal: data.codePostal,
-        statut: data.statut,
-        duree: data.duree,
-        notes: data.notes,
+        statut: data.statut as Appel['statut'],
+        duree: Number(data.duree),
+        notes: consolidatedNotes,
         dateRdv: data.dateRdv ? new Date(data.dateRdv) : undefined,
         heureRdv: data.heureRdv,
-        // Ajout des commentaires supplémentaires dans les notes
-        notes: `${data.notes || ''}\n\nInformations complémentaires:\nÂge: ${data.age || 'Non spécifié'}\nTéléphone: ${data.telephone || 'Non spécifié'}\nAdresse: ${data.adresse || 'Non spécifié'}\nVille: ${data.ville || 'Non spécifié'}`,
       };
       
       if (isEditing && appelId) {
@@ -141,8 +145,9 @@ const ProspectForm: React.FC<ProspectFormProps> = ({ appelId, onSuccess }) => {
         await createAppel({
           ...appelData,
           agentId: user.id,
+          clientId: "", // Setting a default empty string for clientId
           date: new Date(),
-        });
+        } as Omit<Appel, "id">);
         toast({
           title: "Succès",
           description: "La fiche de prospection a été créée",

@@ -132,7 +132,7 @@ const ProspectSummary: React.FC = () => {
                   {Object.entries(summaryData.statusCount).map(([status, count]) => (
                     <TableRow key={status}>
                       <TableCell>{status}</TableCell>
-                      <TableCell>{count}</TableCell>
+                      <TableCell>{count as number}</TableCell>
                       <TableCell>
                         {summaryData.totalAppels > 0 
                           ? Math.round((count as number) / summaryData.totalAppels * 100) 
