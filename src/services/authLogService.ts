@@ -12,14 +12,14 @@ interface CreateAuthLogData {
 
 export async function createAuthLog(data: CreateAuthLogData) {
   try {
-    // Use a direct SQL query for insert
+    // Use the RPC function we created
     const { data: result, error } = await supabase.rpc('insert_auth_log', {
       p_user_id: data.userId,
       p_action: data.action,
       p_timestamp: data.timestamp.toISOString(),
       p_user_agent: data.userAgent || null,
       p_ip_address: data.ipAddress || null
-    }) as { data: any; error: any };
+    });
 
     if (error) throw error;
     return { success: true, data: result };
@@ -31,10 +31,10 @@ export async function createAuthLog(data: CreateAuthLogData) {
 
 export async function getAuthLogs(userId: string) {
   try {
-    // Using a direct SQL query with RPC
+    // Use the RPC function we created
     const { data, error } = await supabase.rpc('get_user_auth_logs', {
       p_user_id: userId
-    }) as { data: any[]; error: any };
+    });
 
     if (error) throw error;
     return { success: true, data };
@@ -44,15 +44,14 @@ export async function getAuthLogs(userId: string) {
   }
 }
 
-// Rename to match the function name used in the AuthLogsTable component
 export const fetchAuthLogsByUser = getAuthLogs;
 
 export async function getRecentAuthLogs(limit = 50) {
   try {
-    // Using a direct SQL query with RPC
+    // Use the RPC function we created
     const { data, error } = await supabase.rpc('get_recent_auth_logs', {
       p_limit: limit
-    }) as { data: any[]; error: any };
+    });
 
     if (error) throw error;
     return { success: true, data };
