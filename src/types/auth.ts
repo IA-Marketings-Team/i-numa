@@ -1,10 +1,12 @@
 
 export interface AuthLog {
   id: string;
-  userId: string;
+  user_id: string;  // database column name
+  userId?: string;  // client-side normalized property 
   action: string;
-  timestamp: Date;
+  timestamp: Date | string;
   userAgent?: string;
   ipAddress?: string;
-  user_id?: string; // For compatibility with DB column names
+  user_agent?: string;  // database column name
+  ip_address?: string;  // database column name
 }

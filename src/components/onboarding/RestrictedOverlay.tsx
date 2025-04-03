@@ -25,12 +25,12 @@ const RestrictedOverlay: React.FC<{ children: React.ReactNode }> = ({ children }
     const checkAppointment = async () => {
       if (user && user.id) {
         try {
-          // Use type assertion for the query to avoid TypeScript errors
+          // Use a more explicit type assertion with a generic type
           const { data, error } = await supabase
             .from('rendez_vous')
             .select('*')
             .eq('client_id', user.id)
-            .limit(1) as any;
+            .limit(1) as { data: any[]; error: any };
             
           if (error) throw error;
           

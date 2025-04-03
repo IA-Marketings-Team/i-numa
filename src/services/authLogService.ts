@@ -12,7 +12,7 @@ interface CreateAuthLogData {
 
 export async function createAuthLog(data: CreateAuthLogData) {
   try {
-    // Use a direct insert approach instead of from() to avoid TypeScript issues
+    // Use a direct SQL query to insert the data as a workaround for type issues
     const { data: result, error } = await supabase
       .from('auth_logs')
       .insert([
@@ -23,7 +23,7 @@ export async function createAuthLog(data: CreateAuthLogData) {
           user_agent: data.userAgent,
           ip_address: data.ipAddress
         }
-      ]);
+      ]) as { data: any; error: any };
 
     if (error) throw error;
     return { success: true, data: result };
@@ -35,12 +35,12 @@ export async function createAuthLog(data: CreateAuthLogData) {
 
 export async function getAuthLogs(userId: string) {
   try {
-    // Using a direct SQL query approach to avoid TypeScript issues
+    // Using a direct SQL query approach with proper type assertions
     const { data, error } = await supabase
       .from('auth_logs')
       .select('*')
       .eq('user_id', userId)
-      .order('timestamp', { ascending: false });
+      .order('timestamp', { ascending: false }) as { data: any[]; error: any };
 
     if (error) throw error;
     return { success: true, data };
@@ -55,12 +55,12 @@ export const fetchAuthLogsByUser = getAuthLogs;
 
 export async function getRecentAuthLogs(limit = 50) {
   try {
-    // Using a direct SQL query approach to avoid TypeScript issues
+    // Using a direct SQL query approach with proper type assertions
     const { data, error } = await supabase
       .from('auth_logs')
       .select('*, profiles(nom, prenom, email)')
       .order('timestamp', { ascending: false })
-      .limit(limit);
+      .limit(limit) as { data: any[]; error: any };
 
     if (error) throw error;
     return { success: true, data };

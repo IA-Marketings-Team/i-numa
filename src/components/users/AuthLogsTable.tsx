@@ -24,7 +24,8 @@ const AuthLogsTable: React.FC<AuthLogsTableProps> = ({ userId }) => {
       try {
         const response = await getAuthLogs(userId);
         if (response.success && response.data) {
-          setLogs(response.data as AuthLog[]);
+          // Convert to AuthLog[] with proper type assertion
+          setLogs(response.data as unknown as AuthLog[]);
         } else {
           console.error(`Erreur lors du chargement des journaux:`, response.error);
         }
@@ -38,7 +39,7 @@ const AuthLogsTable: React.FC<AuthLogsTableProps> = ({ userId }) => {
     loadLogs();
   }, [userId]);
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | string) => {
     return format(new Date(date), 'dd/MM/yyyy à HH:mm:ss', { locale: fr });
   };
 
@@ -81,8 +82,8 @@ const AuthLogsTable: React.FC<AuthLogsTableProps> = ({ userId }) => {
                   </TableCell>
                   <TableCell>{formatDate(log.timestamp)}</TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {log.userAgent 
-                      ? log.userAgent.substring(0, 50) + (log.userAgent.length > 50 ? '...' : '') 
+                    {(log.userAgent || log.user_agent) 
+                      ? (log.userAgent || log.user_agent).substring(0, 50) + ((log.userAgent || log.user_agent).length > 50 ? '...' : '') 
                       : 'Non disponible'}
                   </TableCell>
                 </TableRow>
