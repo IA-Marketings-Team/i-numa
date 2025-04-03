@@ -6,6 +6,7 @@ import { useOnboarding } from './OnboardingProvider';
 import SecteurActiviteStep from './SecteurActiviteStep';
 import BesoinsStep from './BesoinsStep';
 import InformationsStep from './InformationsStep';
+import { useNavigate } from 'react-router-dom';
 
 export const OnboardingModal = () => {
   const { 
@@ -19,6 +20,8 @@ export const OnboardingModal = () => {
     setIsOpen 
   } = useOnboarding();
   
+  const navigate = useNavigate();
+  
   // Force the modal to stay open (prevent closing on outside click)
   useEffect(() => {
     if (!isOpen) {
@@ -28,6 +31,8 @@ export const OnboardingModal = () => {
 
   const handleComplete = async () => {
     await completeOnboarding();
+    // Redirect to marketplace after completing onboarding
+    navigate('/marketplace');
   };
 
   // Calculate step progress percentage
@@ -67,7 +72,7 @@ export const OnboardingModal = () => {
         </div>
         
         {/* Navigation buttons */}
-        <div className="flex justify-between mt-4">
+        <div className="flex justify-between mt-3">
           {currentStep > 0 ? (
             <Button 
               variant="outline" 

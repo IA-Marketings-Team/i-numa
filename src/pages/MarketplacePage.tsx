@@ -35,9 +35,11 @@ import {
   TrendingDown,
   Filter,
   Search,
-  Tags
+  Tags,
+  BookOpen
 } from 'lucide-react';
 import { offreService } from '@/services';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const MarketplacePage = () => {
   const [offres, setOffres] = useState<Offre[]>([]);
@@ -47,13 +49,41 @@ const MarketplacePage = () => {
   const [selectedSecteur, setSelectedSecteur] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<string>("asc");
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
-  const { addToCart, isInCart } = useCart();
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const { addToCart, isInCart, cart } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
   const isClient = user?.role === 'client';
   const isPhoner = user?.role === 'agent_phoner';
   const isResponsable = user?.role === 'responsable';
+  const [userSector, setUserSector] = useState<string | null>(null);
+
+  // Fetch user's sector if they are a client
+  useEffect(() => {
+    const fetchUserSector = async () => {
+      if (user && isClient) {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('secteur_activite')
+            .eq('id', user.id)
+            .single();
+          
+          if (error) throw error;
+          
+          if (data && data.secteur_activite) {
+            setUserSector(data.secteur_activite);
+            setSelectedSecteur(data.secteur_activite);
+          }
+        } catch (error) {
+          console.error("Error fetching user sector:", error);
+        }
+      }
+    };
+    
+    fetchUserSector();
+  }, [user, isClient]);
 
   useEffect(() => {
     const loadOffres = async () => {
@@ -114,14 +144,70 @@ const MarketplacePage = () => {
       title: "Ajouté au panier",
       description: `${offre.nom} a été ajouté à votre panier.`
     });
+    
+    // If client has items in cart, redirect to agenda page
+    if (isClient) {
+      setTimeout(() => {
+        navigate('/agenda');
+      }, 1500);
+    }
   };
 
   const handleSectorSelect = (sectorId: string) => {
     setSelectedSecteur(sectorId);
   };
+  
+  // User guide dialog content
+  const UserGuide = () => (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Bienvenue sur notre marketplace ! Voici comment utiliser notre application :
+      </p>
+      
+      <div className="space-y-2">
+        <h4 className="font-medium">1. Parcourir les offres</h4>
+        <p className="text-sm">Explorez les offres filtrées selon votre secteur d'activité.</p>
+      </div>
+      
+      <div className="space-y-2">
+        <h4 className="font-medium">2. Ajouter au panier</h4>
+        <p className="text-sm">Cliquez sur "Ajouter au panier" pour sélectionner une offre.</p>
+      </div>
+      
+      <div className="space-y-2">
+        <h4 className="font-medium">3. Prendre rendez-vous</h4>
+        <p className="text-sm">Après avoir ajouté une offre, vous serez redirigé vers l'agenda pour choisir une date et une heure de rendez-vous.</p>
+      </div>
+      
+      <div className="space-y-2">
+        <h4 className="font-medium">4. Confirmer par email</h4>
+        <p className="text-sm">Vous recevrez un email de confirmation pour valider votre rendez-vous.</p>
+      </div>
+    </div>
+  );
+
+  // Check if client has items in cart to determine if UI should be disabled
+  const isCartActive = isClient && cart.length > 0;
 
   return (
-    <div className="container mx-auto px-4 py-6 relative">
+    <div className={`container mx-auto px-4 py-6 relative ${isCartActive ? 'pointer-events-none opacity-70' : ''}`}>
+      {isCartActive && (
+        <div className="fixed inset-0 z-40 bg-black/20 pointer-events-none">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-900 p-4 rounded-lg shadow-lg pointer-events-auto">
+            <p className="text-center font-medium">
+              Vous avez des articles dans votre panier. <br />
+              Veuillez prendre rendez-vous dans l'agenda.
+            </p>
+            <Button 
+              onClick={() => navigate('/agenda')} 
+              className="mt-2 w-full"
+            >
+              Aller à l'agenda
+            </Button>
+          </div>
+        </div>
+      )}
+      
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Marketplace des Offres</h1>
@@ -130,6 +216,15 @@ const MarketplacePage = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            onClick={() => setIsGuideOpen(true)}
+            className="flex items-center gap-2 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100"
+          >
+            <BookOpen className="h-4 w-4" />
+            <span className="hidden md:inline">Guide d'utilisation</span>
+          </Button>
+          
           {(isPhoner || isResponsable) && (
             <Button 
               variant="outline" 
@@ -141,7 +236,12 @@ const MarketplacePage = () => {
             </Button>
           )}
           {isClient && <CartDrawer />}
-          <Button onClick={() => navigate("/contrat-acceptation")} variant="default" className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
+          <Button 
+            onClick={() => navigate("/contrat-acceptation")} 
+            variant="default" 
+            className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+            disabled={isCartActive}
+          >
             <ShoppingCart className="h-4 w-4" />
             Voir le panier
           </Button>
@@ -232,13 +332,14 @@ const MarketplacePage = () => {
                     className="pl-8 bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    disabled={isCartActive}
                   />
                 </div>
               </div>
               
               <div>
                 <label className="text-sm font-medium mb-1 block">Trier par</label>
-                <Select value={sortOrder} onValueChange={setSortOrder}>
+                <Select value={sortOrder} onValueChange={setSortOrder} disabled={isCartActive}>
                   <SelectTrigger className="w-full bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800">
                     <SelectValue placeholder="Trier par" />
                   </SelectTrigger>
@@ -260,6 +361,7 @@ const MarketplacePage = () => {
               variant="default" 
               className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
               onClick={() => setSelectedSecteur("all")}
+              disabled={isCartActive}
             >
               Voir tout
             </Button>
@@ -301,6 +403,7 @@ const MarketplacePage = () => {
                     setSearchQuery("");
                     setSelectedSecteur("all");
                   }}
+                  disabled={isCartActive}
                 >
                   Réinitialiser les filtres
                 </Button>
@@ -315,6 +418,15 @@ const MarketplacePage = () => {
         onOpenChange={setIsEmailDialogOpen}
         categories={offerCategories}
       />
+      
+      <Dialog open={isGuideOpen} onOpenChange={setIsGuideOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Guide d'utilisation</DialogTitle>
+          </DialogHeader>
+          <UserGuide />
+        </DialogContent>
+      </Dialog>
       
       {isClient && <FixedCartDrawer />}
     </div>

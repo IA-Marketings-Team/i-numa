@@ -151,14 +151,6 @@ const InformationsStep: React.FC<InformationsStepProps> = ({ onSubmitSuccess }) 
           />
         </div>
       </div>
-      
-      <Button
-        type="submit"
-        className="w-full mt-4"
-        disabled={isSubmitting || !isFormValid}
-      >
-        {isSubmitting ? 'Enregistrement...' : 'Terminer'}
-      </Button>
     </form>
   );
 };

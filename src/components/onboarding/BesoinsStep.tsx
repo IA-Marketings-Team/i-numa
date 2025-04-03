@@ -39,7 +39,7 @@ const BesoinsStep: React.FC = () => {
       <h3 className="text-lg font-medium">Quels sont vos besoins principaux ?</h3>
       <p className="text-muted-foreground text-sm">Sélectionnez jusqu'à 3 besoins qui vous intéressent.</p>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         {predefinedBesoins.map((besoin) => (
           <div 
             key={besoin.id} 
@@ -58,7 +58,7 @@ const BesoinsStep: React.FC = () => {
               />
               <Label 
                 htmlFor={`besoin-${besoin.id}`}
-                className="text-xs sm:text-sm cursor-pointer w-full"
+                className="text-xs cursor-pointer w-full"
               >
                 {besoin.nom}
               </Label>

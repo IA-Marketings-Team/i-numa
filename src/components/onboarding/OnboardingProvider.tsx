@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 // Define the context
 interface OnboardingContextType {
@@ -33,6 +34,7 @@ const OnboardingContext = createContext<OnboardingContextType | undefined>(undef
 export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -85,7 +87,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       case 0:
         return secteurActivite !== '';
       case 1:
-        return besoins.length >= 3;
+        return besoins.length === 3;
       case 2:
         return informations.address !== '' && informations.city !== '' && informations.postalCode !== '';
       default:
@@ -124,6 +126,9 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         title: "Profil complété",
         description: "Vos informations ont été enregistrées avec succès.",
       });
+      
+      // Redirect to marketplace
+      navigate('/marketplace');
     } catch (error) {
       console.error('Erreur lors de la sauvegarde du profil:', error);
       toast({
