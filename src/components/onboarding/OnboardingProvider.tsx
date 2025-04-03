@@ -2,6 +2,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface OnboardingState {
   isOnboarded: boolean;
@@ -38,6 +40,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
   
   const [isOnboarded, setIsOnboarded] = useState<boolean>(
     localStorage.getItem('isOnboarded') === 'true'
@@ -52,7 +55,8 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
   useEffect(() => {
     if (!isLoading && user && !isOnboarded) {
       // Only show onboarding if user is logged in, not onboarded yet, and not on login/register page
-      const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+      const isAuthPage = location.pathname === '/login' || location.pathname === '/register' ||
+                         location.pathname === '/connexion' || location.pathname === '/inscription';
       setIsOnboardingRequired(!isAuthPage);
     } else {
       setIsOnboardingRequired(false);
@@ -73,7 +77,35 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     setBesoins([]);
   };
   
-  const completeOnboarding = () => {
+  const completeOnboarding = async () => {
+    if (user && user.id) {
+      try {
+        // Mettre à jour le profil utilisateur avec les informations d'onboarding
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            secteur_activite: secteurActivite,
+            besoins: besoins.join(',')
+          })
+          .eq('id', user.id);
+        
+        if (error) throw error;
+        
+        toast({
+          title: "Profil mis à jour",
+          description: "Vos préférences ont été enregistrées avec succès.",
+        });
+      } catch (error) {
+        console.error("Erreur lors de la mise à jour du profil:", error);
+        
+        toast({
+          title: "Erreur",
+          description: "Nous n'avons pas pu sauvegarder vos préférences. Veuillez réessayer.",
+          variant: "destructive",
+        });
+      }
+    }
+    
     setIsOnboarded(true);
     localStorage.setItem('isOnboarded', 'true');
     setRestrictInterface(true);

@@ -1,30 +1,23 @@
 
 import React from 'react';
-import { useOnboarding } from './OnboardingProvider';
+import { Card, CardContent } from '@/components/ui/card';
 import { Check } from 'lucide-react';
+import { useOnboarding } from './OnboardingProvider';
 
-interface BesoinOption {
-  id: string;
-  name: string;
-}
+const BESOINS = [
+  { id: 'site-web', nom: 'Site web' },
+  { id: 'referencement', nom: 'Référencement SEO' },
+  { id: 'publicite', nom: 'Publicité en ligne' },
+  { id: 'email-marketing', nom: 'Email marketing' },
+  { id: 'reseaux-sociaux', nom: 'Gestion réseaux sociaux' },
+  { id: 'contenu', nom: 'Création de contenu' },
+  { id: 'ecommerce', nom: 'E-commerce' },
+  { id: 'crm', nom: 'CRM' },
+  { id: 'analyse', nom: 'Analyse de données' },
+];
 
 const BesoinsStep: React.FC = () => {
   const { besoins, addBesoin, removeBesoin } = useOnboarding();
-  
-  const optionsBesoins: BesoinOption[] = [
-    { id: 'leads', name: 'Générer des leads / visites en magasin' },
-    { id: 'animer', name: 'Animer / créer votre communauté' },
-    { id: 'contenu', name: 'Créer des contenus' },
-    { id: 'expertise', name: 'Valoriser votre expertise' },
-    { id: 'visibilite', name: 'Augmenter votre visibilité / notoriété' },
-    { id: 'avis', name: 'Générer des avis positifs' },
-    { id: 'efficacite', name: 'Gagner en efficacité' },
-    { id: 'fideliser', name: 'Fidéliser vos clients' },
-    { id: 'donnees', name: 'Exploiter vos données clients' },
-    { id: 'developper', name: 'Développer votre activité' },
-    { id: 'piloter', name: 'Piloter votre activité' },
-    { id: 'couts', name: 'Diminuer vos coûts' },
-  ];
   
   const toggleBesoin = (besoinId: string) => {
     if (besoins.includes(besoinId)) {
@@ -33,37 +26,72 @@ const BesoinsStep: React.FC = () => {
       addBesoin(besoinId);
     }
   };
-
+  
   return (
     <div className="space-y-4">
-      <p className="text-center text-muted-foreground mb-2">
-        Sélectionnez au moins 3 besoins pour votre activité
-      </p>
-      <p className="text-center text-sm text-muted-foreground mb-6">
-        {besoins.length} sélectionné(s) sur 3 minimum
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Première rangée - 5 cartes */}
+        <div className="col-span-1 md:col-span-2">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            {BESOINS.slice(0, 5).map((besoin) => (
+              <Card 
+                key={besoin.id}
+                className={`cursor-pointer transition-all ${
+                  besoins.includes(besoin.id) 
+                    ? 'ring-2 ring-primary border-primary' 
+                    : 'hover:bg-accent'
+                }`}
+                onClick={() => toggleBesoin(besoin.id)}
+              >
+                <CardContent className="p-3 flex flex-col items-center justify-center h-full">
+                  <div className="flex items-center justify-between w-full">
+                    <span className="font-medium text-center w-full">{besoin.nom}</span>
+                    {besoins.includes(besoin.id) && (
+                      <Check className="h-4 w-4 text-primary ml-2 flex-shrink-0" />
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+        
+        {/* Deuxième rangée - 4 cartes */}
+        <div className="col-span-1 md:col-span-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {BESOINS.slice(5).map((besoin) => (
+              <Card 
+                key={besoin.id}
+                className={`cursor-pointer transition-all ${
+                  besoins.includes(besoin.id) 
+                    ? 'ring-2 ring-primary border-primary' 
+                    : 'hover:bg-accent'
+                }`}
+                onClick={() => toggleBesoin(besoin.id)}
+              >
+                <CardContent className="p-3 flex flex-col items-center justify-center h-full">
+                  <div className="flex items-center justify-between w-full">
+                    <span className="font-medium text-center w-full">{besoin.nom}</span>
+                    {besoins.includes(besoin.id) && (
+                      <Check className="h-4 w-4 text-primary ml-2 flex-shrink-0" />
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      <p className="text-sm text-muted-foreground text-center mt-4">
+        Sélectionnez au moins 3 besoins principaux pour votre entreprise
       </p>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {optionsBesoins.map((besoin) => (
-          <div
-            key={besoin.id}
-            className={`
-              flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-muted transition-colors
-              ${besoins.includes(besoin.id) ? 'border-primary bg-primary/10' : 'border-muted'}
-            `}
-            onClick={() => toggleBesoin(besoin.id)}
-          >
-            <div 
-              className={`
-                w-5 h-5 rounded flex items-center justify-center
-                ${besoins.includes(besoin.id) ? 'bg-primary text-primary-foreground' : 'border border-muted-foreground'}
-              `}
-            >
-              {besoins.includes(besoin.id) && <Check size={14} />}
-            </div>
-            <span>{besoin.name}</span>
-          </div>
-        ))}
+      <div className="mt-4 text-sm">
+        <div className="flex items-center justify-center">
+          <span className="font-semibold mr-2">Sélection actuelle:</span>
+          <span>{besoins.length} / 3 minimum</span>
+        </div>
       </div>
     </div>
   );

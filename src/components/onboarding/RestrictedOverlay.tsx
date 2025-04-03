@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const RestrictedOverlay: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isOnboardingRequired, restrictInterface, setRestrictInterface } = useOnboarding();
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
-  const [hasAppointment, setHasAppointment] = useState(false);
+  const [hasDossier, setHasDossier] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -20,40 +20,43 @@ const RestrictedOverlay: React.FC<{ children: React.ReactNode }> = ({ children }
   const allowedPaths = ['/login', '/register', '/agenda', '/connexion', '/inscription'];
   const isAllowedPath = allowedPaths.some(path => location.pathname === path);
   
-  // Vérifier si l'utilisateur a déjà un rendez-vous
+  // Vérifier si le client a déjà un dossier
   useEffect(() => {
-    const checkAppointment = async () => {
-      if (user && user.id) {
+    const checkClientDossier = async () => {
+      if (user && user.id && user.role === 'client') {
         try {
-          // Use a more explicit type assertion with a generic type
+          // Requête pour vérifier si un dossier existe pour ce client
           const { data, error } = await supabase
-            .from('rendez_vous')
-            .select('*')
+            .from('dossiers')
+            .select('id')
             .eq('client_id', user.id)
-            .limit(1) as { data: any[]; error: any };
+            .limit(1);
             
           if (error) throw error;
           
-          setHasAppointment(data && data.length > 0);
+          setHasDossier(data && data.length > 0);
         } catch (error) {
-          console.error('Erreur lors de la vérification des rendez-vous:', error);
-          setHasAppointment(false);
+          console.error('Erreur lors de la vérification des dossiers:', error);
+          setHasDossier(false);
         }
+      } else {
+        // Si l'utilisateur n'est pas un client, il n'a pas besoin de passer par l'onboarding
+        setHasDossier(true);
       }
     };
     
-    checkAppointment();
+    checkClientDossier();
   }, [user]);
   
-  // Afficher le modal d'onboarding uniquement si l'utilisateur n'a pas de rendez-vous
+  // Afficher le modal d'onboarding uniquement si l'utilisateur est un client sans dossier
   useEffect(() => {
-    if (isOnboardingRequired && !hasAppointment) {
+    if (isOnboardingRequired && !hasDossier && user?.role === 'client') {
       setShowOnboardingModal(true);
-    } else if (hasAppointment) {
-      // Si l'utilisateur a un rendez-vous, ne pas restreindre l'interface
+    } else if (hasDossier || user?.role !== 'client') {
+      // Si l'utilisateur a un dossier ou n'est pas un client, ne pas restreindre l'interface
       setRestrictInterface(false);
     }
-  }, [isOnboardingRequired, hasAppointment, setRestrictInterface]);
+  }, [isOnboardingRequired, hasDossier, setRestrictInterface, user]);
   
   const handleNavigateToAgenda = () => {
     navigate('/agenda');
@@ -66,15 +69,16 @@ const RestrictedOverlay: React.FC<{ children: React.ReactNode }> = ({ children }
   return (
     <>
       {/* Onboarding Modal */}
-      {showOnboardingModal && !hasAppointment && (
+      {showOnboardingModal && !hasDossier && user?.role === 'client' && (
         <OnboardingModal
           open={showOnboardingModal}
           onClose={() => setShowOnboardingModal(false)}
+          closeOnOutsideClick={false}
         />
       )}
       
       {/* Soit montrer l'overlay de restriction, soit le contenu normal */}
-      {restrictInterface && !isAllowedPath && !hasAppointment ? (
+      {restrictInterface && !isAllowedPath && !hasDossier && user?.role === 'client' ? (
         <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-100 dark:bg-gray-900">
           <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
             <div className="flex justify-center mb-6">

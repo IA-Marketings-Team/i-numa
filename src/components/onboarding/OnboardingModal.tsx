@@ -11,9 +11,14 @@ import InformationsStep from './InformationsStep';
 interface OnboardingModalProps {
   open: boolean;
   onClose: () => void;
+  closeOnOutsideClick?: boolean;
 }
 
-const OnboardingModal: React.FC<OnboardingModalProps> = ({ open, onClose }) => {
+const OnboardingModal: React.FC<OnboardingModalProps> = ({ 
+  open, 
+  onClose,
+  closeOnOutsideClick = true 
+}) => {
   const { 
     currentStep, 
     setCurrentStep, 
@@ -119,9 +124,18 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ open, onClose }) => {
     }
   };
   
+  // Handler qui sera appelé quand l'utilisateur essaie de fermer le dialog
+  const handleOpenChange = (open: boolean) => {
+    if (open === false && !closeOnOutsideClick) {
+      // Empêcher la fermeture si closeOnOutsideClick est false
+      return;
+    }
+    onClose();
+  };
+  
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-center text-xl">
             {renderStepTitle()}

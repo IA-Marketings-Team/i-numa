@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { AuthLog } from '@/types';
-import { getAuthLogs } from '@/services/authLogService';
+import { fetchAuthLogsByUser } from '@/services/authLogService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { LogIn, LogOut } from 'lucide-react';
@@ -22,10 +22,21 @@ const AuthLogsTable: React.FC<AuthLogsTableProps> = ({ userId }) => {
       
       setLoading(true);
       try {
-        const response = await getAuthLogs(userId);
+        const response = await fetchAuthLogsByUser(userId);
         if (response.success && response.data) {
-          // Convert to AuthLog[] with proper type assertion
-          setLogs(response.data as unknown as AuthLog[]);
+          // Use a safe type assertion
+          const typedLogs: AuthLog[] = (response.data as any[]).map(log => ({
+            id: log.id,
+            user_id: log.user_id,
+            userId: log.user_id,
+            action: log.action,
+            timestamp: log.timestamp,
+            userAgent: log.user_agent,
+            user_agent: log.user_agent,
+            ipAddress: log.ip_address,
+            ip_address: log.ip_address
+          }));
+          setLogs(typedLogs);
         } else {
           console.error(`Erreur lors du chargement des journaux:`, response.error);
         }

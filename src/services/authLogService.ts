@@ -12,18 +12,14 @@ interface CreateAuthLogData {
 
 export async function createAuthLog(data: CreateAuthLogData) {
   try {
-    // Use a direct SQL query to insert the data as a workaround for type issues
-    const { data: result, error } = await supabase
-      .from('auth_logs')
-      .insert([
-        {
-          user_id: data.userId,
-          action: data.action,
-          timestamp: data.timestamp,
-          user_agent: data.userAgent,
-          ip_address: data.ipAddress
-        }
-      ]) as { data: any; error: any };
+    // Use a direct SQL query for insert
+    const { data: result, error } = await supabase.rpc('insert_auth_log', {
+      p_user_id: data.userId,
+      p_action: data.action,
+      p_timestamp: data.timestamp.toISOString(),
+      p_user_agent: data.userAgent || null,
+      p_ip_address: data.ipAddress || null
+    }) as { data: any; error: any };
 
     if (error) throw error;
     return { success: true, data: result };
@@ -35,12 +31,10 @@ export async function createAuthLog(data: CreateAuthLogData) {
 
 export async function getAuthLogs(userId: string) {
   try {
-    // Using a direct SQL query approach with proper type assertions
-    const { data, error } = await supabase
-      .from('auth_logs')
-      .select('*')
-      .eq('user_id', userId)
-      .order('timestamp', { ascending: false }) as { data: any[]; error: any };
+    // Using a direct SQL query with RPC
+    const { data, error } = await supabase.rpc('get_user_auth_logs', {
+      p_user_id: userId
+    }) as { data: any[]; error: any };
 
     if (error) throw error;
     return { success: true, data };
@@ -55,12 +49,10 @@ export const fetchAuthLogsByUser = getAuthLogs;
 
 export async function getRecentAuthLogs(limit = 50) {
   try {
-    // Using a direct SQL query approach with proper type assertions
-    const { data, error } = await supabase
-      .from('auth_logs')
-      .select('*, profiles(nom, prenom, email)')
-      .order('timestamp', { ascending: false })
-      .limit(limit) as { data: any[]; error: any };
+    // Using a direct SQL query with RPC
+    const { data, error } = await supabase.rpc('get_recent_auth_logs', {
+      p_limit: limit
+    }) as { data: any[]; error: any };
 
     if (error) throw error;
     return { success: true, data };
