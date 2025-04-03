@@ -33,7 +33,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ open, onClose }) => {
         setIsNextDisabled(secteurActivite === '');
         break;
       case 2:
-        setIsNextDisabled(besoins.length < 1); // Au moins 1 besoin sélectionné
+        setIsNextDisabled(besoins.length < 3);
         break;
       case 3:
         // This is handled within the InformationsStep component
@@ -118,16 +118,10 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ open, onClose }) => {
         return "";
     }
   };
-
-  // Empêcher la fermeture du modal en cliquant à l'extérieur ou en appuyant sur Escape
-  const preventClose = () => {
-    // Ne rien faire, pour empêcher la fermeture
-    return false;
-  };
   
   return (
-    <Dialog open={open} onOpenChange={preventClose}>
-      <DialogContent className="sm:max-w-[600px]" onInteractOutside={e => e.preventDefault()} onEscapeKeyDown={e => e.preventDefault()}>
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="text-center text-xl">
             {renderStepTitle()}
