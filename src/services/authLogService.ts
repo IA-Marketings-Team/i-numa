@@ -10,7 +10,7 @@ export const fetchAuthLogs = async (): Promise<AuthLog[]> => {
   try {
     // Utilisez la fonction RPC définie dans Supabase au lieu d'accéder directement à la table
     const { data, error } = await supabase
-      .rpc('get_auth_logs') as { data: any[] | null; error: any };
+      .rpc('get_auth_logs', {}) as { data: any[] | null; error: any };
 
     if (error) {
       console.error("Erreur lors de la récupération des journaux d'authentification:", error);
