@@ -50,10 +50,10 @@ const PerformanceSection: React.FC<PerformanceSectionProps> = ({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <Card className="bg-dark-card border-slate-800">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-lg font-medium">Performance d'appels</CardTitle>
-          <BarChart4 className="h-5 w-5 text-slate-400" />
+          <BarChart4 className="h-5 w-5 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -61,32 +61,25 @@ const PerformanceSection: React.FC<PerformanceSectionProps> = ({
               data={chartData}
               margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#2D3748" />
-              <XAxis 
-                dataKey="period" 
-                stroke="#CBD5E0" 
-                tick={{ fill: '#CBD5E0' }}
-              />
-              <YAxis stroke="#CBD5E0" tick={{ fill: '#CBD5E0' }} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#1A1F2C', borderColor: '#2D3748', color: '#E2E8F0' }}
-                labelStyle={{ color: '#E2E8F0' }}
-              />
+              <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+              <XAxis dataKey="period" />
+              <YAxis />
+              <Tooltip />
               <Legend />
-              <Bar dataKey="appelsEmis" stackId="a" fill="#3B82F6" name="Appels émis" />
-              <Bar dataKey="appelsDecroches" stackId="a" fill="#10B981" name="Appels décrochés" />
-              <Bar dataKey="appelsTransformes" stackId="a" fill="#8B5CF6" name="Appels transformés" />
+              <Bar dataKey="appelsEmis" fill="#3B82F6" name="Appels émis" />
+              <Bar dataKey="appelsDecroches" fill="#10B981" name="Appels décrochés" />
+              <Bar dataKey="appelsTransformes" fill="#8B5CF6" name="Appels transformés" />
             </RechartsBarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
-      <Card className="bg-dark-card border-slate-800">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-lg font-medium">
             {showAllData ? "Tendance du chiffre d'affaires" : "Tendance des rendez-vous"}
           </CardTitle>
-          <AreaChart className="h-5 w-5 text-slate-400" />
+          <AreaChart className="h-5 w-5 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -94,17 +87,10 @@ const PerformanceSection: React.FC<PerformanceSectionProps> = ({
               data={chartData}
               margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#2D3748" />
-              <XAxis 
-                dataKey="period" 
-                stroke="#CBD5E0" 
-                tick={{ fill: '#CBD5E0' }}
-              />
-              <YAxis stroke="#CBD5E0" tick={{ fill: '#CBD5E0' }} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#1A1F2C', borderColor: '#2D3748', color: '#E2E8F0' }}
-                labelStyle={{ color: '#E2E8F0' }}
-              />
+              <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+              <XAxis dataKey="period" />
+              <YAxis />
+              <Tooltip />
               <Legend />
               
               {showAllData ? (

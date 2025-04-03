@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { Statistique } from "@/types";
 import StatsAggregateDashboard from "@/components/stats/StatsAggregateDashboard";
 import StatistiquesDashboard from "@/components/stats/StatistiquesDashboard";
+import PerformanceSection from "./PerformanceSection";
 
 interface SuperviseurDashboardProps {
   recentDossiers: any[];
@@ -18,6 +19,10 @@ const SuperviseurDashboard: React.FC<SuperviseurDashboardProps> = ({
   statistics
 }) => {
   const navigate = useNavigate();
+  
+  // Filtrer les statistiques mensuelles pour le graphique
+  const monthlyStats = statistics.filter(s => s.periode === 'mois');
+  const hasStatistics = statistics.length > 0;
 
   return (
     <div className="space-y-6">
@@ -29,7 +34,7 @@ const SuperviseurDashboard: React.FC<SuperviseurDashboardProps> = ({
           <CardContent>
             <div className="mt-2 flex flex-col">
               <p className="text-3xl font-bold">
-                {statistics.length > 0 ? statistics[0].dossiersValides : 0}
+                {hasStatistics ? statistics[0].dossiersValides : 0}
               </p>
               <p className="text-white/70">Dossiers validés ce mois</p>
               <Button 
@@ -83,6 +88,13 @@ const SuperviseurDashboard: React.FC<SuperviseurDashboardProps> = ({
           </CardContent>
         </Card>
       </div>
+
+      {monthlyStats.length > 0 && (
+        <PerformanceSection 
+          statistiques={monthlyStats}
+          showAllData={true}
+        />
+      )}
 
       <Card>
         <CardHeader>

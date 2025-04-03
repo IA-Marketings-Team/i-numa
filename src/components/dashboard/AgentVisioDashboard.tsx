@@ -2,10 +2,11 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Users, Video, AlertCircle } from "lucide-react";
+import { Calendar, Users, Video, AlertCircle, BarChart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Statistique } from "@/types";
 import StatistiquesDashboard from "@/components/stats/StatistiquesDashboard";
+import PerformanceChart from "./PerformanceChart";
 
 interface AgentVisioDashboardProps {
   recentDossiers: any[];
@@ -20,7 +21,14 @@ const AgentVisioDashboard: React.FC<AgentVisioDashboardProps> = ({
   
   // Filtrage des statistiques par période
   const dailyStats = statistics.filter(s => s.periode === 'jour');
+  const weeklyStats = statistics.filter(s => s.periode === 'semaine');
   const hasStatistics = statistics.length > 0;
+  
+  // Données pour le graphique des rendez-vous
+  const performanceData = weeklyStats.map(stat => ({
+    name: new Date(stat.dateDebut).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
+    value: stat.rendezVousHonores
+  })).reverse();
   
   return (
     <div className="space-y-6">
@@ -86,6 +94,26 @@ const AgentVisioDashboard: React.FC<AgentVisioDashboardProps> = ({
           </CardContent>
         </Card>
       </div>
+
+      {weeklyStats.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <BarChart className="h-5 w-5 mr-2" />
+              Performance de rendez-vous
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PerformanceChart 
+              title="Rendez-vous honorés par semaine" 
+              data={performanceData} 
+              dataKey="value"
+              stroke="#8b5cf6"
+              fill="#8b5cf633"
+            />
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
