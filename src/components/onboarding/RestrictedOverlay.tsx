@@ -5,59 +5,100 @@ import { useOnboarding } from './OnboardingProvider';
 import OnboardingModal from './OnboardingModal';
 import { Button } from '@/components/ui/button';
 import { Calendar } from 'lucide-react';
-import { useSupabaseClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/hooks/use-toast';
 
 const RestrictedOverlay: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isOnboardingRequired, restrictInterface, setRestrictInterface } = useOnboarding();
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
   const [hasAppointment, setHasAppointment] = useState(false);
+  const [isCheckingAppointment, setIsCheckingAppointment] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const supabase = useSupabaseClient();
   
   // Ces paths seront toujours accessibles indépendamment des restrictions
-  const allowedPaths = ['/login', '/register', '/agenda'];
-  const isAllowedPath = allowedPaths.includes(location.pathname);
+  const allowedPaths = ['/login', '/register', '/connexion', '/inscription', '/agenda'];
+  const isAllowedPath = allowedPaths.some(path => location.pathname.startsWith(path));
   
   // Vérifier si l'utilisateur a déjà un rendez-vous
   useEffect(() => {
     const checkAppointment = async () => {
-      if (user && user.id) {
+      setIsCheckingAppointment(true);
+      
+      if (user && user.id && user.role === 'client') {
         try {
-          const { data, error } = await supabase
+          // Vérifier dans la table rendez_vous
+          const { data: appointmentData, error: appointmentError } = await supabase
             .from('rendez_vous')
             .select('*')
             .eq('client_id', user.id)
             .limit(1);
             
-          if (error) throw error;
+          if (appointmentError) throw appointmentError;
           
-          setHasAppointment(data && data.length > 0);
+          // Si l'utilisateur a un rendez-vous, ne pas afficher les pop-ups d'onboarding
+          if (appointmentData && appointmentData.length > 0) {
+            setHasAppointment(true);
+            setRestrictInterface(false);
+          } else {
+            // Si pas de rendez-vous, vérifier s'il y a un rendez-vous dans les dossiers
+            const { data: dossierData, error: dossierError } = await supabase
+              .from('dossiers')
+              .select('*')
+              .eq('client_id', user.id)
+              .not('date_rdv', 'is', null)
+              .limit(1);
+              
+            if (dossierError) throw dossierError;
+            
+            setHasAppointment(dossierData && dossierData.length > 0);
+            setRestrictInterface(!(dossierData && dossierData.length > 0));
+          }
         } catch (error) {
           console.error('Erreur lors de la vérification des rendez-vous:', error);
+          toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Impossible de vérifier vos rendez-vous. Veuillez réessayer."
+          });
           setHasAppointment(false);
         }
+      } else {
+        // Si l'utilisateur n'est pas un client, ne pas restreindre l'interface
+        if (user && user.role !== 'client') {
+          setRestrictInterface(false);
+        }
       }
+      
+      setIsCheckingAppointment(false);
     };
     
     checkAppointment();
-  }, [user, supabase]);
+  }, [user, setRestrictInterface]);
   
-  // Afficher le modal d'onboarding uniquement si l'utilisateur n'a pas de rendez-vous
+  // Afficher le modal d'onboarding uniquement si l'utilisateur est un client, n'a pas de rendez-vous, et un onboarding est requis
   useEffect(() => {
-    if (isOnboardingRequired && !hasAppointment) {
+    if (user?.role === 'client' && isOnboardingRequired && !hasAppointment && !isCheckingAppointment) {
       setShowOnboardingModal(true);
-    } else if (hasAppointment) {
-      // Si l'utilisateur a un rendez-vous, ne pas restreindre l'interface
-      setRestrictInterface(false);
     }
-  }, [isOnboardingRequired, hasAppointment, setRestrictInterface]);
+  }, [isOnboardingRequired, hasAppointment, user, isCheckingAppointment]);
   
   const handleNavigateToAgenda = () => {
     navigate('/agenda');
   };
+  
+  if (isCheckingAppointment) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-muted-foreground">Vérification de vos rendez-vous...</p>
+        </div>
+      </div>
+    );
+  }
   
   if (!isOnboardingRequired && !restrictInterface) {
     return <>{children}</>;
@@ -66,7 +107,7 @@ const RestrictedOverlay: React.FC<{ children: React.ReactNode }> = ({ children }
   return (
     <>
       {/* Onboarding Modal */}
-      {showOnboardingModal && !hasAppointment && (
+      {showOnboardingModal && user?.role === 'client' && !hasAppointment && (
         <OnboardingModal
           open={showOnboardingModal}
           onClose={() => setShowOnboardingModal(false)}
@@ -74,7 +115,7 @@ const RestrictedOverlay: React.FC<{ children: React.ReactNode }> = ({ children }
       )}
       
       {/* Soit montrer l'overlay de restriction, soit le contenu normal */}
-      {restrictInterface && !isAllowedPath && !hasAppointment ? (
+      {restrictInterface && !isAllowedPath && !hasAppointment && user?.role === 'client' ? (
         <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-100 dark:bg-gray-900">
           <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
             <div className="flex justify-center mb-6">

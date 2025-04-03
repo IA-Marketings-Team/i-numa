@@ -2,6 +2,7 @@
 import React from 'react';
 import { useOnboarding } from './OnboardingProvider';
 import { Check } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface BesoinOption {
   id: string;
@@ -30,6 +31,14 @@ const BesoinsStep: React.FC = () => {
     if (besoins.includes(besoinId)) {
       removeBesoin(besoinId);
     } else {
+      if (besoins.length >= 3) {
+        toast({
+          variant: "destructive",
+          title: "Limite atteinte",
+          description: "Vous ne pouvez sélectionner que 3 besoins maximum."
+        });
+        return;
+      }
       addBesoin(besoinId);
     }
   };
@@ -37,10 +46,13 @@ const BesoinsStep: React.FC = () => {
   return (
     <div className="space-y-4">
       <p className="text-center text-muted-foreground mb-2">
-        Sélectionnez au moins 3 besoins pour votre activité
+        Sélectionnez 3 besoins maximum pour votre activité
       </p>
       <p className="text-center text-sm text-muted-foreground mb-6">
-        {besoins.length} sélectionné(s) sur 3 minimum
+        <span className={besoins.length === 3 ? "text-green-500 font-medium" : ""}>
+          {besoins.length}
+        </span> 
+        <span> sélectionné(s) sur 3 maximum</span>
       </p>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -50,6 +62,7 @@ const BesoinsStep: React.FC = () => {
             className={`
               flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-muted transition-colors
               ${besoins.includes(besoin.id) ? 'border-primary bg-primary/10' : 'border-muted'}
+              ${besoins.length >= 3 && !besoins.includes(besoin.id) ? 'opacity-50 cursor-not-allowed' : ''}
             `}
             onClick={() => toggleBesoin(besoin.id)}
           >
