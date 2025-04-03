@@ -1,6 +1,4 @@
 
-// Si ce fichier n'existe pas déjà, nous ajoutons la définition de l'interface AuthLog
-
 export interface AuthLog {
   id: string;
   userId: string;
@@ -8,4 +6,5 @@ export interface AuthLog {
   timestamp: Date;
   userAgent?: string;
   ipAddress?: string;
+  user_id?: string; // For compatibility with DB column names
 }

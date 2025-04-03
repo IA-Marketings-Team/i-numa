@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { AuthLog } from '@/types';
-import { fetchAuthLogsByUser } from '@/services/authLogService';
+import { getAuthLogs } from '@/services/authLogService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { LogIn, LogOut } from 'lucide-react';
@@ -22,8 +22,12 @@ const AuthLogsTable: React.FC<AuthLogsTableProps> = ({ userId }) => {
       
       setLoading(true);
       try {
-        const authLogs = await fetchAuthLogsByUser(userId);
-        setLogs(authLogs);
+        const response = await getAuthLogs(userId);
+        if (response.success && response.data) {
+          setLogs(response.data as AuthLog[]);
+        } else {
+          console.error(`Erreur lors du chargement des journaux:`, response.error);
+        }
       } catch (error) {
         console.error(`Erreur lors du chargement des journaux pour l'utilisateur ${userId}:`, error);
       } finally {

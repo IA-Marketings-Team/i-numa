@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Upload, CheckCircle, AlertCircle } from 'lucide-react';
@@ -18,6 +17,16 @@ import Papa from 'papaparse';
 interface OffreImportExportProps {
   offres: Offre[];
   onOffreImported: (newOffres: Offre[]) => void;
+}
+
+interface CSVOffreData {
+  nom: string;
+  description: string;
+  type: string;
+  prix: string;
+  prix_mensuel: string;
+  frais_creation: string;
+  secteur_activite: string;
 }
 
 const OffreImportExport: React.FC<OffreImportExportProps> = ({ offres, onOffreImported }) => {
@@ -85,7 +94,7 @@ const OffreImportExport: React.FC<OffreImportExportProps> = ({ offres, onOffreIm
     const success: Offre[] = [];
     const errors: any[] = [];
 
-    Papa.parse(importFile, {
+    Papa.parse<CSVOffreData>(importFile, {
       header: true,
       skipEmptyLines: true,
       complete: async (results) => {
@@ -98,7 +107,7 @@ const OffreImportExport: React.FC<OffreImportExportProps> = ({ offres, onOffreIm
             // Convertir l'élément CSV en objet Offre
             const offre: Partial<Offre> = {
               nom: item.nom,
-              description: item.description,
+              description: item.description || '',
               type: item.type as any,
               prix: item.prix ? Number(item.prix) : undefined,
               prixMensuel: item.prix_mensuel,
@@ -107,7 +116,7 @@ const OffreImportExport: React.FC<OffreImportExportProps> = ({ offres, onOffreIm
             };
 
             // Ajouter l'offre via le service
-            const newOffre = await offreService.createOffre(offre);
+            const newOffre = await offreService.createOffre(offre as any);
             success.push(newOffre);
             successCount++;
           } catch (error) {
