@@ -1,3 +1,4 @@
+
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -11,6 +12,7 @@ import RestrictedOverlay from "@/components/onboarding/RestrictedOverlay";
 import DossiersPage from "@/pages/DossiersPage";
 import DossierDetailsPage from "@/pages/DossierDetailsPage";
 import DossierCreatePage from "@/pages/DossierCreatePage";
+import DossierEditPage from "@/pages/DossierEditPage";
 import ClientsPage from "@/pages/ClientsPage";
 import ClientDetailsPage from "@/pages/ClientDetailsPage";
 import ClientCreatePage from "@/pages/ClientCreatePage";
@@ -38,6 +40,7 @@ function App() {
                 <Route path="/dossiers" element={<DossiersPage />} />
                 <Route path="/dossiers/:id" element={<DossierDetailsPage />} />
                 <Route path="/dossiers/create" element={<DossierCreatePage />} />
+                <Route path="/dossiers/:id/edit" element={<DossierEditPage />} />
                 <Route path="/clients" element={<ClientsPage />} />
                 <Route path="/clients/:id" element={<ClientDetailsPage />} />
                 <Route path="/clients/create" element={<ClientCreatePage />} />

@@ -1,20 +1,19 @@
 
 import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { DossierProvider } from "@/contexts/DossierContext";
 import DossierForm from "@/components/dossier/DossierForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
-const DossierEditPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+const DossierCreatePage: React.FC = () => {
   const navigate = useNavigate();
 
   const handleBack = () => {
-    navigate(`/dossiers/${id}`);
+    navigate("/dossiers");
   };
-  
+
   return (
     <DossierProvider>
       <div className="space-y-6">
@@ -22,7 +21,7 @@ const DossierEditPage: React.FC = () => {
           <Button variant="outline" size="icon" onClick={handleBack}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-3xl font-bold">Modifier le dossier</h1>
+          <h1 className="text-3xl font-bold">Créer un nouveau dossier</h1>
         </div>
 
         <Card>
@@ -31,9 +30,8 @@ const DossierEditPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             <DossierForm 
-              dossierId={id}
-              onSuccess={() => {
-                navigate(`/dossiers/${id}`);
+              onSuccess={(dossierId) => {
+                navigate(`/dossiers/${dossierId}`);
               }}
             />
           </CardContent>
@@ -43,4 +41,4 @@ const DossierEditPage: React.FC = () => {
   );
 };
 
-export default DossierEditPage;
+export default DossierCreatePage;
