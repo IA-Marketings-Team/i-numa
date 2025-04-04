@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 interface ClientDashboardProps {
-  recentDossiers: any[];
+  recentDossiers?: any[]; // Made optional with the ? mark
 }
 
 const ClientDashboard: React.FC<ClientDashboardProps> = () => {
