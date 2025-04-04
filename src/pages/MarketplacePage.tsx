@@ -87,6 +87,7 @@ const MarketplacePage = () => {
       setIsLoading(true);
       try {
         const data = await offreService.fetchOffres();
+        console.log("Offres loaded:", data);
         setOffres(data);
         setFilteredOffres(data);
       } catch (error) {
@@ -119,7 +120,12 @@ const MarketplacePage = () => {
       // Filter by sector, checking if the sector is included in comma-separated list
       result = result.filter(offre => {
         if (!offre.secteurActivite) return false;
+        
+        // Split the sectors by comma and trim whitespace
         const secteurs = offre.secteurActivite.split(',').map(s => s.trim());
+        console.log(`Filtering ${offre.nom} with sectors: [${secteurs.join(', ')}], selected: ${selectedSecteur}`);
+        
+        // Check if the selected sector is in the list
         return secteurs.includes(selectedSecteur);
       });
     }
@@ -130,6 +136,7 @@ const MarketplacePage = () => {
         : b.nom.localeCompare(a.nom);
     });
     
+    console.log(`Filtered offers: ${result.length} of ${offres.length}`);
     setFilteredOffres(result);
   }, [offres, searchQuery, selectedSecteur, sortOrder]);
 
@@ -164,6 +171,15 @@ const MarketplacePage = () => {
 
   // Afficher le message de succès uniquement après ajout au panier
   const isCartActive = isClient && cart.length > 0 && isSuccessOverlay;
+  
+  // Handler for onboarding completion
+  const handleOnboardingSuccess = () => {
+    toast({
+      title: "Profil complété",
+      description: "Votre profil a été complété avec succès. Vous pouvez maintenant accéder à toutes les fonctionnalités.",
+      variant: "default"
+    });
+  };
 
   return (
     <div className="container mx-auto px-4 py-6 relative">
