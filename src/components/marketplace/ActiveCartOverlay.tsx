@@ -5,18 +5,19 @@ import { useNavigate } from 'react-router-dom';
 
 interface ActiveCartOverlayProps {
   isActive: boolean;
+  isSuccess?: boolean;
 }
 
-const ActiveCartOverlay: React.FC<ActiveCartOverlayProps> = ({ isActive }) => {
+const ActiveCartOverlay: React.FC<ActiveCartOverlayProps> = ({ isActive, isSuccess = false }) => {
   const navigate = useNavigate();
   
   if (!isActive) return null;
   
   return (
-    <div className="fixed inset-0 z-40 bg-black/20 pointer-events-none">
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg pointer-events-auto max-w-md text-center">
+    <div className="fixed inset-0 z-40 bg-black/20">
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg max-w-md text-center">
         <p className="font-medium mb-4">
-          Vous avez des articles dans votre panier
+          {isSuccess ? "Article ajouté avec succès" : "Vous avez des articles dans votre panier"}
         </p>
         <p className="text-sm text-muted-foreground mb-4">
           Veuillez prendre rendez-vous dans l'agenda pour continuer.

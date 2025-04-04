@@ -13,7 +13,7 @@ import { offreService } from '@/services';
 import { supabase } from '@/integrations/supabase/client';
 import { Offre } from "@/types";
 
-// Import the new components
+// Import the components
 import FeatureGrid from "@/components/marketplace/FeatureGrid";
 import MarketplaceFilters from "@/components/marketplace/MarketplaceFilters";
 import SpecialOffersCard from "@/components/marketplace/SpecialOffersCard";
@@ -31,6 +31,7 @@ const MarketplacePage = () => {
   const [sortOrder, setSortOrder] = useState<string>("asc");
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [isSuccessOverlay, setIsSuccessOverlay] = useState(false);
   const { addToCart, isInCart, cart } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -40,7 +41,11 @@ const MarketplacePage = () => {
   const isPhoner = user?.role === 'agent_phoner';
   const isResponsable = user?.role === 'responsable';
   const [userSector, setUserSector] = useState<string | null>(null);
+  
+  // État pour gérer l'affichage du message de succès
+  const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
 
+  // Récupérer le secteur depuis l'URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const sectorParam = params.get('secteur');
@@ -50,6 +55,7 @@ const MarketplacePage = () => {
     }
   }, [location.search]);
 
+  // Récupérer le secteur d'activité de l'utilisateur depuis la base de données
   useEffect(() => {
     const fetchUserSector = async () => {
       if (user && isClient) {
@@ -78,6 +84,7 @@ const MarketplacePage = () => {
     fetchUserSector();
   }, [user, isClient, selectedSecteur]);
 
+  // Charger les offres depuis le service
   useEffect(() => {
     const loadOffres = async () => {
       setIsLoading(true);
@@ -100,6 +107,7 @@ const MarketplacePage = () => {
     loadOffres();
   }, [toast]);
 
+  // Filtrer les offres en fonction des critères
   useEffect(() => {
     let result = [...offres];
     
@@ -124,19 +132,23 @@ const MarketplacePage = () => {
   }, [offres, searchQuery, selectedSecteur, sortOrder]);
 
   const handleAddToCart = (offre: Offre) => {
-    toast({
-      title: "Offre sélectionnée",
-      description: `${offre.nom} a été sélectionnée. Veuillez prendre un rendez-vous.`
-    });
-    
-    localStorage.setItem('selectedOffre', JSON.stringify({
+    // Ajouter au panier
+    addToCart({
       offreId: offre.id,
+      quantity: 1,
       title: offre.nom,
       category: offre.type,
       price: offre.prix?.toString() || "0"
-    }));
+    });
     
-    navigate('/agenda');
+    // Afficher le message de succès
+    setIsSuccessOverlay(true);
+    
+    // Notification toast
+    toast({
+      title: "Offre ajoutée",
+      description: `${offre.nom} a été ajouté à votre panier.`
+    });
   };
 
   const handleSectorSelect = (sectorId: string) => {
@@ -148,11 +160,12 @@ const MarketplacePage = () => {
     setSelectedSecteur("all");
   };
 
-  const isCartActive = isClient && cart.length > 0;
+  // Afficher le message de succès uniquement après ajout au panier
+  const isCartActive = isClient && cart.length > 0 && isSuccessOverlay;
 
   return (
-    <div className={`container mx-auto px-4 py-6 relative ${isCartActive ? 'pointer-events-none opacity-70' : ''}`}>
-      <ActiveCartOverlay isActive={isCartActive} />
+    <div className="container mx-auto px-4 py-6 relative">
+      <ActiveCartOverlay isActive={isCartActive} isSuccess={true} />
       
       <MarketplaceHeader 
         onOpenGuide={() => setIsGuideOpen(true)}
@@ -160,7 +173,7 @@ const MarketplacePage = () => {
         isPhoner={isPhoner}
         isResponsable={isResponsable}
         isClient={isClient}
-        isCartActive={isCartActive}
+        isCartActive={false} // Désactive l'effet grisé
       />
       
       <FeatureGrid />
@@ -177,12 +190,12 @@ const MarketplacePage = () => {
             setSearchQuery={setSearchQuery}
             sortOrder={sortOrder}
             setSortOrder={setSortOrder}
-            disabled={isCartActive}
+            disabled={false} // Désactive l'effet grisé
           />
           
           <SpecialOffersCard
             onViewAll={() => setSelectedSecteur("all")}
-            disabled={isCartActive}
+            disabled={false} // Désactive l'effet grisé
           />
         </div>
         
@@ -203,6 +216,7 @@ const MarketplacePage = () => {
                   prix={offre.prix || 0}
                   prixMensuel={offre.prixMensuel || ""}
                   fraisCreation={offre.fraisCreation || ""}
+                  onAddToCart={() => handleAddToCart(offre)}
                 />
               ))}
             </div>
@@ -210,7 +224,7 @@ const MarketplacePage = () => {
             <EmptyOfferState 
               onResetFilters={handleResetFilters}
               showResetButton={searchQuery !== "" || selectedSecteur !== "all"}
-              disabled={isCartActive}
+              disabled={false} // Désactive l'effet grisé
             />
           )}
         </div>
