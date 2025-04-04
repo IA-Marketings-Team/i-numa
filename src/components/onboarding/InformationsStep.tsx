@@ -32,12 +32,12 @@ const InformationsStep: React.FC<InformationsStepProps> = ({ onSubmitSuccess }) 
     const isValid = !!email && !!telephonePortable;
     setIsFormValid(isValid);
     
-    // Update onboarding context with form data
-    if (isValid) {
-      updateInformations('address', formData.fonction);
-      updateInformations('city', formData.societe);
-      updateInformations('postalCode', formData.telephonePortable);
-    }
+    // Update onboarding context with form data when fields change
+    // This ensures the context is updated immediately for validation
+    updateInformations('address', formData.fonction);
+    updateInformations('city', formData.societe);
+    updateInformations('postalCode', formData.telephonePortable);
+    
   }, [formData, updateInformations]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

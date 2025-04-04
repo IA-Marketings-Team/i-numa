@@ -1,11 +1,9 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
-// Define the context
 interface OnboardingContextType {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
@@ -48,9 +46,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   
   const isLastStep = currentStep === 2;
   
-  // Add a state to track if onboarding is completed
   const [isOnboarded, setIsOnboarded] = useState<boolean>(() => {
-    // Check localStorage for saved state
     const savedState = localStorage.getItem('isOnboarded');
     return savedState === 'true';
   });
@@ -89,10 +85,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       case 1:
         return besoins.length > 0 && besoins.length <= 3;
       case 2:
-        // Check if the third step is completed (both address and postalCode are required)
-        return informations.address !== '' && 
-               informations.city !== '' && 
-               informations.postalCode !== '';
+        return informations.postalCode !== '';
       default:
         return false;
     }
@@ -102,7 +95,6 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (!user) return;
     
     try {
-      // Save onboarding data to profiles table
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -118,11 +110,9 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         throw error;
       }
       
-      // Set onboarding as completed
       setIsOnboarded(true);
       localStorage.setItem('isOnboarded', 'true');
       
-      // Close the modal
       setIsOpen(false);
       
       toast({
@@ -130,7 +120,6 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         description: "Vos informations ont été enregistrées avec succès.",
       });
       
-      // Redirect to marketplace
       navigate('/marketplace');
     } catch (error) {
       console.error('Erreur lors de la sauvegarde du profil:', error);
