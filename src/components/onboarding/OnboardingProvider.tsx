@@ -87,9 +87,12 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       case 0:
         return secteurActivite !== '';
       case 1:
-        return besoins.length === 3;
+        return besoins.length > 0 && besoins.length <= 3;
       case 2:
-        return informations.address !== '' && informations.city !== '' && informations.postalCode !== '';
+        // Check if the third step is completed (both address and postalCode are required)
+        return informations.address !== '' && 
+               informations.city !== '' && 
+               informations.postalCode !== '';
       default:
         return false;
     }

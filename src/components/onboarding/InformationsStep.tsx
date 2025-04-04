@@ -29,17 +29,20 @@ const InformationsStep: React.FC<InformationsStepProps> = ({ onSubmitSuccess }) 
   useEffect(() => {
     // Check if required fields are filled (only email and telephone portable)
     const { email, telephonePortable } = formData;
-    setIsFormValid(!!email && !!telephonePortable);
-  }, [formData]);
+    const isValid = !!email && !!telephonePortable;
+    setIsFormValid(isValid);
+    
+    // Update onboarding context with form data
+    if (isValid) {
+      updateInformations('address', formData.fonction);
+      updateInformations('city', formData.societe);
+      updateInformations('postalCode', formData.telephonePortable);
+    }
+  }, [formData, updateInformations]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
-    // Update onboarding context
-    if (name === 'address' || name === 'city' || name === 'postalCode') {
-      updateInformations(name, value);
-    }
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,11 +60,7 @@ const InformationsStep: React.FC<InformationsStepProps> = ({ onSubmitSuccess }) 
     setIsSubmitting(true);
     
     try {
-      // Update information in context
-      updateInformations('address', formData.fonction);
-      updateInformations('city', formData.societe);
-      updateInformations('postalCode', formData.telephonePortable);
-      
+      // All updates to context are already happening in the useEffect
       onSubmitSuccess();
     } catch (error) {
       console.error('Error submitting form:', error);

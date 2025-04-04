@@ -71,7 +71,7 @@ export const OnboardingModal = () => {
           {currentStep === 2 && <InformationsStep onSubmitSuccess={handleComplete} />}
         </div>
         
-        {/* Navigation buttons */}
+        {/* Navigation buttons - reduced spacing by removing mt-6 and using mt-3 */}
         <div className="flex justify-between mt-3">
           {currentStep > 0 ? (
             <Button 
