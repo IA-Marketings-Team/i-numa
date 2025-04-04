@@ -42,9 +42,6 @@ const MarketplacePage = () => {
   const isResponsable = user?.role === 'responsable';
   const [userSector, setUserSector] = useState<string | null>(null);
   
-  // État pour gérer l'affichage du message de succès
-  const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
-
   // Récupérer le secteur depuis l'URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -119,7 +116,12 @@ const MarketplacePage = () => {
     }
     
     if (selectedSecteur && selectedSecteur !== "all") {
-      result = result.filter(offre => offre.secteurActivite === selectedSecteur);
+      // Filter by sector, checking if the sector is included in comma-separated list
+      result = result.filter(offre => {
+        if (!offre.secteurActivite) return false;
+        const sectors = offre.secteurActivite.split(',').map(s => s.trim());
+        return sectors.includes(selectedSecteur);
+      });
     }
     
     result.sort((a, b) => {
@@ -208,7 +210,7 @@ const MarketplacePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredOffres.map(offre => (
                 <OffreDetailCard 
-                  key={offre.id} 
+                  key={offre.id}
                   offreId={offre.id}
                   nom={offre.nom}
                   description={offre.description}
