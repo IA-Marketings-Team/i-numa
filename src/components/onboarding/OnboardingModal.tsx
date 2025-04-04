@@ -24,7 +24,8 @@ export const OnboardingModal = ({ onClose }: OnboardingModalProps) => {
       isLastStep,
       completeOnboarding,
       isOpen,
-      setIsOpen 
+      setIsOpen,
+      secteurActivite
     } = useOnboarding();
     
     const navigate = useNavigate();
@@ -44,16 +45,19 @@ export const OnboardingModal = ({ onClose }: OnboardingModalProps) => {
       toast({
         title: "Profil complété",
         description: "Votre profil a été complété avec succès. Vous pouvez maintenant accéder à toutes les fonctionnalités.",
-        variant: "default" // Changed from "success" to "default"
+        variant: "default"
       });
       
-      // Close the modal and redirect to marketplace
+      // Close the modal
       setIsOpen(false);
+      
       if (onClose) {
         onClose();
       }
+      
       // Redirect to marketplace after completing onboarding
-      navigate('/marketplace');
+      // Pass the selected sector as a query parameter to filter offers
+      navigate(`/marketplace?secteur=${secteurActivite}`);
     };
 
     const handleCloseDialog = () => {

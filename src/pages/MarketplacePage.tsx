@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from "@/contexts/CartContext";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,11 +53,21 @@ const MarketplacePage = () => {
   const { addToCart, isInCart, cart } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const isClient = user?.role === 'client';
   const isPhoner = user?.role === 'agent_phoner';
   const isResponsable = user?.role === 'responsable';
   const [userSector, setUserSector] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const sectorParam = params.get('secteur');
+    
+    if (sectorParam) {
+      setSelectedSecteur(sectorParam);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     const fetchUserSector = async () => {
@@ -73,7 +83,10 @@ const MarketplacePage = () => {
           
           if (data && data.secteur_activite) {
             setUserSector(data.secteur_activite);
-            setSelectedSecteur(data.secteur_activite);
+            
+            if (selectedSecteur === "all") {
+              setSelectedSecteur(data.secteur_activite);
+            }
           }
         } catch (error) {
           console.error("Error fetching user sector:", error);
@@ -82,7 +95,7 @@ const MarketplacePage = () => {
     };
     
     fetchUserSector();
-  }, [user, isClient]);
+  }, [user, isClient, selectedSecteur]);
 
   useEffect(() => {
     const loadOffres = async () => {
@@ -130,24 +143,19 @@ const MarketplacePage = () => {
   }, [offres, searchQuery, selectedSecteur, sortOrder]);
 
   const handleAddToCart = (offre: Offre) => {
-    addToCart({
+    toast({
+      title: "Offre sélectionnée",
+      description: `${offre.nom} a été sélectionnée. Veuillez prendre un rendez-vous.`
+    });
+    
+    localStorage.setItem('selectedOffre', JSON.stringify({
       offreId: offre.id,
       title: offre.nom,
       category: offre.type,
-      price: offre.prix?.toString() || "0",
-      quantity: 1
-    });
+      price: offre.prix?.toString() || "0"
+    }));
     
-    toast({
-      title: "Ajouté au panier",
-      description: `${offre.nom} a été ajouté à votre panier.`
-    });
-    
-    if (isClient) {
-      setTimeout(() => {
-        navigate('/agenda');
-      }, 1500);
-    }
+    navigate('/agenda');
   };
 
   const handleSectorSelect = (sectorId: string) => {
@@ -187,8 +195,8 @@ const MarketplacePage = () => {
   return (
     <div className={`container mx-auto px-4 py-6 relative ${isCartActive ? 'pointer-events-none opacity-70' : ''}`}>
       {isCartActive && (
-        <div className="fixed inset-0 z-40 bg-black/20 pointer-events-none flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg pointer-events-auto max-w-md text-center">
+        <div className="fixed inset-0 z-40 bg-black/20 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg pointer-events-auto max-w-md text-center">
             <p className="font-medium mb-4">
               Vous avez des articles dans votre panier
             </p>
@@ -314,7 +322,7 @@ const MarketplacePage = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-[250px_1fr] gap-6 mt-6">
         <div className="space-y-6">
-          <div className="bg-gradient-to-br from-white to-purple-50 dark:from-gray-900 dark:to-indigo-950 p-5 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
+          <div className="bg-gradient-to-br from-white to-purple-50 dark:from-gray-900 dark:to-purple-950 p-5 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
             <h3 className="text-lg font-medium mb-3 flex items-center bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
               <Filter className="mr-2 h-4 w-4 text-indigo-500" />
               Filtres
