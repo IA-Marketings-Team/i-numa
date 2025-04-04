@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { format, addDays, startOfWeek, addWeeks, subWeeks } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -71,7 +70,6 @@ const AgendaPage: React.FC = () => {
       description: "Un email de confirmation a été envoyé. Veuillez cliquer sur le lien dans l'email pour confirmer votre rendez-vous.",
     });
 
-    // Reset form
     setNewAppointment({
       date: undefined,
       time: "",
@@ -144,7 +142,7 @@ const AgendaPage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto py-6 overflow-hidden">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Agenda</h1>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -153,7 +151,7 @@ const AgendaPage: React.FC = () => {
               Prendre un rendez-vous
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Planifier un rendez-vous</DialogTitle>
             </DialogHeader>
@@ -163,17 +161,19 @@ const AgendaPage: React.FC = () => {
                   <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                   <label className="text-sm font-medium">Date du rendez-vous</label>
                 </div>
-                <Calendar
-                  mode="single"
-                  selected={newAppointment.date}
-                  onSelect={date => setNewAppointment(prev => ({ ...prev, date }))}
-                  disabled={(date) => {
-                    const now = new Date();
-                    now.setHours(0, 0, 0, 0);
-                    return date < now || date.getDay() === 0 || date.getDay() === 6;
-                  }}
-                  className="rounded-md border shadow p-2"
-                />
+                <div className="border rounded-md p-2 overflow-hidden">
+                  <Calendar
+                    mode="single"
+                    selected={newAppointment.date}
+                    onSelect={date => setNewAppointment(prev => ({ ...prev, date }))}
+                    disabled={(date) => {
+                      const now = new Date();
+                      now.setHours(0, 0, 0, 0);
+                      return date < now || date.getDay() === 0 || date.getDay() === 6;
+                    }}
+                    className="border-none shadow-none"
+                  />
+                </div>
               </div>
               
               <div className="space-y-2">
@@ -243,7 +243,7 @@ const AgendaPage: React.FC = () => {
             <CardHeader>
               <CardTitle>Vue du Calendrier</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="overflow-hidden">
               <div className="flex space-x-2 mb-4">
                 <Button 
                   variant={calendarView === "month" ? "default" : "outline"} 
@@ -262,12 +262,14 @@ const AgendaPage: React.FC = () => {
               </div>
               
               {calendarView === "month" && (
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  className="rounded-md border shadow"
-                />
+                <div className="border rounded-md overflow-hidden">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    className="border-none shadow-none"
+                  />
+                </div>
               )}
               
               {appointments.length > 0 && (
@@ -288,7 +290,7 @@ const AgendaPage: React.FC = () => {
         </div>
 
         <div className="md:col-span-2">
-          <Card>
+          <Card className="h-full">
             <CardHeader>
               <CardTitle>
                 {calendarView === "month" 
@@ -297,7 +299,7 @@ const AgendaPage: React.FC = () => {
                 }
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="overflow-auto" style={{ maxHeight: "60vh" }}>
               {calendarView === "week" ? (
                 renderWeekView()
               ) : (

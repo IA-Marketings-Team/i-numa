@@ -1,13 +1,14 @@
 
 import { useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useOnboarding } from './OnboardingProvider';
 import SecteurActiviteStep from './SecteurActiviteStep';
 import BesoinsStep from './BesoinsStep';
 import InformationsStep from './InformationsStep';
 import { useNavigate } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { X, CheckCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface OnboardingModalProps {
   onClose?: () => void;
@@ -27,6 +28,7 @@ export const OnboardingModal = ({ onClose }: OnboardingModalProps) => {
     } = useOnboarding();
     
     const navigate = useNavigate();
+    const { toast } = useToast();
     
     // Allow the modal to be displayed
     useEffect(() => {
@@ -37,6 +39,14 @@ export const OnboardingModal = ({ onClose }: OnboardingModalProps) => {
 
     const handleComplete = async () => {
       await completeOnboarding();
+      
+      // Show success toast notification
+      toast({
+        title: "Profil complété",
+        description: "Votre profil a été complété avec succès. Vous pouvez maintenant accéder à toutes les fonctionnalités.",
+        variant: "success"
+      });
+      
       // Close the modal and redirect to marketplace
       setIsOpen(false);
       if (onClose) {
@@ -131,8 +141,9 @@ export const OnboardingModal = ({ onClose }: OnboardingModalProps) => {
               <Button 
                 onClick={handleComplete}
                 size="sm"
-                // Remove the disabled attribute for the Terminer button
+                className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
               >
+                <CheckCircle className="mr-1 h-4 w-4" />
                 Terminer
               </Button>
             )}
