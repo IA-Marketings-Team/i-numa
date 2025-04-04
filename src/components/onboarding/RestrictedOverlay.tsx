@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { OnboardingModal } from './OnboardingModal';
 import { supabase } from '@/integrations/supabase/client';
+import { OnboardingProvider } from './OnboardingProvider';
 
 interface RestrictedOverlayProps {
   children: React.ReactNode;
@@ -59,7 +60,11 @@ export const RestrictedOverlay = ({ children }: RestrictedOverlayProps) => {
   return (
     <>
       {children}
-      {showModal && <OnboardingModal />}
+      {showModal && (
+        <OnboardingProvider>
+          <OnboardingModal />
+        </OnboardingProvider>
+      )}
     </>
   );
 };

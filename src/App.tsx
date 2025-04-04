@@ -47,9 +47,9 @@ const App: React.FC = () => {
     <Router>
       <ThemeProvider>
         <AuthProvider>
-          <OnboardingProvider>
-            <StatistiqueProvider>
-              <CartProvider>
+          <StatistiqueProvider>
+            <CartProvider>
+              <OnboardingProvider>
                 <Routes>
                   {/* Routes publiques */}
                   <Route path="/connexion" element={<LoginPage />} />
@@ -136,9 +136,9 @@ const App: React.FC = () => {
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
                 <Toaster />
-              </CartProvider>
-            </StatistiqueProvider>
-          </OnboardingProvider>
+              </OnboardingProvider>
+            </CartProvider>
+          </StatistiqueProvider>
         </AuthProvider>
       </ThemeProvider>
     </Router>
@@ -146,4 +146,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-
