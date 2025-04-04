@@ -125,7 +125,7 @@ export const OnboardingModal = ({ onClose }: OnboardingModalProps) => {
             ) : (
               <Button 
                 onClick={handleComplete}
-                disabled={!isStepCompleted(currentStep)}
+                // Remove the disabled attribute for the Terminer button on the last step
                 size="sm"
               >
                 Terminer

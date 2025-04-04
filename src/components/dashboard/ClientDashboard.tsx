@@ -12,7 +12,7 @@ interface ClientDashboardProps {
   recentDossiers: any[];
 }
 
-const ClientDashboard: React.FC<ClientDashboardProps> = ({ recentDossiers }) => {
+const ClientDashboard: React.FC<ClientDashboardProps> = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -67,9 +67,23 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ recentDossiers }) => 
           setClientDossiers([]);
         }
         
-        // Fetch client purchased offers (this would need to be implemented)
-        // For now, we'll just set this to an empty array
-        setClientOffres([]);
+        // Fetch client purchased offers
+        const { data: offresData, error: offresError } = await supabase
+          .from('dossier_offres')
+          .select(`
+            *,
+            offres:offre_id (*)
+          `)
+          .in('dossier_id', dossierData?.map(d => d.id) || []);
+          
+        if (offresError) {
+          console.error("Error fetching client offres:", offresError);
+        } else if (offresData) {
+          const uniqueOffres = [...new Set(offresData.map(o => o.offre_id))].length;
+          setClientOffres(Array(uniqueOffres).fill(null));
+        } else {
+          setClientOffres([]);
+        }
       } catch (error) {
         console.error("Error fetching client data:", error);
         toast({

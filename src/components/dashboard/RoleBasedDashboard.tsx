@@ -32,7 +32,7 @@ const RoleBasedDashboard: React.FC<RoleBasedDashboardProps> = ({
   // Sélectionner le tableau de bord en fonction du rôle
   switch (userRole) {
     case "client":
-      return <ClientDashboard recentDossiers={recentDossiers} />;
+      return <ClientDashboard />;
     
     case "agent_phoner":
       return <AgentPhonerDashboard recentDossiers={recentDossiers} statistics={statistics} />;
