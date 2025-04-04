@@ -119,8 +119,8 @@ const MarketplacePage = () => {
       // Filter by sector, checking if the sector is included in comma-separated list
       result = result.filter(offre => {
         if (!offre.secteurActivite) return false;
-        const sectors = offre.secteurActivite.split(',').map(s => s.trim());
-        return sectors.includes(selectedSecteur);
+        const secteurs = offre.secteurActivite.split(',').map(s => s.trim());
+        return secteurs.includes(selectedSecteur);
       });
     }
     
