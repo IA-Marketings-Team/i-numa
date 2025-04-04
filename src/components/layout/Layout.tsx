@@ -5,6 +5,7 @@ import { Sidebar } from "./Sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import { useAuth } from "@/contexts/AuthContext";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import OnboardingModal from "@/components/onboarding/OnboardingModal";
 
 const Layout = () => {
   const { isAuthenticated } = useAuth();
@@ -34,6 +35,7 @@ const Layout = () => {
         </div>
 
         <Toaster />
+        {isAuthenticated && <OnboardingModal />}
       </div>
     </SidebarProvider>
   );
