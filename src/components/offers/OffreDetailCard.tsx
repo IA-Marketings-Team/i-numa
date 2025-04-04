@@ -12,6 +12,7 @@ interface OffreDetailCardProps {
   prix: number;
   prixMensuel: string;
   fraisCreation: string;
+  onAddToCart?: () => void;  // Added this prop as optional
 }
 
 const OffreDetailCard: React.FC<OffreDetailCardProps> = ({
@@ -21,7 +22,8 @@ const OffreDetailCard: React.FC<OffreDetailCardProps> = ({
   type,
   prix,
   prixMensuel,
-  fraisCreation
+  fraisCreation,
+  onAddToCart
 }) => {
   const { addToCart } = useCart();
 
@@ -33,6 +35,11 @@ const OffreDetailCard: React.FC<OffreDetailCardProps> = ({
       price: prix.toString(),
       quantity: 1
     });
+
+    // If an onAddToCart callback was provided, call it
+    if (onAddToCart) {
+      onAddToCart();
+    }
   };
 
   return (
