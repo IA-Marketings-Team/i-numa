@@ -8,7 +8,6 @@ import { Toaster } from '@/components/ui/toaster';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import RestrictedOverlay from '@/components/onboarding/RestrictedOverlay';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import OnboardingModal from '@/components/onboarding/OnboardingModal';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -71,7 +70,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, roles = [] 
           <Toaster />
         </div>
       </SidebarProvider>
-      {isAuthenticated && <OnboardingModal />}
     </RestrictedOverlay>
   );
 };
