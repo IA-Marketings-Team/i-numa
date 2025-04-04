@@ -28,7 +28,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = () => {
         setIsLoading(true);
         console.log("Fetching dossiers for client ID:", user.id);
         
-        // Fetch dossiers for current client
+        // Fetch dossiers for current client only
         const { data: dossierData, error: dossierError } = await supabase
           .from('dossiers')
           .select(`
@@ -59,29 +59,34 @@ const ClientDashboard: React.FC<ClientDashboardProps> = () => {
             client: dossier.client || {},
             status: dossier.status || 'prospect',
             dateCreation: new Date(dossier.date_creation),
-            offres: [] // We'll fetch this separately if needed
+            offres: [] // We'll fetch this separately
           }));
           
           setClientDossiers(formattedDossiers);
+          
+          // Fetch client purchased offers
+          if (formattedDossiers.length > 0) {
+            const dossierIds = formattedDossiers.map(d => d.id);
+            const { data: offresData, error: offresError } = await supabase
+              .from('dossier_offres')
+              .select(`
+                *,
+                offres:offre_id (*)
+              `)
+              .in('dossier_id', dossierIds);
+              
+            if (offresError) {
+              console.error("Error fetching client offres:", offresError);
+            } else if (offresData) {
+              // Count unique offers
+              const uniqueOffres = [...new Set(offresData.map(o => o.offre_id))];
+              setClientOffres(uniqueOffres);
+            }
+          } else {
+            setClientOffres([]);
+          }
         } else {
           setClientDossiers([]);
-        }
-        
-        // Fetch client purchased offers
-        const { data: offresData, error: offresError } = await supabase
-          .from('dossier_offres')
-          .select(`
-            *,
-            offres:offre_id (*)
-          `)
-          .in('dossier_id', dossierData?.map(d => d.id) || []);
-          
-        if (offresError) {
-          console.error("Error fetching client offres:", offresError);
-        } else if (offresData) {
-          const uniqueOffres = [...new Set(offresData.map(o => o.offre_id))].length;
-          setClientOffres(Array(uniqueOffres).fill(null));
-        } else {
           setClientOffres([]);
         }
       } catch (error) {

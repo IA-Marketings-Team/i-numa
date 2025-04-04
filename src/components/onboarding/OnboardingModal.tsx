@@ -37,6 +37,11 @@ export const OnboardingModal = ({ onClose }: OnboardingModalProps) => {
 
     const handleComplete = async () => {
       await completeOnboarding();
+      // Close the modal and redirect to marketplace
+      setIsOpen(false);
+      if (onClose) {
+        onClose();
+      }
       // Redirect to marketplace after completing onboarding
       navigate('/marketplace');
     };
@@ -63,7 +68,7 @@ export const OnboardingModal = ({ onClose }: OnboardingModalProps) => {
           }
         }}
       >
-        <DialogContent className="max-w-2xl p-4 sm:p-6 overflow-y-auto max-h-[90vh]">
+        <DialogContent className="max-w-2xl p-4 sm:p-6 overflow-y-auto max-h-[90vh] fixed inset-x-0 mx-auto">
           <button 
             onClick={handleCloseDialog}
             className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
@@ -125,8 +130,8 @@ export const OnboardingModal = ({ onClose }: OnboardingModalProps) => {
             ) : (
               <Button 
                 onClick={handleComplete}
-                // Remove the disabled attribute for the Terminer button on the last step
                 size="sm"
+                // Remove the disabled attribute for the Terminer button
               >
                 Terminer
               </Button>

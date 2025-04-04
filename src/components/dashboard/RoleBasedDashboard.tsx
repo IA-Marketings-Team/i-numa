@@ -32,6 +32,7 @@ const RoleBasedDashboard: React.FC<RoleBasedDashboardProps> = ({
   // Sélectionner le tableau de bord en fonction du rôle
   switch (userRole) {
     case "client":
+      // No need to pass recentDossiers to ClientDashboard as it fetches its own data
       return <ClientDashboard />;
     
     case "agent_phoner":
