@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -83,7 +84,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       case 0:
         return secteurActivite !== '';
       case 1:
-        return besoins.length > 0 && besoins.length <= 3;
+        return besoins.length === 3; // Must have exactly 3 besoins selected
       case 2:
         return informations.postalCode !== '';
       default:

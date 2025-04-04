@@ -22,12 +22,8 @@ export const OnboardingModal = () => {
   
   const navigate = useNavigate();
   
-  // Force the modal to stay open (prevent closing on outside click)
-  useEffect(() => {
-    if (!isOpen) {
-      setIsOpen(true);
-    }
-  }, [isOpen, setIsOpen]);
+  // No forcing the modal to stay open - allow users to close it if they want
+  // This makes for a better user experience
 
   const handleComplete = async () => {
     await completeOnboarding();
@@ -39,10 +35,7 @@ export const OnboardingModal = () => {
   const progressPercentage = ((currentStep + 1) / 3) * 100;
   
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      // Only allow opening, prevent closing
-      if (open) setIsOpen(open);
-    }}>
+    <Dialog open={isOpen} onOpenChange={(open) => setIsOpen(open)}>
       <DialogContent className="max-w-2xl p-4 sm:p-6 overflow-y-auto max-h-[90vh]">
         <DialogHeader className="mb-4">
           <DialogTitle className="text-xl font-bold">

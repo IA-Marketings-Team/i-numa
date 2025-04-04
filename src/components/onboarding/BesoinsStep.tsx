@@ -37,7 +37,7 @@ const BesoinsStep: React.FC = () => {
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Quels sont vos besoins principaux ?</h3>
-      <p className="text-muted-foreground text-sm">Sélectionnez jusqu'à 3 besoins qui vous intéressent.</p>
+      <p className="text-muted-foreground text-sm">Sélectionnez exactement 3 besoins qui vous intéressent.</p>
       
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         {predefinedBesoins.map((besoin) => (
@@ -67,8 +67,8 @@ const BesoinsStep: React.FC = () => {
         ))}
       </div>
       
-      <div className="text-sm text-muted-foreground mt-2">
-        {besoins.length}/3 sélectionnés
+      <div className={`text-sm mt-2 ${besoins.length === 3 ? 'text-green-500' : 'text-amber-500'}`}>
+        {besoins.length}/3 sélectionnés {besoins.length !== 3 && '- Veuillez sélectionner exactement 3 besoins'}
       </div>
     </div>
   );
