@@ -36,7 +36,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [currentStep, setCurrentStep] = useState(0);
   const [secteurActivite, setSecteurActivite] = useState('');
   const [besoins, setBesoins] = useState<string[]>([]);
@@ -68,7 +68,10 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
   
   const addBesoin = (id: string) => {
-    setBesoins([...besoins, id]);
+    // Only allow up to 3 besoins
+    if (besoins.length < 3) {
+      setBesoins([...besoins, id]);
+    }
   };
   
   const removeBesoin = (id: string) => {
@@ -89,7 +92,8 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       case 1:
         return besoins.length === 3;
       case 2:
-        return informations.address !== '' && informations.city !== '' && informations.postalCode !== '';
+        // At least provide address for step 3
+        return informations.address !== '';
       default:
         return false;
     }

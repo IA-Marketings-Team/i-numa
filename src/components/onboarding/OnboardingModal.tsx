@@ -7,8 +7,13 @@ import SecteurActiviteStep from './SecteurActiviteStep';
 import BesoinsStep from './BesoinsStep';
 import InformationsStep from './InformationsStep';
 import { useNavigate } from 'react-router-dom';
+import { X } from 'lucide-react';
 
-export const OnboardingModal = () => {
+interface OnboardingModalProps {
+  onClose?: () => void;
+}
+
+export const OnboardingModal = ({ onClose }: OnboardingModalProps) => {
   try {
     const { 
       currentStep,
@@ -23,7 +28,7 @@ export const OnboardingModal = () => {
     
     const navigate = useNavigate();
     
-    // Force the modal to stay open (prevent closing on outside click)
+    // Allow the modal to be displayed
     useEffect(() => {
       if (!isOpen) {
         setIsOpen(true);
@@ -36,15 +41,38 @@ export const OnboardingModal = () => {
       navigate('/marketplace');
     };
 
+    const handleCloseDialog = () => {
+      if (onClose) {
+        onClose();
+      } else {
+        setIsOpen(false);
+      }
+    };
+
     // Calculate step progress percentage
     const progressPercentage = ((currentStep + 1) / 3) * 100;
     
     return (
-      <Dialog open={isOpen} onOpenChange={(open) => {
-        // Allow closing and opening
-        setIsOpen(open);
-      }}>
+      <Dialog 
+        open={isOpen} 
+        onOpenChange={(open) => {
+          if (!open && onClose) {
+            onClose();
+          } else {
+            setIsOpen(open);
+          }
+        }}
+      >
         <DialogContent className="max-w-2xl p-4 sm:p-6 overflow-y-auto max-h-[90vh]">
+          <button 
+            onClick={handleCloseDialog}
+            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            type="button"
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </button>
+
           <DialogHeader className="mb-4">
             <DialogTitle className="text-xl font-bold">
               Complétez votre profil

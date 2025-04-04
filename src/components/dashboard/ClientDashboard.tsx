@@ -6,6 +6,7 @@ import { Calendar, FileText, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface ClientDashboardProps {
   recentDossiers: any[];
@@ -14,6 +15,7 @@ interface ClientDashboardProps {
 const ClientDashboard: React.FC<ClientDashboardProps> = ({ recentDossiers }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [clientDossiers, setClientDossiers] = useState<any[]>([]);
   const [clientOffres, setClientOffres] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -24,29 +26,64 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ recentDossiers }) => 
       
       try {
         setIsLoading(true);
+        console.log("Fetching dossiers for client ID:", user.id);
         
         // Fetch dossiers for current client
         const { data: dossierData, error: dossierError } = await supabase
           .from('dossiers')
-          .select('*')
+          .select(`
+            *,
+            client:client_id (
+              nom,
+              prenom,
+              email,
+              telephone,
+              secteur_activite
+            )
+          `)
           .eq('client_id', user.id);
           
-        if (dossierError) throw dossierError;
+        if (dossierError) {
+          console.error("Error fetching client dossiers:", dossierError);
+          throw dossierError;
+        }
         
-        setClientDossiers(dossierData || []);
+        if (dossierData) {
+          console.log("Found dossiers for client:", dossierData.length);
+          
+          // Transform the data to match our Dossier type
+          const formattedDossiers = dossierData.map(dossier => ({
+            ...dossier,
+            id: dossier.id,
+            clientId: dossier.client_id,
+            client: dossier.client || {},
+            status: dossier.status || 'prospect',
+            dateCreation: new Date(dossier.date_creation),
+            offres: [] // We'll fetch this separately if needed
+          }));
+          
+          setClientDossiers(formattedDossiers);
+        } else {
+          setClientDossiers([]);
+        }
         
-        // In a real app, you'd fetch the client's purchased offers 
-        // For now, we'll just set this to 0
+        // Fetch client purchased offers (this would need to be implemented)
+        // For now, we'll just set this to an empty array
         setClientOffres([]);
       } catch (error) {
         console.error("Error fetching client data:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger vos dossiers.",
+          variant: "destructive",
+        });
       } finally {
         setIsLoading(false);
       }
     };
     
     fetchClientData();
-  }, [user]);
+  }, [user, toast]);
 
   return (
     <div className="space-y-6">
@@ -57,7 +94,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ recentDossiers }) => 
           </CardHeader>
           <CardContent>
             <div className="mt-2 flex flex-col">
-              <p className="text-3xl font-bold">0</p>
+              <p className="text-3xl font-bold">{clientOffres.length}</p>
               <p className="text-white/70">Offres actives</p>
               <Button 
                 className="mt-4 bg-white text-blue-600 hover:bg-white/90"
@@ -125,7 +162,8 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ recentDossiers }) => 
               {clientDossiers.map((dossier) => (
                 <div 
                   key={dossier.id} 
-                  className="flex items-center justify-between border-b pb-2"
+                  className="flex items-center justify-between border-b pb-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                  onClick={() => navigate(`/dossiers/${dossier.id}`)}
                 >
                   <div>
                     <p className="font-medium">Dossier #{dossier.id.substring(0, 8)}</p>
@@ -135,13 +173,19 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ recentDossiers }) => 
                   </div>
                   <div>
                     <span className={`px-2 py-1 rounded text-xs ${
-                      dossier.status === 'validé' 
+                      dossier.status === 'valide' 
                         ? 'bg-green-100 text-green-800' 
-                        : dossier.status === 'en attente' 
+                        : dossier.status === 'rdv_en_cours' 
                         ? 'bg-yellow-100 text-yellow-800' 
-                        : 'bg-blue-100 text-blue-800'
+                        : dossier.status === 'signe'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-gray-100 text-gray-800'
                     }`}>
-                      {dossier.status || 'Non défini'}
+                      {dossier.status === 'valide' ? 'Validé' : 
+                       dossier.status === 'rdv_en_cours' ? 'RDV en cours' : 
+                       dossier.status === 'signe' ? 'Signé' :
+                       dossier.status === 'prospect' ? 'Prospect' :
+                       dossier.status || 'Non défini'}
                     </span>
                   </div>
                 </div>

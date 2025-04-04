@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { OnboardingModal } from './OnboardingModal';
 import { supabase } from '@/integrations/supabase/client';
 import { OnboardingProvider } from './OnboardingProvider';
+import { useToast } from '@/hooks/use-toast';
 
 interface RestrictedOverlayProps {
   children: React.ReactNode;
@@ -13,6 +14,8 @@ export const RestrictedOverlay = ({ children }: RestrictedOverlayProps) => {
   const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+  const [forceModalClosed, setForceModalClosed] = useState(false);
 
   useEffect(() => {
     const checkUserDossier = async () => {
@@ -41,8 +44,8 @@ export const RestrictedOverlay = ({ children }: RestrictedOverlayProps) => {
           return;
         }
 
-        // If no dossiers found, show the onboarding modal
-        setShowModal(data.length === 0);
+        // If no dossiers found and not forced closed, show the onboarding modal
+        setShowModal(data.length === 0 && !forceModalClosed);
         setIsLoading(false);
       } catch (error) {
         console.error('Error checking dossiers:', error);
@@ -51,7 +54,16 @@ export const RestrictedOverlay = ({ children }: RestrictedOverlayProps) => {
     };
 
     checkUserDossier();
-  }, [user]);
+  }, [user, forceModalClosed]);
+
+  const handleCloseModal = () => {
+    setForceModalClosed(true);
+    setShowModal(false);
+    toast({
+      title: "Onboarding reporté",
+      description: "Vous pourrez compléter votre profil plus tard."
+    });
+  };
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
@@ -62,7 +74,7 @@ export const RestrictedOverlay = ({ children }: RestrictedOverlayProps) => {
       {children}
       {showModal && (
         <OnboardingProvider>
-          <OnboardingModal />
+          <OnboardingModal onClose={handleCloseModal} />
         </OnboardingProvider>
       )}
     </>
