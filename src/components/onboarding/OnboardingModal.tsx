@@ -68,7 +68,7 @@ export const OnboardingModal = ({ onClose }: OnboardingModalProps) => {
           }
         }}
       >
-        <DialogContent className="max-w-2xl p-4 sm:p-6 overflow-y-auto max-h-[90vh] fixed inset-x-0 mx-auto">
+        <DialogContent className="max-w-2xl p-4 sm:p-6 overflow-y-auto max-h-[90vh]">
           <button 
             onClick={handleCloseDialog}
             className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
