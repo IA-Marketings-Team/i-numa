@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from "@/contexts/CartContext";
@@ -58,7 +57,6 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const isPhoner = user?.role === 'agent_phoner';
   const isResponsable = user?.role === 'responsable';
   
-  // Récupérer le secteur depuis l'URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const sectorParam = params.get('secteur');
@@ -68,7 +66,6 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }, [location.search]);
 
-  // Récupérer le secteur d'activité de l'utilisateur depuis la base de données
   useEffect(() => {
     const fetchUserSector = async () => {
       if (user && isClient) {
@@ -83,10 +80,6 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
           
           if (data && data.secteur_activite) {
             setUserSector(data.secteur_activite);
-            
-            if (selectedSecteur === "all") {
-              setSelectedSecteur(data.secteur_activite);
-            }
           }
         } catch (error) {
           console.error("Error fetching user sector:", error);
@@ -95,9 +88,8 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     };
     
     fetchUserSector();
-  }, [user, isClient, selectedSecteur]);
+  }, [user, isClient]);
 
-  // Charger les offres depuis le service
   useEffect(() => {
     const loadOffres = async () => {
       setIsLoading(true);
@@ -121,7 +113,6 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     loadOffres();
   }, [toast]);
 
-  // Filtrer les offres en fonction des critères
   useEffect(() => {
     let result = [...offres];
     
@@ -133,15 +124,12 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
     
     if (selectedSecteur && selectedSecteur !== "all") {
-      // Filter by sector, checking if the sector is included in comma-separated list
       result = result.filter(offre => {
         if (!offre.secteurActivite) return false;
         
-        // Split the sectors by comma and trim whitespace
         const secteurs = offre.secteurActivite.split(',').map(s => s.trim());
         console.log(`Filtering ${offre.nom} with sectors: [${secteurs.join(', ')}], selected: ${selectedSecteur}`);
         
-        // Check if the selected sector is in the list
         return secteurs.includes(selectedSecteur);
       });
     }
@@ -157,7 +145,6 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [offres, searchQuery, selectedSecteur, sortOrder]);
 
   const handleAddToCart = (offre: Offre) => {
-    // Ajouter au panier
     addToCart({
       offreId: offre.id,
       quantity: 1,
@@ -166,10 +153,8 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       price: offre.prix?.toString() || "0"
     });
     
-    // Afficher le message de succès
     setIsSuccessOverlay(true);
     
-    // Notification toast
     toast({
       title: "Offre ajoutée",
       description: `${offre.nom} a été ajouté à votre panier.`
@@ -185,10 +170,8 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setSelectedSecteur("all");
   };
 
-  // Afficher le message de succès uniquement après ajout au panier
   const isCartActive = isClient && cart.length > 0 && isSuccessOverlay;
   
-  // Handler for onboarding completion
   const handleOnboardingSuccess = () => {
     toast({
       title: "Profil complété",

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useMarketplace } from '@/contexts/MarketplaceContext';
 import OffreDetailCard from '@/components/offers/OffreDetailCard';
 import EmptyOfferState from '@/components/marketplace/EmptyOfferState';
@@ -13,6 +13,12 @@ const OffersList: React.FC = () => {
     searchQuery, 
     selectedSecteur 
   } = useMarketplace();
+
+  // Log when the filter changes to help debug
+  useEffect(() => {
+    console.log(`Selected sector: ${selectedSecteur}, Offers count: ${filteredOffres.length}`);
+    console.log("Offers sectors:", filteredOffres.map(o => o.secteurActivite));
+  }, [selectedSecteur, filteredOffres]);
 
   if (isLoading) {
     return (

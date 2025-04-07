@@ -108,9 +108,10 @@ const SectorsHorizontalNav: React.FC<SectorsHorizontalNavProps> = ({
         const sectorsFromDb = data.map(sector => ({
           id: sector.id,
           name: sector.nom,
-          icon: getIconForSector(sector.nom.toLowerCase())
+          icon: getIconForSector(sector.id)  // Use ID for icon lookup
         }));
         
+        console.log("Loaded sectors from DB:", sectorsFromDb);
         setSectors([allSectorsOption, ...sectorsFromDb]);
       } catch (error) {
         console.error("Failed to fetch sectors:", error);
