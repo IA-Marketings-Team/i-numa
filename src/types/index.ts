@@ -43,6 +43,8 @@ export * from './communication';
 export * from './marketplace';
 export * from './offre';
 export * from './statistique';
+export * from './agent';
+export * from './team';
 
 // Add any missing types that are used but not defined in separate files
 
@@ -59,25 +61,4 @@ export interface OfferCategory {
       items: string[];
     }[];
   }[];
-}
-
-export interface Team {
-  id: string;
-  nom: string;
-  fonction: 'phoning' | 'visio' | 'developpement' | 'marketing' | 'mixte';
-  description?: string;
-  dateCreation: Date;
-}
-
-export interface Agent extends User {
-  equipeId?: string;
-  statistiques: {
-    appelsEmis: number;
-    appelsDecroches: number;
-    appelsTransformes: number;
-    rendezVousHonores: number;
-    rendezVousNonHonores: number;
-    dossiersValides: number;
-    dossiersSigne: number;
-  };
 }

@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -44,7 +45,7 @@ export const OnboardingModal = ({ onClose }: OnboardingModalProps) => {
       toast({
         title: "Profil complété",
         description: "Votre profil a été complété avec succès. Vous pouvez maintenant accéder à toutes les fonctionnalités.",
-        variant: "default"  // Changed from "success" to "default" as it's an allowed value
+        variant: "default"
       });
       
       // Close the modal

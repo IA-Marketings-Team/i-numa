@@ -60,8 +60,8 @@ export const RestrictedOverlay = ({ children }: RestrictedOverlayProps) => {
     setForceModalClosed(true);
     setShowModal(false);
     toast({
-      title: "Onboarding reporté",
-      description: "Vous pourrez compléter votre profil plus tard."
+      title: "Profil complété",
+      description: "Vos informations ont été sauvegardées avec succès."
     });
   };
 

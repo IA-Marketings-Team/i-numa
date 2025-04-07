@@ -37,7 +37,7 @@ const OffersList: React.FC = () => {
             offreId={offre.id}
             nom={offre.nom}
             description={offre.description}
-            type={offre.type}
+            type={offre.type as 'SEO' | 'Google Ads' | 'Facebook/Instagram Ads' | 'E-réputation' | 'Deliver' | 'Email X' | 'Foner' | 'Devis'}
             prix={offre.prix || 0}
             prixMensuel={offre.prixMensuel || ""}
             fraisCreation={offre.fraisCreation || ""}
