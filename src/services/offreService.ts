@@ -21,8 +21,14 @@ export const fetchOffres = async (): Promise<Offre[]> => {
     prix: item.prix || 0,
     prixMensuel: item.prix_mensuel || '',
     fraisCreation: item.frais_creation || '',
+    secteurActivite: item.secteur_activite || '',
     sections: []
   }));
+  
+  console.log("Fetched offers with sectors:", offres.map(o => ({ 
+    nom: o.nom, 
+    secteurs: o.secteurActivite 
+  })));
   
   // For testing and development, use mock data if database tables are not yet created
   // This is temporary until we set up the proper database tables
@@ -355,6 +361,7 @@ function getMockOffres(): Offre[] {
       prix: 250,
       prixMensuel: "250€",
       fraisCreation: "300€",
+      secteurActivite: "restaurant,commerce,immobilier",
       sections: [
         {
           id: "section1",
@@ -381,6 +388,7 @@ function getMockOffres(): Offre[] {
       prix: 60,
       prixMensuel: "60€",
       fraisCreation: "200€",
+      secteurActivite: "restaurant",
       sections: [
         {
           id: "section2",
@@ -437,6 +445,7 @@ function getMockOffres(): Offre[] {
       prix: 150,
       prixMensuel: "150€",
       fraisCreation: "200€",
+      secteurActivite: "commerce,sante,immobilier",
       sections: [
         {
           id: "section5",
@@ -469,6 +478,7 @@ function getMockOffres(): Offre[] {
       prix: 199,
       prixMensuel: "199€",
       fraisCreation: "400€",
+      secteurActivite: "commerce,immobilier,business,education,sante",
       sections: [
         {
           id: "section7",
@@ -506,6 +516,7 @@ function getMockOffres(): Offre[] {
       prix: 299,
       prixMensuel: "299€",
       fraisCreation: "350€",
+      secteurActivite: "commerce,immobilier,business,education",
       sections: [
         {
           id: "section9",

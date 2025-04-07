@@ -4,8 +4,7 @@ import { useMarketplace } from '@/contexts/MarketplaceContext';
 import MarketplaceHeader from '@/components/marketplace/MarketplaceHeader';
 import FeatureGrid from '@/components/marketplace/FeatureGrid';
 import SectorsHorizontalNav from '@/components/marketplace/SectorsHorizontalNav';
-import MarketplaceFilters from '@/components/marketplace/MarketplaceFilters';
-import SpecialOffersCard from '@/components/marketplace/SpecialOffersCard';
+import MarketplaceTopBar from '@/components/marketplace/MarketplaceTopBar';
 import ActiveCartOverlay from '@/components/marketplace/ActiveCartOverlay';
 import { FixedCartDrawer } from "@/components/cart/CartDrawer";
 import OffersList from '@/components/marketplace/OffersList';
@@ -19,11 +18,7 @@ const MarketplaceLayout: React.FC = () => {
     setIsGuideOpen,
     setIsEmailDialogOpen,
     selectedSecteur,
-    handleSectorSelect,
-    searchQuery, 
-    setSearchQuery,
-    sortOrder,
-    setSortOrder,
+    handleSectorSelect
   } = useMarketplace();
 
   return (
@@ -46,23 +41,11 @@ const MarketplaceLayout: React.FC = () => {
         onSelectSector={handleSectorSelect}
       />
       
-      <div className="grid grid-cols-1 md:grid-cols-[250px_1fr] gap-6 mt-6">
-        <div className="space-y-6">
-          <MarketplaceFilters
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            sortOrder={sortOrder}
-            setSortOrder={setSortOrder}
-            disabled={false}
-          />
-          
-          <SpecialOffersCard
-            onViewAll={() => handleSectorSelect("all")}
-            disabled={false}
-          />
+      <div className="mt-6">
+        <MarketplaceTopBar />
+        <div className="mt-6">
+          <OffersList />
         </div>
-        
-        <OffersList />
       </div>
       
       {isClient && <FixedCartDrawer />}

@@ -45,7 +45,7 @@ export const OnboardingModal = ({ onClose }: OnboardingModalProps) => {
       toast({
         title: "Profil complété",
         description: "Votre profil a été complété avec succès. Vous pouvez maintenant accéder à toutes les fonctionnalités.",
-        variant: "default"
+        variant: "success"
       });
       
       // Close the modal

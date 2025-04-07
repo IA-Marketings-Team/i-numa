@@ -1,10 +1,32 @@
+export interface OffreSectionItem {
+  id: string;
+  titre: string;
+}
 
-// Export all types from separate files
-export * from './user';
-export * from './statistique';
-export * from './auth';
-export * from './dossier';
-export * from './offre';
-export * from './task';
-export * from './communication';
-export * from './marketplace';
+export interface OffreSection {
+  id: string;
+  offreId: string;
+  titre: string;
+  items: string[];
+  estOuvertParDefaut: boolean;
+}
+
+export interface SecteurActivite {
+  id: string;
+  nom: string;
+  description: string;
+  disponible?: boolean;
+}
+
+export interface Offre {
+  id: string;
+  nom: string;
+  description: string;
+  type: 'SEO' | 'Google Ads' | 'Facebook/Instagram Ads' | 'E-réputation' | 'Deliver' | string;
+  prix?: number;
+  prixMensuel?: string;
+  fraisCreation?: string;
+  sections?: OffreSection[];
+  secteurs?: SecteurActivite[];
+  secteurActivite?: string; // Comma-separated list of sector IDs
+}
