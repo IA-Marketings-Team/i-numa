@@ -17,7 +17,7 @@ export interface OfferCategory {
 }
 
 export interface CartItem {
-  id: string;
+  id?: string;
   category: string;
   title: string;
   price: string;

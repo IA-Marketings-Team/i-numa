@@ -18,7 +18,7 @@ export interface Offre {
   id: string;
   nom: string;
   description: string;
-  type: 'SEO' | 'Google Ads' | 'Email X' | 'Foner' | 'Devis' | 'E-réputation' | 'Deliver' | 'Facebook/Instagram Ads';
+  type: 'SEO' | 'Google Ads' | 'Email X' | 'Foner' | 'Devis' | 'E-réputation' | 'Deliver' | 'Facebook/Instagram Ads' | string;
   prix?: number;
   prixMensuel?: string;
   fraisCreation?: string;

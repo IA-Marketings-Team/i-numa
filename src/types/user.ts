@@ -24,16 +24,3 @@ export interface Client extends User {
   typeEntreprise: string;
   besoins: string;
 }
-
-export interface Agent extends User {
-  equipeId?: string;
-  statistiques: {
-    appelsEmis: number;
-    appelsDecroches: number;
-    appelsTransformes: number;
-    rendezVousHonores: number;
-    rendezVousNonHonores: number;
-    dossiersValides: number;
-    dossiersSigne: number;
-  };
-}
