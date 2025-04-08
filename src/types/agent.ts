@@ -1,17 +1,15 @@
 
-import { User, UserRole } from './user';
+import { UserRole } from './user';
 
-export interface AgentStatistics {
-  appelsEmis: number;
-  appelsDecroches: number;
-  appelsTransformes: number;
-  rendezVousHonores: number;
-  rendezVousNonHonores: number;
-  dossiersValides: number;
-  dossiersSigne: number;
+export interface AgentStats {
+  appointmentsMade: number;
+  appointmentsCompleted: number;
+  conversionRate: number;
+  averageDuration: number;
+  clientSatisfaction: number;
 }
 
-export interface Agent extends User {
+export interface Agent {
   id: string;
   nom: string;
   prenom: string;
@@ -19,12 +17,9 @@ export interface Agent extends User {
   telephone: string;
   role: UserRole;
   dateCreation: Date;
+  stats?: AgentStats;
   adresse?: string;
   ville?: string;
   codePostal?: string;
   equipeId?: string;
-  iban?: string;
-  bic?: string;
-  nomBanque?: string;
-  statistiques: AgentStatistics;
 }

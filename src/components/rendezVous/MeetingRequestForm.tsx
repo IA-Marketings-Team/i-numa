@@ -16,6 +16,7 @@ import { createMeeting } from '@/services/meetingService';
 
 interface MeetingRequestFormProps {
   onComplete: () => void;
+  meetingType?: string;
 }
 
 const timeSlots = [
@@ -23,7 +24,7 @@ const timeSlots = [
   "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00"
 ];
 
-const MeetingRequestForm: React.FC<MeetingRequestFormProps> = ({ onComplete }) => {
+const MeetingRequestForm: React.FC<MeetingRequestFormProps> = ({ onComplete, meetingType = "contract" }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [date, setDate] = useState<Date | undefined>(undefined);
@@ -74,10 +75,17 @@ const MeetingRequestForm: React.FC<MeetingRequestFormProps> = ({ onComplete }) =
     
     const participants = [user?.id || ''];
     
+    // Create title based on meeting type
+    const meetingTitle = meetingType === 'contract' 
+      ? "Consultation de contrat" 
+      : meetingType === 'support' 
+        ? "Support technique" 
+        : "Rendez-vous client";
+    
     // Create a meeting request
     const meetingData = {
-      titre: "Rendez-vous suite à signature de contrat",
-      description: notes || "Discussion concernant le contrat nouvellement signé",
+      titre: meetingTitle,
+      description: notes || `Demande de rendez-vous - Type: ${meetingType}`,
       date: meetingDate,
       duree: 30, // Default duration: 30 minutes
       lien: "", // Will be filled by the agent

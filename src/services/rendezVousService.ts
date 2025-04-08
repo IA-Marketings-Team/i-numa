@@ -1,4 +1,3 @@
-
 import { RendezVous, Dossier } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchDossierById } from "./dossierService";
@@ -200,4 +199,58 @@ export const fetchUpcomingRendezVous = async (days: number = 7): Promise<RendezV
   );
   
   return rendezVousList;
+};
+
+export const fetchRendezVousByClient = async (clientId: string): Promise<RendezVous[]> => {
+  try {
+    // Get client's dossiers first
+    const { data: dossiers, error: dossiersError } = await supabase
+      .from('dossiers')
+      .select('id')
+      .eq('client_id', clientId);
+    
+    if (dossiersError) {
+      console.error(`Error fetching dossiers for client ${clientId}:`, dossiersError);
+      return [];
+    }
+    
+    if (!dossiers || dossiers.length === 0) {
+      return [];
+    }
+    
+    // Get rendez-vous for the dossiers
+    const dossierIds = dossiers.map(d => d.id);
+    const { data, error } = await supabase
+      .from('rendez_vous')
+      .select('*')
+      .in('dossier_id', dossierIds);
+    
+    if (error) {
+      console.error(`Error fetching rendez-vous for client ${clientId} dossiers:`, error);
+      return [];
+    }
+    
+    // Transform and include dossier details
+    const rendezVousList = await Promise.all(
+      data.map(async (item) => {
+        const dossier = await fetchDossierById(item.dossier_id);
+        
+        return {
+          id: item.id,
+          dossierId: item.dossier_id,
+          date: new Date(item.date),
+          honore: item.honore || false,
+          notes: item.notes || '',
+          location: item.location || '',
+          meetingLink: item.meeting_link || '',
+          dossier: dossier as Dossier
+        };
+      })
+    );
+    
+    return rendezVousList;
+  } catch (error) {
+    console.error(`Error fetching rendez-vous for client ${clientId}:`, error);
+    return [];
+  }
 };
