@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { OnboardingProvider } from '@/components/onboarding/OnboardingProvider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -12,7 +11,8 @@ import {
   Clock,
   Download,
   Send,
-  User
+  User,
+  Video
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { addEmail } from '@/services/emailService';
+import { createEmail } from '@/services/emailService';
 
 const SuperviseurDashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -49,18 +49,14 @@ const SuperviseurDashboardPage: React.FC = () => {
   const [isSendingReport, setIsSendingReport] = useState(false);
   const [selectedView, setSelectedView] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
-  // Load rendez-vous data and agents
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
         
-        // Fetch all rendez-vous
         const rdvs = await fetchRendezVous();
         setRendezVousList(rdvs);
         
-        // For demo purposes, generate some mock agents with performance data
-        // In a real app, this would come from the database
         const mockAgents: Agent[] = [
           {
             id: "agent1",
@@ -128,7 +124,6 @@ const SuperviseurDashboardPage: React.FC = () => {
     loadData();
   }, [toast]);
 
-  // Get rendez-vous for selected date
   const getRendezVousForDate = (date: Date) => {
     return rendezVousList.filter(rdv => {
       const rdvDate = new Date(rdv.date);
@@ -140,7 +135,6 @@ const SuperviseurDashboardPage: React.FC = () => {
     });
   };
 
-  // Get rendez-vous for selected agent
   const getRendezVousByAgent = (agentId: string) => {
     return rendezVousList.filter(rdv => {
       return (
@@ -149,7 +143,6 @@ const SuperviseurDashboardPage: React.FC = () => {
     });
   };
 
-  // Get meetings for selected date
   const getMeetingsForDate = (date: Date) => {
     return meetings.filter(meeting => {
       const meetingDate = new Date(meeting.date);
@@ -161,7 +154,6 @@ const SuperviseurDashboardPage: React.FC = () => {
     });
   };
 
-  // Generate report title based on view
   const getReportTitle = () => {
     const today = new Date();
     
@@ -181,14 +173,12 @@ const SuperviseurDashboardPage: React.FC = () => {
     }
   };
 
-  // Handle sending the report
   const handleSendReport = async () => {
     if (!user) return;
     
     setIsSendingReport(true);
     
     try {
-      // Create email content
       const content = `
 Cher responsable,
 
@@ -211,14 +201,14 @@ Superviseur
       
       const emailData = {
         expediteurId: user.id,
-        destinataireIds: ["responsable_id"], // This should be the actual ID of the manager
+        destinataireIds: ["responsable_id"],
         sujet: getReportTitle(),
         contenu: content,
         dateEnvoi: new Date(),
         lu: false
       };
       
-      await addEmail(emailData);
+      await createEmail(emailData);
       
       toast({
         title: "Rapport envoyé",
@@ -236,7 +226,7 @@ Superviseur
       setIsSendingReport(false);
     }
   };
-  
+
   return (
     <OnboardingProvider>
       <div className="container mx-auto px-4 py-6">
@@ -471,7 +461,7 @@ Superviseur
                                 {format(new Date(rdv.date), "dd/MM/yyyy HH:mm")}
                               </div>
                             </div>
-                            <Badge variant={rdv.honore ? "success" : "outline"} className="text-xs">
+                            <Badge variant={rdv.honore ? "default" : "outline"} className="text-xs">
                               {rdv.honore ? "Complété" : "Planifié"}
                             </Badge>
                           </div>
@@ -556,7 +546,7 @@ Superviseur
                                         {format(new Date(rdv.date), "HH:mm", { locale: fr })}
                                       </div>
                                       <div className="mt-1.5">
-                                        <Badge variant={rdv.honore ? "success" : "outline"}>
+                                        <Badge variant={rdv.honore ? "default" : "outline"}>
                                           {rdv.honore ? "Honoré" : "À venir"}
                                         </Badge>
                                       </div>
@@ -647,7 +637,6 @@ Superviseur
           </TabsContent>
         </Tabs>
         
-        {/* Report generation dialog */}
         <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -35,7 +34,6 @@ const ClientAgendaPage: React.FC = () => {
   const [isMeetingFormOpen, setIsMeetingFormOpen] = useState(false);
   const [meetingReasonType, setMeetingReasonType] = useState('contract');
 
-  // Load rendez-vous and meetings data
   useEffect(() => {
     const loadData = async () => {
       if (!user) return;
@@ -43,14 +41,11 @@ const ClientAgendaPage: React.FC = () => {
       try {
         setLoading(true);
         
-        // Fetch rendez-vous for this client
         const rdvs = await fetchRendezVousByClient(user.id);
         setRendezVousList(rdvs);
         
-        // Filter meetings for this client from context
         await fetchMeetings();
         
-        // Filter dossiers for this client
         if (dossiers) {
           const clientDocs = dossiers.filter(d => d.clientId === user.id);
           setClientDossiers(clientDocs);
@@ -71,7 +66,6 @@ const ClientAgendaPage: React.FC = () => {
     loadData();
   }, [user, dossiers, toast, fetchMeetings]);
   
-  // Update client meetings when meetings change
   useEffect(() => {
     if (user && meetings) {
       const clientMtgs = meetings.filter(m => m.participants.includes(user.id));
@@ -79,7 +73,6 @@ const ClientAgendaPage: React.FC = () => {
     }
   }, [meetings, user]);
   
-  // Get rendez-vous for selected date
   const getRendezVousForDate = (date: Date) => {
     return rendezVousList.filter(rdv => {
       const rdvDate = new Date(rdv.date);
@@ -91,7 +84,6 @@ const ClientAgendaPage: React.FC = () => {
     });
   };
   
-  // Get meetings for selected date
   const getMeetingsForDate = (date: Date) => {
     return clientMeetings.filter(meeting => {
       const meetingDate = new Date(meeting.date);
@@ -103,16 +95,13 @@ const ClientAgendaPage: React.FC = () => {
     });
   };
   
-  // Determine dates with events for calendar highlighting
   const getHighlightedDates = () => {
     const dates: Date[] = [];
     
-    // Add rendez-vous dates
     rendezVousList.forEach(rdv => {
       dates.push(new Date(rdv.date));
     });
     
-    // Add meeting dates
     clientMeetings.forEach(meeting => {
       dates.push(new Date(meeting.date));
     });
@@ -120,7 +109,6 @@ const ClientAgendaPage: React.FC = () => {
     return dates;
   };
   
-  // Handle meeting form completion
   const handleMeetingComplete = () => {
     setIsMeetingFormOpen(false);
     toast({
@@ -229,7 +217,7 @@ const ClientAgendaPage: React.FC = () => {
                                         {format(new Date(rdv.date), "HH:mm", { locale: fr })}
                                       </div>
                                       <div className="mt-1.5">
-                                        <Badge variant={rdv.honore ? "success" : "outline"}>
+                                        <Badge variant="default">
                                           {rdv.honore ? "Honoré" : "À venir"}
                                         </Badge>
                                       </div>
@@ -403,7 +391,6 @@ const ClientAgendaPage: React.FC = () => {
           </TabsContent>
         </Tabs>
         
-        {/* Meeting request dialog */}
         <Dialog open={isMeetingFormOpen} onOpenChange={setIsMeetingFormOpen}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
