@@ -41,7 +41,7 @@ export const OnboardingModal = ({ onClose }: OnboardingModalProps) => {
     const handleComplete = async () => {
       await completeOnboarding();
       
-      // Show success toast notification - fixed variant
+      // Show success toast notification
       toast({
         title: "Profil complété",
         description: "Votre profil a été complété avec succès. Vous pouvez maintenant accéder à toutes les fonctionnalités.",

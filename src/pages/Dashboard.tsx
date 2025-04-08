@@ -6,6 +6,7 @@ import { useStatistique } from "@/contexts/StatistiqueContext";
 import { Dossier, UserRole, Statistique } from "@/types";
 import RoleBasedDashboard from "@/components/dashboard/RoleBasedDashboard";
 import { Navigate } from "react-router-dom";
+import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -52,15 +53,17 @@ export default function Dashboard() {
   }, [dossiers, isLoading]);
 
   return (
-    <div className="p-4 space-y-6">
-      <h1 className="text-3xl font-bold">Tableau de bord</h1>
-      
-      <RoleBasedDashboard 
-        userRole={userRole}
-        recentDossiers={recentDossiers}
-        statistics={stats}
-        isLoading={isLoading}
-      />
-    </div>
+    <OnboardingProvider>
+      <div className="p-4 space-y-6">
+        <h1 className="text-3xl font-bold">Tableau de bord</h1>
+        
+        <RoleBasedDashboard 
+          userRole={userRole}
+          recentDossiers={recentDossiers}
+          statistics={stats}
+          isLoading={isLoading}
+        />
+      </div>
+    </OnboardingProvider>
   );
 }

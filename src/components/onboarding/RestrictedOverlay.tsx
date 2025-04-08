@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { OnboardingModal } from './OnboardingModal';
 import { supabase } from '@/integrations/supabase/client';
-import { OnboardingProvider } from './OnboardingProvider';
+import { useOnboarding } from './OnboardingProvider';
 import { useToast } from '@/hooks/use-toast';
 
 interface RestrictedOverlayProps {
@@ -12,6 +12,7 @@ interface RestrictedOverlayProps {
 
 export const RestrictedOverlay = ({ children }: RestrictedOverlayProps) => {
   const { user } = useAuth();
+  const { setIsOnboarded } = useOnboarding();
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -54,7 +55,7 @@ export const RestrictedOverlay = ({ children }: RestrictedOverlayProps) => {
     };
 
     checkUserDossier();
-  }, [user, forceModalClosed]);
+  }, [user, forceModalClosed, setIsOnboarded]);
 
   const handleCloseModal = () => {
     setForceModalClosed(true);
@@ -72,11 +73,7 @@ export const RestrictedOverlay = ({ children }: RestrictedOverlayProps) => {
   return (
     <>
       {children}
-      {showModal && (
-        <OnboardingProvider>
-          <OnboardingModal onClose={handleCloseModal} />
-        </OnboardingProvider>
-      )}
+      {showModal && <OnboardingModal onClose={handleCloseModal} />}
     </>
   );
 };
