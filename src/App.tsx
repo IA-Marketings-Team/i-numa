@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   createBrowserRouter,
@@ -6,8 +7,8 @@ import {
   createRoutesFromElements,
 } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/toaster"
+import { ThemeProvider } from "./components/theme-provider";
+import { Toaster } from "@/components/ui/toaster";
 
 import './App.css';
 import LandingPage from './pages/LandingPage';
@@ -28,9 +29,9 @@ import ClientAgenda from './pages/ClientAgenda';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import DashboardLayout from './layouts/DashboardLayout';
 import DashboardPage from './pages/DashboardPage';
-import AuthProvider from './contexts/AuthContext';
-import CartProvider from './contexts/CartContext';
-import NotificationProvider from './contexts/NotificationContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import ClientAgendaPage from './pages/ClientAgendaPage';
 import SuperviseurDashboardPage from './pages/SuperviseurDashboardPage';
 import ErrorPage from './pages/ErrorPage';
