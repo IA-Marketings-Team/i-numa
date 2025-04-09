@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -39,6 +40,7 @@ const LoginPage: React.FC = () => {
   const { toast } = useToast();
   const [currentSlide, setCurrentSlide] = useState(0);
   
+  // Gestion du carrousel automatique
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
@@ -47,21 +49,25 @@ const LoginPage: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
   
+  // Récupération de la route de redirection
   const from = location.state?.from || "/tableau-de-bord";
   
+  // Affichage des messages de notification
   useEffect(() => {
     if (location.state?.message) {
       toast({
         description: location.state.message
       });
       
+      // Nettoyage du state pour éviter les affichages répétés
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location, toast, navigate]);
+  }, [location.state?.message, toast, navigate]);
 
+  // Redirection si déjà authentifié - avec dépendances correctes pour éviter les boucles
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      navigate(from);
+      navigate(from, { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate, from]);
 

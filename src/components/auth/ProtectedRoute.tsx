@@ -27,6 +27,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (!isAuthenticated) {
+    // Éviter la redirection récursive si déjà sur la page de connexion
+    if (location.pathname === "/connexion") {
+      return <>{children}</>;
+    }
     // Redirect to login page with current location for post-login redirect
     return <Navigate to="/connexion" state={{ from: location.pathname }} replace />;
   }
