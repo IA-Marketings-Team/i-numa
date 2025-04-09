@@ -39,6 +39,7 @@ import DossierPage from "./pages/DossierPage";
 import MarketplacePage from "./pages/MarketplacePage";
 import ContractAcceptance from "./pages/ContractAcceptance";
 import AnnuairePage from "./pages/AnnuairePage";
+import MesAgentsPage from "./pages/MesAgentsPage";
 
 // Configuration des routes
 const App: React.FC = () => {
@@ -97,6 +98,7 @@ const App: React.FC = () => {
                 
                 {/* Routes agents */}
                 <Route path="/agents" element={<DashboardLayout roles={["superviseur", "responsable"]}><AgentsPage /></DashboardLayout>} />
+                <Route path="/mes-agents" element={<DashboardLayout roles={["client"]}><MesAgentsPage /></DashboardLayout>} />
                 
                 {/* Routes tâches */}
                 <Route path="/taches" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><TasksPage /></DashboardLayout>} />

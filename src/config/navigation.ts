@@ -12,7 +12,8 @@ import {
   ListChecks,
   Calendar,
   ShoppingCart,
-  BookUser
+  BookUser,
+  UserPlus
 } from "lucide-react";
 import { UserRole } from "@/types";
 
@@ -101,6 +102,13 @@ export const navigationConfig: NavigationItem[] = [
     path: '/statistiques',
     icon: BarChart,
     permissions: ['superviseur', 'responsable']
+  },
+  {
+    id: 'mes-agents',
+    title: 'Mes agents',
+    path: '/mes-agents',
+    icon: UserPlus,
+    permissions: ['client']
   },
   {
     id: 'profil',
