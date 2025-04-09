@@ -22,10 +22,13 @@ export const fetchRendezVous = async (): Promise<RendezVous[]> => {
         id: item.id,
         dossierId: item.dossier_id,
         date: new Date(item.date),
+        heure: item.heure,
         honore: item.honore || false,
         notes: item.notes || '',
         location: item.location || '',
         meetingLink: item.meeting_link || '',
+        statut: item.statut || 'planifie',
+        solutionProposee: item.solution_proposee || '',
         dossier: dossier as Dossier
       };
     })
@@ -54,10 +57,13 @@ export const fetchRendezVousById = async (id: string): Promise<RendezVous | null
     id: item.id,
     dossierId: item.dossier_id,
     date: new Date(item.date),
+    heure: item.heure,
     honore: item.honore || false,
     notes: item.notes || '',
     location: item.location || '',
     meetingLink: item.meeting_link || '',
+    statut: item.statut || 'planifie',
+    solutionProposee: item.solution_proposee || '',
     dossier: dossier as Dossier
   };
   
@@ -71,10 +77,13 @@ export const createRendezVous = async (
   const rendezVousForSupabase = {
     dossier_id: rendezVousData.dossierId,
     date: rendezVousData.date instanceof Date ? rendezVousData.date.toISOString() : rendezVousData.date,
+    heure: rendezVousData.heure || '',
     honore: rendezVousData.honore || false,
     notes: rendezVousData.notes || '',
     location: rendezVousData.location || '',
-    meeting_link: rendezVousData.meetingLink || ''
+    meeting_link: rendezVousData.meetingLink || '',
+    statut: rendezVousData.statut || 'planifie',
+    solution_proposee: rendezVousData.solutionProposee || ''
   };
   
   // Insert rendez-vous
@@ -103,10 +112,13 @@ export const updateRendezVous = async (id: string, updates: Partial<RendezVous>)
       updates.date.toISOString() : 
       updates.date;
   }
+  if (updates.heure !== undefined) updateData.heure = updates.heure;
   if (updates.honore !== undefined) updateData.honore = updates.honore;
   if (updates.notes !== undefined) updateData.notes = updates.notes;
   if (updates.location !== undefined) updateData.location = updates.location;
   if (updates.meetingLink !== undefined) updateData.meeting_link = updates.meetingLink;
+  if (updates.statut !== undefined) updateData.statut = updates.statut;
+  if (updates.solutionProposee !== undefined) updateData.solution_proposee = updates.solutionProposee;
   
   // Update rendez-vous
   const { error } = await supabase
@@ -190,10 +202,13 @@ export const fetchUpcomingRendezVous = async (days: number = 7): Promise<RendezV
         id: item.id,
         dossierId: item.dossier_id,
         date: new Date(item.date),
+        heure: item.heure,
         honore: item.honore || false,
         notes: item.notes || '',
         location: item.location || '',
         meetingLink: item.meeting_link || '',
+        statut: item.statut || 'planifie',
+        solutionProposee: item.solution_proposee || '',
         dossier: dossier as Dossier
       };
     })

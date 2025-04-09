@@ -395,6 +395,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          activite_detail: string | null
           adresse: string | null
           appels_decroches: number | null
           appels_emis: number | null
@@ -402,6 +403,7 @@ export type Database = {
           besoins: string | null
           bic: string | null
           code_postal: string | null
+          commentaires: string | null
           date_creation: string | null
           dossiers_signe: number | null
           dossiers_valides: number | null
@@ -409,6 +411,7 @@ export type Database = {
           equipe_id: string | null
           iban: string | null
           id: string
+          moyens_communication: string[] | null
           nom: string | null
           nom_banque: string | null
           prenom: string | null
@@ -416,11 +419,14 @@ export type Database = {
           rendez_vous_non_honores: number | null
           role: string | null
           secteur_activite: string | null
+          site_web: string | null
+          statut_juridique: string | null
           telephone: string | null
           type_entreprise: string | null
           ville: string | null
         }
         Insert: {
+          activite_detail?: string | null
           adresse?: string | null
           appels_decroches?: number | null
           appels_emis?: number | null
@@ -428,6 +434,7 @@ export type Database = {
           besoins?: string | null
           bic?: string | null
           code_postal?: string | null
+          commentaires?: string | null
           date_creation?: string | null
           dossiers_signe?: number | null
           dossiers_valides?: number | null
@@ -435,6 +442,7 @@ export type Database = {
           equipe_id?: string | null
           iban?: string | null
           id: string
+          moyens_communication?: string[] | null
           nom?: string | null
           nom_banque?: string | null
           prenom?: string | null
@@ -442,11 +450,14 @@ export type Database = {
           rendez_vous_non_honores?: number | null
           role?: string | null
           secteur_activite?: string | null
+          site_web?: string | null
+          statut_juridique?: string | null
           telephone?: string | null
           type_entreprise?: string | null
           ville?: string | null
         }
         Update: {
+          activite_detail?: string | null
           adresse?: string | null
           appels_decroches?: number | null
           appels_emis?: number | null
@@ -454,6 +465,7 @@ export type Database = {
           besoins?: string | null
           bic?: string | null
           code_postal?: string | null
+          commentaires?: string | null
           date_creation?: string | null
           dossiers_signe?: number | null
           dossiers_valides?: number | null
@@ -461,6 +473,7 @@ export type Database = {
           equipe_id?: string | null
           iban?: string | null
           id?: string
+          moyens_communication?: string[] | null
           nom?: string | null
           nom_banque?: string | null
           prenom?: string | null
@@ -468,6 +481,8 @@ export type Database = {
           rendez_vous_non_honores?: number | null
           role?: string | null
           secteur_activite?: string | null
+          site_web?: string | null
+          statut_juridique?: string | null
           telephone?: string | null
           type_entreprise?: string | null
           ville?: string | null
@@ -486,29 +501,38 @@ export type Database = {
         Row: {
           date: string | null
           dossier_id: string | null
+          heure: string | null
           honore: boolean | null
           id: string
           location: string | null
           meeting_link: string | null
           notes: string | null
+          solution_proposee: string | null
+          statut: string | null
         }
         Insert: {
           date?: string | null
           dossier_id?: string | null
+          heure?: string | null
           honore?: boolean | null
           id?: string
           location?: string | null
           meeting_link?: string | null
           notes?: string | null
+          solution_proposee?: string | null
+          statut?: string | null
         }
         Update: {
           date?: string | null
           dossier_id?: string | null
+          heure?: string | null
           honore?: boolean | null
           id?: string
           location?: string | null
           meeting_link?: string | null
           notes?: string | null
+          solution_proposee?: string | null
+          statut?: string | null
         }
         Relationships: [
           {

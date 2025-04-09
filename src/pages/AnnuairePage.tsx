@@ -22,11 +22,8 @@ import {
 import { Eye, Edit, Trash, Plus, Search, RefreshCw } from 'lucide-react';
 import { fetchClients, fetchClientById, createClient, updateClient, deleteClient } from '@/services/clientService';
 import { useToast } from '@/hooks/use-toast';
-import { useForm } from 'react-hook-form';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { User, Client } from '@/types';
+import ClientForm from '@/components/client/ClientForm';
 
 const AnnuairePage: React.FC = () => {
   const { toast } = useToast();
@@ -41,9 +38,6 @@ const AnnuairePage: React.FC = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  
-  // Formulaire pour la création/modification de client
-  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm();
   
   // Chargement des clients
   useEffect(() => {
@@ -99,16 +93,6 @@ const AnnuairePage: React.FC = () => {
   
   const handleEditClient = (client: Client) => {
     setSelectedClient(client);
-    setValue('nom', client.nom || '');
-    setValue('prenom', client.prenom || '');
-    setValue('email', client.email || '');
-    setValue('telephone', client.telephone || '');
-    setValue('adresse', client.adresse || '');
-    setValue('ville', client.ville || '');
-    setValue('codePostal', client.codePostal || '');
-    setValue('secteurActivite', client.secteurActivite || '');
-    setValue('typeEntreprise', client.typeEntreprise || '');
-    setValue('besoins', client.besoins || '');
     setIsEditDialogOpen(true);
   };
   
@@ -118,18 +102,6 @@ const AnnuairePage: React.FC = () => {
   };
   
   const handleCreateNewClient = () => {
-    reset({
-      nom: '',
-      prenom: '',
-      email: '',
-      telephone: '',
-      adresse: '',
-      ville: '',
-      codePostal: '',
-      secteurActivite: '',
-      typeEntreprise: '',
-      besoins: ''
-    });
     setIsCreateDialogOpen(true);
   };
   
@@ -269,8 +241,8 @@ const AnnuairePage: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nom</TableHead>
-                  <TableHead>Prénom</TableHead>
+                  <TableHead>Nom / Entreprise</TableHead>
+                  <TableHead>Prénom / Gérant</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Téléphone</TableHead>
                   <TableHead>Code postal</TableHead>
@@ -308,51 +280,75 @@ const AnnuairePage: React.FC = () => {
       
       {/* Dialog pour voir les détails d'un client */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Détails du client</DialogTitle>
           </DialogHeader>
           {selectedClient && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label>Nom</Label>
+                <span className="text-sm text-gray-500">Nom / Entreprise</span>
                 <p className="font-medium">{selectedClient.nom || '-'}</p>
               </div>
               <div>
-                <Label>Prénom</Label>
+                <span className="text-sm text-gray-500">Prénom / Gérant</span>
                 <p className="font-medium">{selectedClient.prenom || '-'}</p>
               </div>
               <div>
-                <Label>Email</Label>
+                <span className="text-sm text-gray-500">Email</span>
                 <p className="font-medium">{selectedClient.email || '-'}</p>
               </div>
               <div>
-                <Label>Téléphone</Label>
+                <span className="text-sm text-gray-500">Téléphone</span>
                 <p className="font-medium">{selectedClient.telephone || '-'}</p>
               </div>
               <div>
-                <Label>Adresse</Label>
+                <span className="text-sm text-gray-500">Adresse</span>
                 <p className="font-medium">{selectedClient.adresse || '-'}</p>
               </div>
               <div>
-                <Label>Ville</Label>
-                <p className="font-medium">{selectedClient.ville || '-'}</p>
-              </div>
-              <div>
-                <Label>Code postal</Label>
+                <span className="text-sm text-gray-500">Code postal</span>
                 <p className="font-medium">{selectedClient.codePostal || '-'}</p>
               </div>
               <div>
-                <Label>Secteur d'activité</Label>
+                <span className="text-sm text-gray-500">Ville</span>
+                <p className="font-medium">{selectedClient.ville || '-'}</p>
+              </div>
+              <div>
+                <span className="text-sm text-gray-500">Statut juridique</span>
+                <p className="font-medium">{selectedClient.statutJuridique || '-'}</p>
+              </div>
+              <div>
+                <span className="text-sm text-gray-500">Secteur d'activité</span>
                 <p className="font-medium">{selectedClient.secteurActivite || '-'}</p>
               </div>
               <div>
-                <Label>Type d'entreprise</Label>
+                <span className="text-sm text-gray-500">Type d'entreprise</span>
                 <p className="font-medium">{selectedClient.typeEntreprise || '-'}</p>
               </div>
+              <div>
+                <span className="text-sm text-gray-500">Site web</span>
+                <p className="font-medium">{selectedClient.siteWeb || '-'}</p>
+              </div>
+              <div>
+                <span className="text-sm text-gray-500">Moyens de communication</span>
+                <p className="font-medium">
+                  {selectedClient.moyensCommunication && selectedClient.moyensCommunication.length > 0 
+                    ? selectedClient.moyensCommunication.join(', ') 
+                    : '-'}
+                </p>
+              </div>
               <div className="col-span-2">
-                <Label>Besoins</Label>
+                <span className="text-sm text-gray-500">Activité détaillée</span>
+                <p className="font-medium">{selectedClient.activiteDetail || '-'}</p>
+              </div>
+              <div className="col-span-2">
+                <span className="text-sm text-gray-500">Besoins</span>
                 <p className="font-medium whitespace-pre-wrap">{selectedClient.besoins || '-'}</p>
+              </div>
+              <div className="col-span-2">
+                <span className="text-sm text-gray-500">Commentaires</span>
+                <p className="font-medium whitespace-pre-wrap">{selectedClient.commentaires || '-'}</p>
               </div>
             </div>
           )}
@@ -361,149 +357,32 @@ const AnnuairePage: React.FC = () => {
       
       {/* Dialog pour créer un nouveau client */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Créer un nouveau client</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmitCreate)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="nom">Nom</Label>
-                <Input id="nom" {...register('nom')} disabled={loading} />
-              </div>
-              <div>
-                <Label htmlFor="prenom">Prénom</Label>
-                <Input id="prenom" {...register('prenom')} disabled={loading} />
-              </div>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" {...register('email')} disabled={loading} />
-              </div>
-              <div>
-                <Label htmlFor="telephone">Téléphone</Label>
-                <Input id="telephone" {...register('telephone')} disabled={loading} />
-              </div>
-              <div>
-                <Label htmlFor="adresse">Adresse</Label>
-                <Input id="adresse" {...register('adresse')} disabled={loading} />
-              </div>
-              <div>
-                <Label htmlFor="ville">Ville</Label>
-                <Input id="ville" {...register('ville')} disabled={loading} />
-              </div>
-              <div>
-                <Label htmlFor="codePostal">Code postal</Label>
-                <Input id="codePostal" {...register('codePostal')} disabled={loading} />
-              </div>
-              <div>
-                <Label htmlFor="secteurActivite">Secteur d'activité</Label>
-                <Input id="secteurActivite" {...register('secteurActivite')} disabled={loading} />
-              </div>
-              <div>
-                <Label htmlFor="typeEntreprise">Type d'entreprise</Label>
-                <Select onValueChange={(value) => setValue('typeEntreprise', value)} disabled={loading}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PME">PME</SelectItem>
-                    <SelectItem value="TPE">TPE</SelectItem>
-                    <SelectItem value="ETI">ETI</SelectItem>
-                    <SelectItem value="Indépendant">Indépendant</SelectItem>
-                    <SelectItem value="Profession libérale">Profession libérale</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="col-span-2">
-                <Label htmlFor="besoins">Besoins</Label>
-                <Textarea id="besoins" {...register('besoins')} rows={4} disabled={loading} />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)} disabled={loading}>
-                Annuler
-              </Button>
-              <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={loading}>
-                Créer
-              </Button>
-            </DialogFooter>
-          </form>
+          <ClientForm 
+            onSubmit={onSubmitCreate} 
+            isLoading={loading} 
+            onCancel={() => setIsCreateDialogOpen(false)} 
+          />
         </DialogContent>
       </Dialog>
       
       {/* Dialog pour éditer un client */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Modifier le client</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmitEdit)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit-nom">Nom</Label>
-                <Input id="edit-nom" {...register('nom')} disabled={loading} />
-              </div>
-              <div>
-                <Label htmlFor="edit-prenom">Prénom</Label>
-                <Input id="edit-prenom" {...register('prenom')} disabled={loading} />
-              </div>
-              <div>
-                <Label htmlFor="edit-email">Email</Label>
-                <Input id="edit-email" type="email" {...register('email')} disabled={loading} />
-              </div>
-              <div>
-                <Label htmlFor="edit-telephone">Téléphone</Label>
-                <Input id="edit-telephone" {...register('telephone')} disabled={loading} />
-              </div>
-              <div>
-                <Label htmlFor="edit-adresse">Adresse</Label>
-                <Input id="edit-adresse" {...register('adresse')} disabled={loading} />
-              </div>
-              <div>
-                <Label htmlFor="edit-ville">Ville</Label>
-                <Input id="edit-ville" {...register('ville')} disabled={loading} />
-              </div>
-              <div>
-                <Label htmlFor="edit-codePostal">Code postal</Label>
-                <Input id="edit-codePostal" {...register('codePostal')} disabled={loading} />
-              </div>
-              <div>
-                <Label htmlFor="edit-secteurActivite">Secteur d'activité</Label>
-                <Input id="edit-secteurActivite" {...register('secteurActivite')} disabled={loading} />
-              </div>
-              <div>
-                <Label htmlFor="edit-typeEntreprise">Type d'entreprise</Label>
-                <Select 
-                  defaultValue={selectedClient?.typeEntreprise}
-                  onValueChange={(value) => setValue('typeEntreprise', value)} 
-                  disabled={loading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PME">PME</SelectItem>
-                    <SelectItem value="TPE">TPE</SelectItem>
-                    <SelectItem value="ETI">ETI</SelectItem>
-                    <SelectItem value="Indépendant">Indépendant</SelectItem>
-                    <SelectItem value="Profession libérale">Profession libérale</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="col-span-2">
-                <Label htmlFor="edit-besoins">Besoins</Label>
-                <Textarea id="edit-besoins" {...register('besoins')} rows={4} disabled={loading} />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)} disabled={loading}>
-                Annuler
-              </Button>
-              <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={loading}>
-                Mettre à jour
-              </Button>
-            </DialogFooter>
-          </form>
+          {selectedClient && (
+            <ClientForm 
+              client={selectedClient}
+              onSubmit={onSubmitEdit} 
+              isLoading={loading} 
+              onCancel={() => setIsEditDialogOpen(false)} 
+            />
+          )}
         </DialogContent>
       </Dialog>
       

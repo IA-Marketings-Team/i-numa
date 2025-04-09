@@ -23,4 +23,9 @@ export interface Client extends User {
   secteurActivite: string;
   typeEntreprise: string;
   besoins: string;
+  statutJuridique?: string;
+  activiteDetail?: string;
+  siteWeb?: string;
+  moyensCommunication?: string[];
+  commentaires?: string;
 }

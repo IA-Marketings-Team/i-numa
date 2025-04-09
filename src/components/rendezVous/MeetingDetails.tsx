@@ -1,20 +1,25 @@
 
 import React from "react";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface MeetingDetailsProps {
   location: string;
-  onLocationChange: (location: string) => void;
+  onLocationChange: (value: string) => void;
   meetingLink: string;
-  onMeetingLinkChange: (meetingLink: string) => void;
+  onMeetingLinkChange: (value: string) => void;
   notes: string;
-  onNotesChange: (notes: string) => void;
-  honore?: boolean;
-  onHonoreChange?: (honore: boolean) => void;
-  isEditing?: boolean;
+  onNotesChange: (value: string) => void;
+  honore: boolean;
+  onHonoreChange: (value: boolean) => void;
+  isEditing: boolean;
+  statut?: string;
+  onStatutChange?: (value: string) => void;
+  solutionProposee?: string;
+  onSolutionProposeeChange?: (value: string) => void;
 }
 
 const MeetingDetails: React.FC<MeetingDetailsProps> = ({
@@ -26,52 +31,87 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({
   onNotesChange,
   honore,
   onHonoreChange,
-  isEditing = false
+  isEditing,
+  statut = "planifie",
+  onStatutChange,
+  solutionProposee = "",
+  onSolutionProposeeChange
 }) => {
   return (
-    <>
-      <div className="space-y-2">
-        <Label htmlFor="location">Lieu</Label>
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="location">Lieu du rendez-vous</Label>
         <Input
           id="location"
+          placeholder="Ex: Visioconférence (Google Meet)"
           value={location}
           onChange={(e) => onLocationChange(e.target.value)}
-          placeholder="Ex: Visioconférence (Google Meet)"
         />
       </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="meetingLink">Lien de la réunion</Label>
+      
+      <div>
+        <Label htmlFor="meetingLink">Lien de réunion</Label>
         <Input
           id="meetingLink"
+          placeholder="Lien vers la réunion en ligne"
           value={meetingLink}
           onChange={(e) => onMeetingLinkChange(e.target.value)}
-          placeholder="Ex: https://meet.google.com/abc-defg-hij"
         />
       </div>
-
-      <div className="space-y-2">
+      
+      {onStatutChange && (
+        <div>
+          <Label htmlFor="status">Statut du rendez-vous</Label>
+          <Select value={statut} onValueChange={onStatutChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Sélectionnez un statut" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="planifie">Planifié</SelectItem>
+              <SelectItem value="confirme">Confirmé</SelectItem>
+              <SelectItem value="reporte">Reporté</SelectItem>
+              <SelectItem value="annule">Annulé</SelectItem>
+              <SelectItem value="termine">Terminé</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      
+      {onSolutionProposeeChange && (
+        <div>
+          <Label htmlFor="solutionProposee">Solution proposée</Label>
+          <Textarea
+            id="solutionProposee"
+            placeholder="Solutions proposées par l'agent"
+            value={solutionProposee}
+            onChange={(e) => onSolutionProposeeChange(e.target.value)}
+            rows={3}
+          />
+        </div>
+      )}
+      
+      <div>
         <Label htmlFor="notes">Notes</Label>
         <Textarea
           id="notes"
+          placeholder="Notes additionnelles..."
           value={notes}
           onChange={(e) => onNotesChange(e.target.value)}
-          placeholder="Informations supplémentaires..."
-          rows={4}
+          rows={3}
         />
       </div>
-
-      {isEditing && onHonoreChange && (
+      
+      {isEditing && (
         <div className="flex items-center space-x-2">
-          <Checkbox 
-            id="honore" 
+          <Switch
+            id="honore"
             checked={honore}
-            onCheckedChange={(checked) => onHonoreChange(checked === true)}
+            onCheckedChange={onHonoreChange}
           />
-          <Label htmlFor="honore" className="cursor-pointer">Rendez-vous honoré</Label>
+          <Label htmlFor="honore">Rendez-vous honoré</Label>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

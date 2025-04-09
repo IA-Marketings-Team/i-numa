@@ -27,8 +27,11 @@ export interface RendezVous {
   dossierId: string;
   dossier: Dossier;
   date: Date;
+  heure?: string;
   honore: boolean;
   notes?: string;
   meetingLink?: string;
   location?: string;
+  statut?: string;
+  solutionProposee?: string;
 }

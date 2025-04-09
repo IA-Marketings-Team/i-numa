@@ -33,7 +33,12 @@ export const fetchClients = async (): Promise<Client[]> => {
       nomBanque: client.nom_banque,
       secteurActivite: client.secteur_activite || '',
       typeEntreprise: client.type_entreprise || '',
-      besoins: client.besoins || ''
+      besoins: client.besoins || '',
+      statutJuridique: client.statut_juridique || '',
+      activiteDetail: client.activite_detail || '',
+      siteWeb: client.site_web || '',
+      moyensCommunication: client.moyens_communication || [],
+      commentaires: client.commentaires || ''
     }));
   } catch (error) {
     console.error("Erreur inattendue lors de la récupération des clients:", error);
@@ -74,7 +79,12 @@ export const fetchClientById = async (id: string): Promise<Client | null> => {
       nomBanque: data.nom_banque,
       secteurActivite: data.secteur_activite || '',
       typeEntreprise: data.type_entreprise || '',
-      besoins: data.besoins || ''
+      besoins: data.besoins || '',
+      statutJuridique: data.statut_juridique || '',
+      activiteDetail: data.activite_detail || '',
+      siteWeb: data.site_web || '',
+      moyensCommunication: data.moyens_communication || [],
+      commentaires: data.commentaires || ''
     };
   } catch (error) {
     console.error(`Erreur inattendue lors de la récupération du client ${id}:`, error);
@@ -106,7 +116,12 @@ export const createClient = async (clientData: Omit<Client, 'id' | 'dateCreation
         nom_banque: clientData.nomBanque,
         secteur_activite: clientData.secteurActivite,
         type_entreprise: clientData.typeEntreprise,
-        besoins: clientData.besoins
+        besoins: clientData.besoins,
+        statut_juridique: clientData.statutJuridique,
+        activite_detail: clientData.activiteDetail,
+        site_web: clientData.siteWeb,
+        moyens_communication: clientData.moyensCommunication,
+        commentaires: clientData.commentaires
       })
       .select()
       .single();
@@ -132,7 +147,12 @@ export const createClient = async (clientData: Omit<Client, 'id' | 'dateCreation
       nomBanque: data.nom_banque,
       secteurActivite: data.secteur_activite || '',
       typeEntreprise: data.type_entreprise || '',
-      besoins: data.besoins || ''
+      besoins: data.besoins || '',
+      statutJuridique: data.statut_juridique || '',
+      activiteDetail: data.activite_detail || '',
+      siteWeb: data.site_web || '',
+      moyensCommunication: data.moyens_communication || [],
+      commentaires: data.commentaires || ''
     };
   } catch (error) {
     console.error("Erreur inattendue lors de la création du client:", error);
@@ -160,6 +180,11 @@ export const updateClient = async (id: string, clientData: Partial<Omit<Client, 
     if (clientData.secteurActivite !== undefined) dbData.secteur_activite = clientData.secteurActivite;
     if (clientData.typeEntreprise !== undefined) dbData.type_entreprise = clientData.typeEntreprise;
     if (clientData.besoins !== undefined) dbData.besoins = clientData.besoins;
+    if (clientData.statutJuridique !== undefined) dbData.statut_juridique = clientData.statutJuridique;
+    if (clientData.activiteDetail !== undefined) dbData.activite_detail = clientData.activiteDetail;
+    if (clientData.siteWeb !== undefined) dbData.site_web = clientData.siteWeb;
+    if (clientData.moyensCommunication !== undefined) dbData.moyens_communication = clientData.moyensCommunication;
+    if (clientData.commentaires !== undefined) dbData.commentaires = clientData.commentaires;
 
     const { error } = await supabase
       .from('profiles')

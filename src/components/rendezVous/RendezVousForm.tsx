@@ -32,10 +32,13 @@ const RendezVousForm: React.FC<RendezVousFormProps> = ({
   const [date, setDate] = useState<Date | undefined>(rendezVous?.date ? new Date(rendezVous.date) : undefined);
   const [hours, setHours] = useState<string>(rendezVous?.date ? format(new Date(rendezVous.date), "HH") : "09");
   const [minutes, setMinutes] = useState<string>(rendezVous?.date ? format(new Date(rendezVous.date), "mm") : "00");
+  const [timeField, setTimeField] = useState<string>(rendezVous?.heure || "");
   const [meetingLink, setMeetingLink] = useState(rendezVous?.meetingLink || "");
   const [location, setLocation] = useState(rendezVous?.location || "Visioconférence (Google Meet)");
   const [notes, setNotes] = useState(rendezVous?.notes || "");
   const [honore, setHonore] = useState(rendezVous?.honore || false);
+  const [statut, setStatut] = useState(rendezVous?.statut || "planifie");
+  const [solutionProposee, setSolutionProposee] = useState(rendezVous?.solutionProposee || "");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,10 +55,13 @@ const RendezVousForm: React.FC<RendezVousFormProps> = ({
     if (isEditing && rendezVous) {
       const updates = {
         date: dateTime,
+        heure: timeField,
         meetingLink,
         location,
         notes,
-        honore
+        honore,
+        statut,
+        solutionProposee
       };
       
       if (onRendezVousUpdated) {
@@ -69,10 +75,13 @@ const RendezVousForm: React.FC<RendezVousFormProps> = ({
         dossierId: dossier.id,
         dossier,
         date: dateTime,
+        heure: timeField,
         meetingLink,
         location,
         notes,
-        honore
+        honore,
+        statut,
+        solutionProposee
       };
       
       if (onRendezVousAdded) {
@@ -98,6 +107,8 @@ const RendezVousForm: React.FC<RendezVousFormProps> = ({
             onHoursChange={setHours}
             minutes={minutes}
             onMinutesChange={setMinutes}
+            timeField={timeField}
+            onTimeFieldChange={setTimeField}
           />
 
           <MeetingDetails 
@@ -110,6 +121,10 @@ const RendezVousForm: React.FC<RendezVousFormProps> = ({
             honore={honore}
             onHonoreChange={setHonore}
             isEditing={isEditing}
+            statut={statut}
+            onStatutChange={setStatut}
+            solutionProposee={solutionProposee}
+            onSolutionProposeeChange={setSolutionProposee}
           />
         </CardContent>
         <CardFooter className="flex justify-between">
