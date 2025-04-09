@@ -5,6 +5,7 @@ import {
   RouterProvider,
   Route,
   createRoutesFromElements,
+  Navigate,
 } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from "./components/theme-provider";
@@ -69,8 +70,20 @@ const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
+    path: "/login",
+    element: <Navigate to="/connexion" replace />,
+  },
+  {
     path: "/inscription",
     element: <RegisterPage />,
+  },
+  {
+    path: "/register",
+    element: <Navigate to="/inscription" replace />,
+  },
+  {
+    path: "/dashboard",
+    element: <Navigate to="/tableau-de-bord" replace />,
   },
   {
     path: "/contact",

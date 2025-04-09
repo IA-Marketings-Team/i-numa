@@ -12,7 +12,7 @@ const RegisterPage: React.FC = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      navigate("/dashboard");
+      navigate("/tableau-de-bord");
     }
   }, [isAuthenticated, isLoading, navigate]);
 

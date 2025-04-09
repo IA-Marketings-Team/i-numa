@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -40,7 +39,6 @@ const LoginPage: React.FC = () => {
   const { toast } = useToast();
   const [currentSlide, setCurrentSlide] = useState(0);
   
-  // Changement de slide automatique
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
@@ -49,22 +47,18 @@ const LoginPage: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
   
-  // Obtenir la destination prévue depuis l'état de l'emplacement, ou par défaut au tableau de bord
-  const from = location.state?.from || "/dashboard";
+  const from = location.state?.from || "/tableau-de-bord";
   
-  // Vérifier les messages provenant d'autres pages
   useEffect(() => {
     if (location.state?.message) {
       toast({
         description: location.state.message
       });
       
-      // Effacer le message après l'avoir affiché
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location, toast, navigate]);
 
-  // Rediriger si déjà authentifié
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
       navigate(from);
@@ -84,7 +78,6 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Partie gauche: Slider */}
       <div className="hidden md:flex md:flex-col md:w-1/2 relative overflow-hidden">
         {slides.map((slide, index) => (
           <div 
@@ -110,7 +103,6 @@ const LoginPage: React.FC = () => {
         ))}
       </div>
       
-      {/* Partie droite: Formulaire de connexion */}
       <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-5">
         <div className="w-full max-w-md">
           <LoginForm />

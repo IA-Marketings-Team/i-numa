@@ -31,7 +31,7 @@ const LoginForm: React.FC = () => {
           title: "Connexion réussie",
           description: "Bienvenue !",
         });
-        navigate("/dashboard");
+        navigate("/tableau-de-bord");
       } else {
         setError(error?.message || "Échec de la connexion. Veuillez vérifier vos identifiants.");
       }
