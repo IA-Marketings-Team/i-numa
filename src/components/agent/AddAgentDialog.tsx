@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { AgentForm } from "@/components/agents/AgentForm";
+import AgentForm from "@/components/agents/AgentForm";
 import { z } from "zod";
 import { Agent } from "@/types/agent";
 import { supabase } from "@/integrations/supabase/client";
