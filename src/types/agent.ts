@@ -9,6 +9,17 @@ export interface AgentStats {
   clientSatisfaction: number;
 }
 
+// Define the statistics structure that's actually used in the code
+export interface AgentStatistiques {
+  appelsEmis: number;
+  appelsDecroches: number;
+  appelsTransformes: number;
+  rendezVousHonores: number;
+  rendezVousNonHonores: number;
+  dossiersValides: number;
+  dossiersSigne: number;
+}
+
 export interface Agent {
   id: string;
   nom: string;
@@ -18,6 +29,7 @@ export interface Agent {
   role: UserRole;
   dateCreation: Date;
   stats?: AgentStats;
+  statistiques?: AgentStatistiques;  // Add the statistiques property
   adresse?: string;
   ville?: string;
   codePostal?: string;
