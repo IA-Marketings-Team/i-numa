@@ -40,7 +40,7 @@ const LoginPage: React.FC = () => {
   const { toast } = useToast();
   const [currentSlide, setCurrentSlide] = useState(0);
   
-  // Gestion du carrousel automatique
+  // Changement de slide automatique
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
@@ -49,25 +49,25 @@ const LoginPage: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
   
-  // Récupération de la route de redirection
-  const from = location.state?.from || "/tableau-de-bord";
+  // Obtenir la destination prévue depuis l'état de l'emplacement, ou par défaut au tableau de bord
+  const from = location.state?.from || "/dashboard";
   
-  // Affichage des messages de notification
+  // Vérifier les messages provenant d'autres pages
   useEffect(() => {
     if (location.state?.message) {
       toast({
         description: location.state.message
       });
       
-      // Nettoyage du state pour éviter les affichages répétés
+      // Effacer le message après l'avoir affiché
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state?.message, toast, navigate]);
+  }, [location, toast, navigate]);
 
-  // Redirection si déjà authentifié - avec dépendances correctes pour éviter les boucles
+  // Rediriger si déjà authentifié
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      navigate(from, { replace: true });
+      navigate(from);
     }
   }, [isAuthenticated, isLoading, navigate, from]);
 
@@ -84,6 +84,7 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+      {/* Partie gauche: Slider */}
       <div className="hidden md:flex md:flex-col md:w-1/2 relative overflow-hidden">
         {slides.map((slide, index) => (
           <div 
@@ -109,6 +110,7 @@ const LoginPage: React.FC = () => {
         ))}
       </div>
       
+      {/* Partie droite: Formulaire de connexion */}
       <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-5">
         <div className="w-full max-w-md">
           <LoginForm />

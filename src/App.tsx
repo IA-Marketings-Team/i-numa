@@ -1,216 +1,145 @@
 
-import React from 'react';
-import {
-  createBrowserRouter,
-  RouterProvider,
-  Route,
-  createRoutesFromElements,
-  Navigate,
-} from "react-router-dom";
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from "./components/theme-provider";
-import { Toaster } from "@/components/ui/toaster";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import { StatistiqueProvider } from "./contexts/StatistiqueContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { CartProvider } from "./contexts/CartContext";
+import DashboardLayout from "./layouts/DashboardLayout";
+import LoginPage from "./pages/Login";
+import RegisterPage from "./pages/RegisterPage";
+import UnauthorizedPage from "./pages/UnauthorizedPage";
+import { Toaster } from "./components/ui/toaster";
 
-import './App.css';
-import LandingPage from './pages/LandingPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import ContactPage from './pages/ContactPage';
-import PricingPage from './pages/PricingPage';
-import AboutUsPage from './pages/AboutUsPage';
-import MarketplacePage from './pages/MarketplacePage';
-import NotificationPage from './pages/NotificationPage';
-import TasksPage from './pages/TasksPage';
-import DossiersPage from './pages/DossiersPage';
-import DossierDetailsPage from './pages/DossierDetailsPage';
-import DossierEditPage from './pages/DossierEditPage';
-import GlobalAgenda from './pages/GlobalAgenda';
-import Communications from './pages/Communications';
-import ClientAgenda from './pages/ClientAgenda';
-import ProtectedRoute from './components/auth/ProtectedRoute';
-import DashboardLayout from './layouts/DashboardLayout';
-import DashboardPage from './pages/DashboardPage';
-import { AuthProvider } from './contexts/AuthContext';
-import { CartProvider } from './contexts/CartContext';
-import { NotificationProvider } from './contexts/NotificationContext';
-import ClientAgendaPage from './pages/ClientAgendaPage';
-import SuperviseurDashboardPage from './pages/SuperviseurDashboardPage';
-import ErrorPage from './pages/ErrorPage';
+// Import RendezVousEdit component
+import RendezVousEdit from "./pages/RendezVousEdit";
 
-function App() {
-  const queryClient = new QueryClient();
+// Import your pages
+import DashboardPage from "./pages/DashboardPage";
+import ClientsPage from "./pages/ClientsPage";
+import ClientDetailsPage from "./pages/ClientDetailsPage";
+import ClientEditPage from "./pages/ClientEditPage";
+import ClientNewPage from "./pages/ClientNewPage";
+import DossiersPage from "./pages/DossiersPage";
+import DossierDetailsPage from "./pages/DossierDetailsPage";
+import DossierEditPage from "./pages/DossierEditPage";
+import DossierNewPage from "./pages/DossierNewPage";
+import AgentsPage from "./pages/AgentsPage";
+import StatistiquesPage from "./pages/StatistiquesPage";
+import TasksPage from "./pages/TasksPage";
+import NotFoundPage from "./pages/NotFoundPage";
+import ProfilePage from "./pages/ProfilePage";
+import ProspectsPage from "./pages/ProspectsPage";
+import Communications from "./pages/Communications";
+import GlobalAgenda from "./pages/GlobalAgenda";
+import ClientAgenda from "./pages/ClientAgenda";
+import DossierCallPage from "./pages/DossierCallPage";
+import DossierMeetingPage from "./pages/DossierMeetingPage";
+import DossierPage from "./pages/DossierPage";
+import MarketplacePage from "./pages/MarketplacePage";
+import ContractAcceptance from "./pages/ContractAcceptance";
+import AnnuairePage from "./pages/AnnuairePage";
 
+// Configuration des routes
+const App: React.FC = () => {
   return (
-    <div className="App">
-      <ThemeProvider defaultTheme="light" storageKey="inuma-ui-theme">
-        <NotificationProvider>
-          <CartProvider>
-            <AuthProvider>
-              <QueryClientProvider client={queryClient}>
-                <RouterProvider router={router} />
-              </QueryClientProvider>
+    <Router>
+      <ThemeProvider>
+        <AuthProvider>
+          <StatistiqueProvider>
+            <CartProvider>
+              <Routes>
+                {/* Routes publiques */}
+                <Route path="/connexion" element={<LoginPage />} />
+                <Route path="/inscription" element={<RegisterPage />} />
+                <Route path="/register" element={<Navigate to="/inscription" replace />} />
+                <Route path="/login" element={<Navigate to="/connexion" replace />} />
+                <Route path="/non-autorise" element={<UnauthorizedPage />} />
+                
+                {/* Rediriger la racine vers le tableau de bord */}
+                <Route path="/" element={<Navigate to="/tableau-de-bord" replace />} />
+                
+                {/* Routes du dashboard protégées */}
+                <Route path="/tableau-de-bord" element={<DashboardLayout><DashboardPage /></DashboardLayout>} />
+                
+                {/* Routes clients */}
+                <Route path="/clients">
+                  <Route index element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><ClientsPage /></DashboardLayout>} />
+                  <Route path=":id" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><ClientDetailsPage /></DashboardLayout>} />
+                  <Route path=":id/modifier" element={<DashboardLayout roles={["superviseur", "responsable"]}><ClientEditPage /></DashboardLayout>} />
+                  <Route path="nouveau" element={<DashboardLayout roles={["superviseur", "responsable"]}><ClientNewPage /></DashboardLayout>} />
+                </Route>
+                
+                {/* Route annuaire */}
+                <Route path="/annuaire" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><AnnuairePage /></DashboardLayout>} />
+                
+                {/* Routes dossiers */}
+                <Route path="/dossiers">
+                  <Route index element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossiersPage /></DashboardLayout>} />
+                  <Route path=":id" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossierDetailsPage /></DashboardLayout>} />
+                  <Route path=":id/details" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossierDetailsPage /></DashboardLayout>} />
+                  <Route path=":id/modifier" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossierEditPage /></DashboardLayout>} />
+                  <Route path=":id/appel" element={<DashboardLayout roles={["agent_phoner", "superviseur", "responsable"]}><DossierCallPage /></DashboardLayout>} />
+                  <Route path=":id/rdv" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><DossierMeetingPage /></DashboardLayout>} />
+                  {/* Routes pour les rendez-vous */}
+                  <Route path=":id/rendez-vous/nouveau" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><RendezVousEdit /></DashboardLayout>} />
+                  <Route path=":dossierId/rendez-vous/:id" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><RendezVousEdit /></DashboardLayout>} />
+                  <Route path="nouveau" element={<DashboardLayout roles={["agent_phoner", "superviseur", "responsable"]}><DossierNewPage /></DashboardLayout>} />
+                </Route>
+                
+                {/* Routes marketplace (remplace offres) */}
+                <Route path="/marketplace" element={<DashboardLayout><MarketplacePage /></DashboardLayout>} />
+                {/* Rediriger les anciennes routes d'offres vers marketplace */}
+                <Route path="/offres" element={<Navigate to="/marketplace" replace />} />
+                <Route path="/catalogue" element={<Navigate to="/marketplace" replace />} />
+                <Route path="/mes-offres" element={<Navigate to="/marketplace" replace />} />
+                <Route path="/contrat-acceptation" element={<DashboardLayout><ContractAcceptance /></DashboardLayout>} />
+                
+                {/* Routes agents */}
+                <Route path="/agents" element={<DashboardLayout roles={["superviseur", "responsable"]}><AgentsPage /></DashboardLayout>} />
+                
+                {/* Routes tâches */}
+                <Route path="/taches" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><TasksPage /></DashboardLayout>} />
+                
+                {/* Route profil */}
+                <Route path="/profil" element={<DashboardLayout><ProfilePage /></DashboardLayout>} />
+                
+                {/* Routes statistiques */}
+                <Route path="/statistiques" element={<DashboardLayout roles={["superviseur", "responsable"]}><StatistiquesPage /></DashboardLayout>} />
+                
+                {/* Routes de gestion d'équipe */}
+                <Route path="/superviseur/equipes" element={<DashboardLayout roles={["superviseur", "responsable"]}><AgentsPage /></DashboardLayout>} />
+                
+                {/* Route agenda */}
+                <Route path="/agenda-global" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><GlobalAgenda /></DashboardLayout>} />
+                <Route path="/agenda" element={<DashboardLayout roles={["client"]}><ClientAgenda /></DashboardLayout>} />
+                
+                {/* Route prospects (remplace appels) */}
+                <Route path="/prospects" element={<DashboardLayout roles={["agent_phoner", "superviseur", "responsable"]}><ProspectsPage /></DashboardLayout>} />
+                {/* Rediriger l'ancienne route appels vers prospects */}
+                <Route path="/appels" element={<Navigate to="/prospects" replace />} />
+                
+                {/* Route communications */}
+                <Route path="/communications" element={<DashboardLayout roles={["agent_phoner", "agent_visio", "superviseur", "responsable"]}><Communications /></DashboardLayout>} />
+                
+                {/* Routes pour la compatibilité avec les anciens chemins */}
+                <Route path="/dashboard/*" element={<Navigate to="/tableau-de-bord" replace />} />
+                <Route path="/dashboard/clients/*" element={<Navigate to="/clients" replace />} />
+                <Route path="/dashboard/clients/:id" element={<Navigate to="/clients/:id" replace />} />
+                <Route path="/dashboard/clients/:id/edit" element={<Navigate to="/clients/:id/modifier" replace />} />
+                <Route path="/dashboard/clients/nouveau" element={<Navigate to="/clients/nouveau" replace />} />
+                <Route path="/dashboard/dossiers/*" element={<Navigate to="/dossiers" replace />} />
+                
+                {/* Route pour les URLs non trouvées */}
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
               <Toaster />
-            </AuthProvider>
-          </CartProvider>
-        </NotificationProvider>
+            </CartProvider>
+          </StatistiqueProvider>
+        </AuthProvider>
       </ThemeProvider>
-    </div>
+    </Router>
   );
-}
-
-// Create router
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <LandingPage />,
-    errorElement: <ErrorPage />,
-  },
-  {
-    path: "/connexion",
-    element: <LoginPage />,
-  },
-  {
-    path: "/login",
-    element: <Navigate to="/connexion" replace />,
-  },
-  {
-    path: "/inscription",
-    element: <RegisterPage />,
-  },
-  {
-    path: "/register",
-    element: <Navigate to="/inscription" replace />,
-  },
-  {
-    path: "/dashboard",
-    element: <Navigate to="/tableau-de-bord" replace />,
-  },
-  {
-    path: "/contact",
-    element: <ContactPage />,
-  },
-  {
-    path: "/tarifs",
-    element: <PricingPage />,
-  },
-  {
-    path: "/a-propos",
-    element: <AboutUsPage />,
-  },
-  {
-    path: "/marketplace",
-    element: (
-      <ProtectedRoute>
-        <DashboardLayout>
-          <MarketplacePage />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/notifications",
-    element: (
-      <ProtectedRoute>
-        <DashboardLayout>
-          <NotificationPage />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/taches",
-    element: (
-      <ProtectedRoute>
-        <DashboardLayout>
-          <TasksPage />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/dossiers",
-    element: (
-      <ProtectedRoute>
-        <DashboardLayout>
-          <DossiersPage />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/dossiers/:id",
-    element: (
-      <ProtectedRoute>
-        <DashboardLayout>
-          <DossierDetailsPage />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/dossiers/:id/edit",
-    element: (
-      <ProtectedRoute>
-        <DashboardLayout>
-          <DossierEditPage />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/agenda",
-    element: (
-      <ProtectedRoute>
-        <DashboardLayout>
-          <GlobalAgenda />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/communications",
-    element: (
-      <ProtectedRoute>
-        <DashboardLayout>
-          <Communications />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/tableau-de-bord",
-    element: (
-      <ProtectedRoute>
-        <DashboardLayout>
-          <DashboardPage />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/agenda-client",
-    element: (
-      <ProtectedRoute roles={["client"]}>
-        <DashboardLayout>
-          <ClientAgendaPage />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/supervision",
-    element: (
-      <ProtectedRoute roles={["superviseur"]}>
-        <DashboardLayout>
-          <SuperviseurDashboardPage />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/non-autorise",
-    element: <ErrorPage title="Non autorisé" message="Vous n'avez pas les permissions nécessaires pour accéder à cette page." />,
-  },
-]);
+};
 
 export default App;

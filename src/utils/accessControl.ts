@@ -25,7 +25,7 @@ export const hasPermission = (userRole: UserRole | undefined, requiredRoles: Use
 export const getDefaultRouteForRole = (role: UserRole): string => {
   switch (role) {
     case 'client':
-      return '/agenda-client';
+      return '/mes-offres';
     case 'agent_phoner':
     case 'agent_visio':
     case 'superviseur':

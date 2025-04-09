@@ -52,7 +52,7 @@ const RegisterForm: React.FC = () => {
       );
 
       if (success) {
-        navigate("/connexion", { state: { message: "Inscription réussie ! Veuillez vérifier votre email pour confirmer votre compte." } });
+        navigate("/login", { state: { message: "Inscription réussie ! Veuillez vérifier votre email pour confirmer votre compte." } });
       } else {
         setError(error?.message || "L'inscription a échoué. Veuillez réessayer.");
       }

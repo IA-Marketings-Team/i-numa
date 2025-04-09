@@ -1,16 +1,7 @@
 
-import { UserRole } from './user';
+import { User, UserRole } from './user';
 
-export interface AgentStats {
-  appointmentsMade: number;
-  appointmentsCompleted: number;
-  conversionRate: number;
-  averageDuration: number;
-  clientSatisfaction: number;
-}
-
-// Define the statistics structure that's actually used in the code
-export interface AgentStatistiques {
+export interface AgentStatistics {
   appelsEmis: number;
   appelsDecroches: number;
   appelsTransformes: number;
@@ -20,7 +11,7 @@ export interface AgentStatistiques {
   dossiersSigne: number;
 }
 
-export interface Agent {
+export interface Agent extends User {
   id: string;
   nom: string;
   prenom: string;
@@ -28,10 +19,12 @@ export interface Agent {
   telephone: string;
   role: UserRole;
   dateCreation: Date;
-  stats?: AgentStats;
-  statistiques?: AgentStatistiques;  // Add the statistiques property
   adresse?: string;
   ville?: string;
   codePostal?: string;
   equipeId?: string;
+  iban?: string;
+  bic?: string;
+  nomBanque?: string;
+  statistiques: AgentStatistics;
 }
