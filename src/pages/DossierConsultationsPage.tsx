@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -62,10 +63,12 @@ const DossierConsultationsPage: React.FC = () => {
   const fetchConsultations = async () => {
     setIsLoading(true);
     try {
+      // Create a base query
       let query = supabase
         .from("dossier_consultations")
         .select("*", { count: "exact" });
 
+      // Apply filters conditionally
       if (search) {
         query = query.or(`user_name.ilike.%${search}%,action.ilike.%${search}%`);
       }
@@ -83,6 +86,7 @@ const DossierConsultationsPage: React.FC = () => {
         query = query.eq("dossier_id", dossierFilter);
       }
 
+      // Handle pagination
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
       
@@ -118,8 +122,10 @@ const DossierConsultationsPage: React.FC = () => {
     }
   };
 
+  // Simplified fetch function to avoid excessive type instantiation
   const fetchFiltersData = async () => {
     try {
+      // Fetch users
       const { data: userData, error: userError } = await supabase
         .from("profiles")
         .select("id, nom, prenom");
@@ -127,12 +133,14 @@ const DossierConsultationsPage: React.FC = () => {
       if (userError) throw userError;
       
       if (userData) {
-        setUsers(userData.map(user => ({
+        const formattedUsers = userData.map(user => ({
           id: user.id,
-          name: `${user.prenom} ${user.nom}`
-        })));
+          name: `${user.prenom || ''} ${user.nom || ''}`.trim()
+        }));
+        setUsers(formattedUsers);
       }
 
+      // Fetch dossiers
       const { data: dossierData, error: dossierError } = await supabase
         .from("dossiers")
         .select("id, client_id");
@@ -146,14 +154,16 @@ const DossierConsultationsPage: React.FC = () => {
           let clientName = `Dossier ${dossier.id.substring(0, 8)}`;
           
           if (dossier.client_id) {
-            const { data: clientData } = await supabase
+            // Fetch client info separately to avoid deep type instantiations
+            const clientResponse = await supabase
               .from("profiles")
               .select("nom, prenom")
               .eq("id", dossier.client_id)
               .single();
             
-            if (clientData) {
-              clientName = `${clientData.prenom} ${clientData.nom}`;
+            if (clientResponse.data) {
+              clientName = `${clientResponse.data.prenom || ''} ${clientResponse.data.nom || ''}`.trim();
+              if (!clientName) clientName = `Dossier ${dossier.id.substring(0, 8)}`;
             }
           }
           
