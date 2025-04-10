@@ -1,121 +1,164 @@
 
-import React, { useState } from "react";
-import { format, startOfWeek, addWeeks, subWeeks } from "date-fns";
-import { fr } from "date-fns/locale";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DialogTrigger } from "@/components/ui/dialog";
-import { AppointmentDialog, AppointmentData } from "@/components/agenda/AppointmentDialog";
-import WeekView from "@/components/agenda/WeekView";
-import MonthView from "@/components/agenda/MonthView";
-import CalendarSidebar from "@/components/agenda/CalendarSidebar";
-import { Appointment } from "@/types/agenda";
 import { useToast } from "@/hooks/use-toast";
+import { Calendar, Clock, Plus } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { fetchRendezVous } from "@/services/rendezVousService";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 const AgendaPage: React.FC = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [calendarView, setCalendarView] = useState<"month" | "week">("month");
-  const [selectedWeek, setSelectedWeek] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { user } = useAuth();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
+  const [rendezVous, setRendezVous] = useState<any[]>([]);
+  const [viewMode, setViewMode] = useState("semaine");
 
-  const handleCreateAppointment = (appointmentData: AppointmentData) => {
-    if (!appointmentData.date || !appointmentData.time) {
+  useEffect(() => {
+    loadRendezVous();
+  }, []);
+
+  const loadRendezVous = async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchRendezVous();
+      setRendezVous(data);
+    } catch (error) {
+      console.error("Erreur lors du chargement des rendez-vous:", error);
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Veuillez sélectionner une date et une heure pour le rendez-vous.",
+        description: "Impossible de charger vos rendez-vous.",
       });
-      return;
+    } finally {
+      setIsLoading(false);
     }
-
-    const appointmentDate = new Date(appointmentData.date);
-    const [hours, minutes] = appointmentData.time.split(":").map(Number);
-    appointmentDate.setHours(hours, minutes);
-
-    const newAppointmentData: Appointment = {
-      id: Math.random().toString(36).substring(2, 11),
-      date: appointmentDate,
-      time: appointmentData.time,
-      type: appointmentData.type,
-      confirmed: false
-    };
-
-    setAppointments(prev => [...prev, newAppointmentData]);
-    setIsDialogOpen(false);
-    
-    toast({
-      title: "Rendez-vous créé",
-      description: "Un email de confirmation a été envoyé. Veuillez cliquer sur le lien dans l'email pour confirmer votre rendez-vous.",
-    });
-  };
-
-  const handlePreviousWeek = () => {
-    setSelectedWeek(subWeeks(selectedWeek, 1));
-  };
-
-  const handleNextWeek = () => {
-    setSelectedWeek(addWeeks(selectedWeek, 1));
   };
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Agenda</h1>
-        <DialogTrigger asChild>
-          <Button onClick={() => setIsDialogOpen(true)}>
-            Prendre un rendez-vous
-          </Button>
-        </DialogTrigger>
+        <h1 className="text-2xl font-bold">Mes rendez-vous</h1>
+        <Button className="flex items-center gap-2">
+          <Plus className="h-4 w-4" /> Nouveau rendez-vous
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-1">
-          <CalendarSidebar 
-            calendarView={calendarView}
-            setCalendarView={setCalendarView}
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            hasAppointments={appointments.length > 0}
-          />
+      <Tabs defaultValue={viewMode} onValueChange={setViewMode}>
+        <div className="flex justify-between items-center mb-4">
+          <TabsList>
+            <TabsTrigger value="jour">Jour</TabsTrigger>
+            <TabsTrigger value="semaine">Semaine</TabsTrigger>
+            <TabsTrigger value="mois">Mois</TabsTrigger>
+            <TabsTrigger value="liste">Liste</TabsTrigger>
+          </TabsList>
         </div>
 
-        <div className="md:col-span-2">
-          <Card className="h-full">
+        <TabsContent value="jour" className="mt-4">
+          <Card>
             <CardHeader>
-              <CardTitle>
-                {calendarView === "month" 
-                  ? format(selectedDate || new Date(), "MMMM yyyy", { locale: fr })
-                  : "Vue de la semaine"
-                }
-              </CardTitle>
+              <CardTitle>Agenda du jour</CardTitle>
             </CardHeader>
-            <CardContent className="overflow-auto" style={{ maxHeight: "60vh" }}>
-              {calendarView === "week" ? (
-                <WeekView
-                  selectedWeek={selectedWeek}
-                  onPreviousWeek={handlePreviousWeek}
-                  onNextWeek={handleNextWeek}
-                  appointments={appointments}
-                />
+            <CardContent>
+              {isLoading ? (
+                <p className="text-center py-10">Chargement de l'agenda...</p>
               ) : (
-                <MonthView 
-                  selectedDate={selectedDate}
-                  appointments={appointments}
-                  onAddClick={() => setIsDialogOpen(true)}
-                />
+                <p className="text-center py-10">
+                  Fonctionnalité en cours de développement
+                </p>
               )}
             </CardContent>
           </Card>
-        </div>
-      </div>
+        </TabsContent>
 
-      <AppointmentDialog 
-        isOpen={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        onCreateAppointment={handleCreateAppointment}
-      />
+        <TabsContent value="semaine" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Agenda de la semaine</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <p className="text-center py-10">Chargement de l'agenda...</p>
+              ) : (
+                <p className="text-center py-10">
+                  Fonctionnalité en cours de développement
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="mois" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Agenda du mois</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <p className="text-center py-10">Chargement de l'agenda...</p>
+              ) : (
+                <p className="text-center py-10">
+                  Fonctionnalité en cours de développement
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="liste" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Liste des rendez-vous</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <p className="text-center py-10">Chargement des rendez-vous...</p>
+              ) : rendezVous.length > 0 ? (
+                <div className="space-y-4">
+                  {rendezVous.map((rdv) => (
+                    <div
+                      key={rdv.id}
+                      className="p-4 border rounded-lg flex items-start gap-4 hover:bg-gray-50"
+                    >
+                      <div className="bg-primary/10 rounded-full p-3">
+                        <Calendar className="h-6 w-6 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium">
+                          {rdv.dossier
+                            ? `Dossier #${rdv.dossier.id.slice(0, 8)}`
+                            : "Rendez-vous"}
+                        </h3>
+                        <div className="flex items-center text-sm text-muted-foreground mt-1">
+                          <Clock className="h-4 w-4 mr-1" />
+                          {format(new Date(rdv.date), "PPP à HH:mm", {
+                            locale: fr,
+                          })}
+                        </div>
+                        {rdv.notes && (
+                          <p className="text-sm mt-2">{rdv.notes}</p>
+                        )}
+                      </div>
+                      <div>
+                        <Button variant="outline" size="sm">
+                          Détails
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center py-10">
+                  Vous n'avez aucun rendez-vous planifié.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

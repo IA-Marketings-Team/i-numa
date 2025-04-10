@@ -2,18 +2,23 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { getDefaultRouteForRole } from "@/utils/accessControl";
 
 const Index = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/tableau-de-bord");
-    } else {
-      navigate("/connexion");
+    if (!isLoading) {
+      if (isAuthenticated && user) {
+        // Rediriger vers la page appropriée en fonction du rôle
+        const defaultRoute = getDefaultRouteForRole(user.role);
+        navigate(defaultRoute, { replace: true });
+      } else {
+        navigate("/connexion", { replace: true });
+      }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isLoading, navigate, user]);
 
   return null;
 };

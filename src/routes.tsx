@@ -1,13 +1,14 @@
 
 import { createBrowserRouter } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
+import DashboardLayout from "@/layouts/DashboardLayout";
 import DashboardPage from "@/pages/DashboardPage";
 import DossiersPage from "@/pages/DossiersPage";
 import DossierDetailsPage from "@/pages/DossierDetailsPage";
 import DossierNewPage from "@/pages/DossierNewPage";
 import DossierEditPage from "@/pages/DossierEditPage";
 import ClientsPage from "@/pages/ClientsPage";
-import ClientDetail from "@/pages/ClientDetail";
+import ClientDetail from "@/pages/ClientDetailPage";
 import ClientCreatePage from "@/pages/ClientCreatePage";
 import ClientEditPage from "@/pages/ClientEditPage";
 import LoginPage from "@/pages/LoginPage";
@@ -16,6 +17,10 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import ConsultationsPage from "@/pages/ConsultationsPage";
 import MigrationPage from "@/pages/MigrationPage";
 import DossierConsultationsPage from "@/pages/dossierConsultations/DossierConsultationsPage";
+import UnauthorizedPage from "@/pages/UnauthorizedPage";
+import Index from "@/pages/Index";
+import ProfilePage from "@/pages/ProfilePage";
+import AgendaPage from "@/pages/AgendaPage";
 
 export const router = createBrowserRouter([
   {
@@ -24,7 +29,15 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <ProtectedRoute><DashboardPage /></ProtectedRoute>
+        element: <Index />
+      },
+      {
+        path: "/connexion",
+        element: <LoginPage />
+      },
+      {
+        path: "non-autorise",
+        element: <UnauthorizedPage />
       },
       {
         path: "tableau-de-bord",
@@ -48,11 +61,11 @@ export const router = createBrowserRouter([
       },
       {
         path: "dossiers/consultations",
-        element: <ProtectedRoute><DossierConsultationsPage /></ProtectedRoute>
+        element: <ProtectedRoute roles={['superviseur', 'responsable']}><DossierConsultationsPage /></ProtectedRoute>
       },
       {
         path: "consultations",
-        element: <ProtectedRoute><ConsultationsPage /></ProtectedRoute>
+        element: <ProtectedRoute roles={['superviseur', 'responsable']}><ConsultationsPage /></ProtectedRoute>
       },
       {
         path: "clients",
@@ -72,16 +85,20 @@ export const router = createBrowserRouter([
       },
       {
         path: "migration",
-        element: <ProtectedRoute><MigrationPage /></ProtectedRoute>
+        element: <ProtectedRoute roles={['superviseur', 'responsable']}><MigrationPage /></ProtectedRoute>
+      },
+      {
+        path: "profil",
+        element: <ProtectedRoute><ProfilePage /></ProtectedRoute>
+      },
+      {
+        path: "agenda",
+        element: <ProtectedRoute><AgendaPage /></ProtectedRoute>
       },
       {
         path: "*",
         element: <NotFoundPage />
       }
     ]
-  },
-  {
-    path: "/connexion",
-    element: <LoginPage />
   }
 ]);
