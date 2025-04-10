@@ -25,7 +25,6 @@ export const createMeeting = async (meetingData: MeetingData): Promise<Meeting |
         titre: meetingData.titre,
         description: meetingData.description,
         date: meetingData.date.toISOString(),
-        heure: meetingData.heure,
         duree: meetingData.duree || 30, // Durée par défaut de 30 minutes
         participants: meetingData.participants,
         type: meetingData.type,
@@ -50,7 +49,7 @@ export const createMeeting = async (meetingData: MeetingData): Promise<Meeting |
       type: data.type as 'visio' | 'presentiel' | 'telephonique',
       statut: data.statut as 'planifie' | 'en_cours' | 'termine' | 'annule' | 'effectue' | 'manque',
       participants: data.participants || [],
-      heure: data.heure
+      heure: meetingData.heure || new Date(data.date).toTimeString().substr(0, 5)
     };
   } catch (error) {
     console.error("Erreur inattendue lors de la création du meeting:", error);
@@ -83,7 +82,7 @@ export const fetchMeetings = async (): Promise<Meeting[]> => {
       type: item.type as 'visio' | 'presentiel' | 'telephonique',
       statut: item.statut as 'planifie' | 'en_cours' | 'termine' | 'annule' | 'effectue' | 'manque',
       participants: item.participants || [],
-      heure: item.heure
+      heure: new Date(item.date).toTimeString().substr(0, 5) // Extract hours and minutes from date
     }));
   } catch (error) {
     console.error("Erreur inattendue lors de la récupération des meetings:", error);
@@ -117,7 +116,7 @@ export const fetchMeetingById = async (id: string): Promise<Meeting | null> => {
       type: data.type as 'visio' | 'presentiel' | 'telephonique',
       statut: data.statut as 'planifie' | 'en_cours' | 'termine' | 'annule' | 'effectue' | 'manque',
       participants: data.participants || [],
-      heure: data.heure
+      heure: new Date(data.date).toTimeString().substr(0, 5) // Extract hours and minutes from date
     };
   } catch (error) {
     console.error(`Erreur inattendue lors de la récupération du meeting ${id}:`, error);
@@ -135,7 +134,6 @@ export const updateMeeting = async (id: string, meetingData: Partial<MeetingData
     if (meetingData.titre) updateData.titre = meetingData.titre;
     if (meetingData.description !== undefined) updateData.description = meetingData.description;
     if (meetingData.date) updateData.date = meetingData.date.toISOString();
-    if (meetingData.heure) updateData.heure = meetingData.heure;
     if (meetingData.type) updateData.type = meetingData.type;
     if (meetingData.participants) updateData.participants = meetingData.participants;
     if (meetingData.lien !== undefined) updateData.lien = meetingData.lien;

@@ -26,7 +26,7 @@ export interface Meeting {
   type: 'visio' | 'presentiel' | 'telephonique';
   statut: 'planifie' | 'en_cours' | 'termine' | 'annule' | 'effectue' | 'manque';
   participants: string[];
-  heure?: string;
+  heure: string;
 }
 
 export interface Email {
