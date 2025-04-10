@@ -1,6 +1,50 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { DossierComment } from "@/types";
+
+/**
+ * Add a comment to a dossier (renamed function)
+ */
+export const addCommentToDossier = async (
+  dossierId: string,
+  userId: string,
+  userName: string,
+  userRole: string,
+  content: string,
+  isCallNote: boolean = false,
+  callDuration?: number,
+  isPublic: boolean = false
+): Promise<DossierComment | null> => {
+  try {
+    const { data, error } = await supabase.rpc('add_dossier_comment', {
+      p_dossier_id: dossierId,
+      p_content: content,
+      p_is_call_note: isCallNote,
+      p_call_duration: callDuration,
+      p_is_public: isPublic
+    });
+    
+    if (error) {
+      console.error("Error adding comment:", error);
+      return null;
+    }
+    
+    return data ? {
+      id: data,
+      dossierId: dossierId,
+      userId: userId,
+      userName: userName,
+      userRole: userRole,
+      content: content,
+      createdAt: new Date(),
+      isCallNote: isCallNote,
+      callDuration: callDuration,
+      isPublic: isPublic
+    } : null;
+  } catch (error) {
+    console.error("Unexpected error adding comment:", error);
+    return null;
+  }
+};
 
 /**
  * Add a comment to a dossier
