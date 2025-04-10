@@ -33,6 +33,7 @@ export interface DossierComment {
   createdAt: Date;
   isCallNote?: boolean;
   callDuration?: number;
+  isPublic?: boolean;
 }
 
 export interface RendezVous {
@@ -56,4 +57,5 @@ export interface DossierConsultation {
   userRole: UserRole;
   dossierId: string;
   timestamp: Date;
+  action?: string;
 }

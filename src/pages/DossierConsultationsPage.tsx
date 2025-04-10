@@ -3,31 +3,40 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, Download, Search, X } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fetchAllConsultations } from "@/services/consultationService";
-import { DossierConsultation } from "@/types";
 import { fetchUsers } from "@/services/userService";
+import { fetchDossiers } from "@/services/dossierService";
+import { DossierConsultation } from "@/types";
 import Papa from "papaparse";
 
-const ConsultationsPage: React.FC = () => {
+const DossierConsultationsPage: React.FC = () => {
   const { user, hasPermission } = useAuth();
   const [consultations, setConsultations] = useState<DossierConsultation[]>([]);
+  const [filteredConsultations, setFilteredConsultations] = useState<DossierConsultation[]>([]);
+  const [users, setUsers] = useState<{ id: string; fullName: string; role: string }[]>([]);
+  const [dossiers, setDossiers] = useState<{ id: string; client: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Filter states
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<string | undefined>(undefined);
-  const [users, setUsers] = useState<{ id: string; fullName: string; role: string }[]>([]);
+  const [selectedDossierId, setSelectedDossierId] = useState<string | undefined>(undefined);
+  
+  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Fetch consultations with filters
+  // Fetch all consultations data
   useEffect(() => {
     const loadConsultations = async () => {
       setIsLoading(true);
@@ -36,64 +45,109 @@ const ConsultationsPage: React.FC = () => {
         startDate?: Date;
         endDate?: Date;
         userId?: string;
+        dossierId?: string;
       } = {};
       
       if (startDate) filters.startDate = startDate;
       if (endDate) filters.endDate = endDate;
       if (selectedUserId) filters.userId = selectedUserId;
+      if (selectedDossierId) filters.dossierId = selectedDossierId;
       
       // If not supervisor or responsable, only show own consultations
       if (!hasPermission(['superviseur', 'responsable']) && user) {
         filters.userId = user.id;
       }
       
-      const data = await fetchAllConsultations(filters);
-      setConsultations(data);
-      setIsLoading(false);
+      try {
+        const data = await fetchAllConsultations(filters);
+        setConsultations(data);
+        setFilteredConsultations(data);
+      } catch (error) {
+        console.error("Error fetching consultations:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     
     loadConsultations();
-  }, [startDate, endDate, selectedUserId, user, hasPermission]);
+  }, [startDate, endDate, selectedUserId, selectedDossierId, user, hasPermission]);
 
   // Load users for filtering (only for supervisors and responsables)
   useEffect(() => {
     const loadUsers = async () => {
       if (hasPermission(['superviseur', 'responsable'])) {
-        const userData = await fetchUsers();
-        const formattedUsers = userData.map(u => ({
-          id: u.id,
-          fullName: `${u.prenom} ${u.nom}`,
-          role: u.role
-        }));
-        setUsers(formattedUsers);
+        try {
+          const userData = await fetchUsers();
+          const formattedUsers = userData.map(u => ({
+            id: u.id,
+            fullName: `${u.prenom} ${u.nom}`,
+            role: u.role
+          }));
+          setUsers(formattedUsers);
+        } catch (error) {
+          console.error("Error fetching users:", error);
+        }
       }
     };
     
     loadUsers();
   }, [hasPermission]);
+  
+  // Load dossiers for filtering
+  useEffect(() => {
+    const loadDossiers = async () => {
+      try {
+        const dossierData = await fetchDossiers();
+        const formattedDossiers = dossierData.map(d => ({
+          id: d.id,
+          client: d.client ? `${d.client.prenom} ${d.client.nom}` : 'Client inconnu'
+        }));
+        setDossiers(formattedDossiers);
+      } catch (error) {
+        console.error("Error fetching dossiers:", error);
+      }
+    };
+    
+    loadDossiers();
+  }, []);
 
   // Filter consultations by search term
-  const filteredConsultations = consultations.filter(consultation => {
+  useEffect(() => {
+    if (!searchTerm) {
+      setFilteredConsultations(consultations);
+      return;
+    }
+    
     const searchLower = searchTerm.toLowerCase();
-    return (
-      consultation.userName.toLowerCase().includes(searchLower) ||
-      consultation.dossierId.toLowerCase().includes(searchLower)
-    );
-  });
+    const filtered = consultations.filter(consultation => {
+      return (
+        consultation.userName.toLowerCase().includes(searchLower) ||
+        consultation.dossierId.toLowerCase().includes(searchLower) ||
+        consultation.userRole.toLowerCase().includes(searchLower)
+      );
+    });
+    
+    setFilteredConsultations(filtered);
+    setCurrentPage(1); // Reset to first page when filtering
+  }, [searchTerm, consultations]);
 
   // Reset all filters
   const resetFilters = () => {
     setStartDate(undefined);
     setEndDate(undefined);
     setSelectedUserId(undefined);
+    setSelectedDossierId(undefined);
     setSearchTerm("");
   };
-
-  // Pagination
+  
+  // Get current page items
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredConsultations.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredConsultations.length / itemsPerPage);
+  
+  // Change page
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
   
   // Export to CSV
   const exportToCSV = () => {
@@ -122,7 +176,7 @@ const ConsultationsPage: React.FC = () => {
   return (
     <Card className="border shadow-sm">
       <CardHeader className="pb-3 flex flex-row items-center justify-between">
-        <CardTitle>Historique des consultations</CardTitle>
+        <CardTitle>Historique des consultations de dossiers</CardTitle>
         <Button 
           variant="outline" 
           onClick={exportToCSV}
@@ -133,14 +187,14 @@ const ConsultationsPage: React.FC = () => {
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
           {/* Date filters */}
           <div className="flex flex-row gap-2">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="flex items-center justify-start gap-2"
+                  className="flex items-center justify-start gap-2 w-40"
                 >
                   <CalendarIcon className="h-4 w-4" />
                   {startDate ? format(startDate, "dd/MM/yyyy") : "Date début"}
@@ -161,7 +215,7 @@ const ConsultationsPage: React.FC = () => {
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="flex items-center justify-start gap-2"
+                  className="flex items-center justify-start gap-2 w-40"
                 >
                   <CalendarIcon className="h-4 w-4" />
                   {endDate ? format(endDate, "dd/MM/yyyy") : "Date fin"}
@@ -181,19 +235,41 @@ const ConsultationsPage: React.FC = () => {
 
           {/* User filter (only for supervisors and responsables) */}
           {hasPermission(['superviseur', 'responsable']) && (
-            <select
-              className="px-3 py-2 bg-background border border-input rounded-md"
+            <Select
               value={selectedUserId || ""}
-              onChange={(e) => setSelectedUserId(e.target.value || undefined)}
+              onValueChange={(value) => setSelectedUserId(value || undefined)}
             >
-              <option value="">Tous les utilisateurs</option>
-              {users.map(user => (
-                <option key={user.id} value={user.id}>
-                  {user.fullName} ({user.role})
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="Tous les utilisateurs" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Tous les utilisateurs</SelectItem>
+                {users.map(user => (
+                  <SelectItem key={user.id} value={user.id}>
+                    {user.fullName} ({user.role})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
+
+          {/* Dossier filter */}
+          <Select
+            value={selectedDossierId || ""}
+            onValueChange={(value) => setSelectedDossierId(value || undefined)}
+          >
+            <SelectTrigger className="w-[220px]">
+              <SelectValue placeholder="Tous les dossiers" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Tous les dossiers</SelectItem>
+              {dossiers.map(dossier => (
+                <SelectItem key={dossier.id} value={dossier.id}>
+                  {dossier.client} (ID: {dossier.id.substring(0, 8)}...)
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           {/* Search filter */}
           <div className="relative flex-1">
@@ -237,7 +313,7 @@ const ConsultationsPage: React.FC = () => {
                     Chargement des consultations...
                   </TableCell>
                 </TableRow>
-              ) : filteredConsultations.length === 0 ? (
+              ) : currentItems.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-4">
                     Aucune consultation trouvée
@@ -276,7 +352,7 @@ const ConsultationsPage: React.FC = () => {
             <div className="flex gap-2">
               <Button 
                 variant="outline" 
-                onClick={() => setCurrentPage(currentPage - 1)}
+                onClick={() => paginate(currentPage - 1)}
                 disabled={currentPage === 1}
               >
                 Précédent
@@ -298,7 +374,7 @@ const ConsultationsPage: React.FC = () => {
                   <Button
                     key={pageNumber}
                     variant={currentPage === pageNumber ? "default" : "outline"}
-                    onClick={() => setCurrentPage(pageNumber)}
+                    onClick={() => paginate(pageNumber)}
                     className="w-10 h-10 p-0"
                   >
                     {pageNumber}
@@ -307,7 +383,7 @@ const ConsultationsPage: React.FC = () => {
               })}
               <Button 
                 variant="outline" 
-                onClick={() => setCurrentPage(currentPage + 1)}
+                onClick={() => paginate(currentPage + 1)}
                 disabled={currentPage === totalPages}
               >
                 Suivant
@@ -320,4 +396,4 @@ const ConsultationsPage: React.FC = () => {
   );
 };
 
-export default ConsultationsPage;
+export default DossierConsultationsPage;

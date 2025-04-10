@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
@@ -9,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Dossier, DossierStatus } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { recordDossierConsultation } from "@/services/consultationService";
+import DossierCommentSection from "@/components/dossier/DossierCommentSection";
+import { CallData } from "@/components/dossier/LogCallModal";
 
 const DossierDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -112,12 +115,12 @@ const DossierDetailsPage: React.FC = () => {
     }
   };
   
-  const handleAddComment = async (content: string) => {
+  const handleAddComment = async (content: string, isPublic: boolean = false) => {
     if (!dossier || !user) return;
     
     try {
       setIsLoading(true);
-      const success = await addComment(dossier.id, content);
+      const success = await addComment(dossier.id, content, isPublic);
       
       if (success) {
         // Refresh dossier data
@@ -143,12 +146,16 @@ const DossierDetailsPage: React.FC = () => {
     }
   };
   
-  const handleAddCallNote = async (content: string, duration: number) => {
+  const handleLogCall = async (callData: CallData) => {
     if (!dossier || !user) return;
     
     try {
       setIsLoading(true);
-      const success = await addCallNote(dossier.id, content, duration);
+      const success = await addCallNote(
+        dossier.id, 
+        `${callData.notes}\n\nRésultat: ${callData.outcome}${callData.followUpDate ? `\nRappel prévu le: ${callData.followUpDate.toLocaleDateString()}` : ''}`,
+        callData.duration
+      );
       
       if (success) {
         // Refresh dossier data
@@ -158,23 +165,23 @@ const DossierDetailsPage: React.FC = () => {
         }
         
         toast({
-          title: "Note d'appel ajoutée",
-          description: "Votre note d'appel a été ajoutée avec succès.",
+          title: "Appel enregistré",
+          description: "Les détails de l'appel ont été enregistrés avec succès.",
         });
       }
     } catch (error) {
-      console.error("Error adding call note:", error);
+      console.error("Error logging call:", error);
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Une erreur est survenue lors de l'ajout de la note d'appel."
+        description: "Une erreur est survenue lors de l'enregistrement de l'appel."
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (isLoading) {
+  if (isLoading && !dossier) {
     return (
       <div className="container mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center justify-between">
@@ -200,15 +207,24 @@ const DossierDetailsPage: React.FC = () => {
       </div>
       
       {dossier && (
-        <DossierDetail 
-          dossier={dossier} 
-          onStatusChange={handleStatusChange}
-          onDelete={handleDeleteDossier}
-          loading={isLoading}
-          userRole={user?.role}
-          onAddComment={handleAddComment}
-          onAddCallNote={handleAddCallNote}
-        />
+        <>
+          <DossierDetail 
+            dossier={dossier} 
+            onStatusChange={handleStatusChange}
+            onDelete={handleDeleteDossier}
+            loading={isLoading}
+            userRole={user?.role}
+            onAddComment={handleAddComment}
+            onAddCallNote={handleLogCall}
+          />
+          
+          <DossierCommentSection 
+            comments={dossier.commentaires || []}
+            userRole={user?.role}
+            onAddComment={handleAddComment}
+            loading={isLoading}
+          />
+        </>
       )}
     </div>
   );

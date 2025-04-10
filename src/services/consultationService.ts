@@ -124,3 +124,27 @@ export const fetchAllConsultations = async (
     return [];
   }
 };
+
+/**
+ * Export consultations to CSV format
+ */
+export const exportConsultationsToCSV = (consultations: DossierConsultation[]): string => {
+  // Format data for CSV
+  const headers = ['Date', 'Utilisateur', 'Rôle', 'Dossier ID', 'Action'];
+  
+  const rows = consultations.map(c => [
+    new Date(c.timestamp).toLocaleString(),
+    c.userName,
+    c.userRole,
+    c.dossierId,
+    c.action || 'view'
+  ]);
+  
+  // Combine headers and rows
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.join(','))
+  ].join('\n');
+  
+  return csvContent;
+};
