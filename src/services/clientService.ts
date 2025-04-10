@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Client, UserRole } from "@/types";
 
@@ -97,7 +96,6 @@ export const fetchClientById = async (id: string): Promise<Client | null> => {
  */
 export const createClient = async (clientData: Omit<Client, 'id' | 'dateCreation' | 'role'>): Promise<Client | null> => {
   try {
-    // Fix the data structure to match what Supabase expects
     const { data, error } = await supabase
       .from('profiles')
       .insert({
@@ -164,7 +162,6 @@ export const createClient = async (clientData: Omit<Client, 'id' | 'dateCreation
  */
 export const updateClient = async (id: string, clientData: Partial<Omit<Client, 'id' | 'dateCreation' | 'role'>>): Promise<boolean> => {
   try {
-    // Convertir les champs clients vers le format de la base de données
     const dbData: any = {};
     if (clientData.nom !== undefined) dbData.nom = clientData.nom;
     if (clientData.prenom !== undefined) dbData.prenom = clientData.prenom;
@@ -275,8 +272,8 @@ export const importClientsFromCSV = async (file: File): Promise<{
         continue;
       }
       
-      // Map field names correctly to match the database columns
-      clients.push({
+      // Map to database structure with proper field naming
+      const dbClient = {
         nom: client.nom,
         prenom: client.prenom,
         email: client.email,
@@ -288,7 +285,9 @@ export const importClientsFromCSV = async (file: File): Promise<{
         code_postal: client.code_postal || client.codepostal || '',
         secteur_activite: client.secteur_activite || '',
         type_entreprise: client.type_entreprise || ''
-      });
+      };
+      
+      clients.push(dbClient);
     }
     
     if (clients.length === 0) {
@@ -298,15 +297,10 @@ export const importClientsFromCSV = async (file: File): Promise<{
       };
     }
     
-    // Insert clients in batch with the correct field structure
-    // The schema requires id field, but since we want Supabase to generate it
-    // we need to use upsert with onConflict do nothing
+    // Use .insert() instead of .upsert() since we're creating new profiles
     const { error } = await supabase
       .from('profiles')
-      .upsert(clients, { 
-        onConflict: undefined,
-        ignoreDuplicates: false
-      });
+      .insert(clients);
     
     if (error) {
       console.error("Erreur lors de l'import des clients:", error);

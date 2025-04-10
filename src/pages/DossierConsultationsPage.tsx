@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -12,7 +11,6 @@ import { Eye, Download, Search, Calendar, User, FileText, Filter } from "lucide-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Label } from "@/components/ui/label";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -28,9 +26,9 @@ interface RawDBConsultation {
   action?: string;
 }
 
-interface ClientData {
-  nom?: string;
-  prenom?: string;
+interface UserListItem {
+  id: string;
+  name: string;
 }
 
 interface DossierListItem {
@@ -51,24 +49,23 @@ const DossierConsultationsPage: React.FC = () => {
   const [actionFilter, setActionFilter] = useState("");
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
   const [dossierFilter, setDossierFilter] = useState("");
-  const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
+  const [users, setUsers] = useState<UserListItem[]>([]);
   const [dossiers, setDossiers] = useState<DossierListItem[]>([]);
   const itemsPerPage = 10;
 
   useEffect(() => {
     fetchConsultations();
-    fetchFiltersData();
+    fetchUsers();
+    fetchDossiers();
   }, [page, search, userFilter, actionFilter, dateFilter, dossierFilter]);
 
   const fetchConsultations = async () => {
     setIsLoading(true);
     try {
-      // Create a base query
       let query = supabase
         .from("dossier_consultations")
         .select("*", { count: "exact" });
 
-      // Apply filters conditionally
       if (search) {
         query = query.or(`user_name.ilike.%${search}%,action.ilike.%${search}%`);
       }
@@ -86,7 +83,6 @@ const DossierConsultationsPage: React.FC = () => {
         query = query.eq("dossier_id", dossierFilter);
       }
 
-      // Handle pagination
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
       
@@ -122,48 +118,50 @@ const DossierConsultationsPage: React.FC = () => {
     }
   };
 
-  // Simplified fetch function to avoid excessive type instantiation
-  const fetchFiltersData = async () => {
+  const fetchUsers = async () => {
     try {
-      // Fetch users
-      const { data: userData, error: userError } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("id, nom, prenom");
       
-      if (userError) throw userError;
+      if (error) throw error;
       
-      if (userData) {
-        const formattedUsers = userData.map(user => ({
+      if (data) {
+        const formattedUsers = data.map(user => ({
           id: user.id,
           name: `${user.prenom || ''} ${user.nom || ''}`.trim()
         }));
         setUsers(formattedUsers);
       }
+    } catch (error) {
+      console.error("Erreur lors du chargement des utilisateurs:", error);
+    }
+  };
 
-      // Fetch dossiers
-      const { data: dossierData, error: dossierError } = await supabase
+  const fetchDossiers = async () => {
+    try {
+      const { data, error } = await supabase
         .from("dossiers")
         .select("id, client_id");
 
-      if (dossierError) throw dossierError;
+      if (error) throw error;
       
-      if (dossierData) {
+      if (data) {
         const processedDossiers: DossierListItem[] = [];
         
-        for (const dossier of dossierData) {
+        for (const dossier of data) {
           let clientName = `Dossier ${dossier.id.substring(0, 8)}`;
           
           if (dossier.client_id) {
-            // Fetch client info separately to avoid deep type instantiations
-            const clientResponse = await supabase
+            const { data: clientData } = await supabase
               .from("profiles")
               .select("nom, prenom")
               .eq("id", dossier.client_id)
               .single();
             
-            if (clientResponse.data) {
-              clientName = `${clientResponse.data.prenom || ''} ${clientResponse.data.nom || ''}`.trim();
-              if (!clientName) clientName = `Dossier ${dossier.id.substring(0, 8)}`;
+            if (clientData) {
+              const formattedName = `${clientData.prenom || ''} ${clientData.nom || ''}`.trim();
+              clientName = formattedName || clientName;
             }
           }
           
@@ -176,7 +174,7 @@ const DossierConsultationsPage: React.FC = () => {
         setDossiers(processedDossiers);
       }
     } catch (error) {
-      console.error("Erreur lors du chargement des données pour les filtres:", error);
+      console.error("Erreur lors du chargement des dossiers:", error);
     }
   };
 
