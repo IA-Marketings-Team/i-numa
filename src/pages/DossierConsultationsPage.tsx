@@ -55,9 +55,13 @@ const DossierConsultationsPage: React.FC = () => {
 
   useEffect(() => {
     fetchConsultations();
+    fetchFilterData();
+  }, [page, search, userFilter, actionFilter, dateFilter, dossierFilter]);
+
+  const fetchFilterData = async () => {
     fetchUsers();
     fetchDossiers();
-  }, [page, search, userFilter, actionFilter, dateFilter, dossierFilter]);
+  };
 
   const fetchConsultations = async () => {
     setIsLoading(true);
