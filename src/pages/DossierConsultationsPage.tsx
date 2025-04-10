@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -18,7 +17,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { DossierConsultation } from "@/types";
 
-// Define a simple interface for raw database consultations to avoid type recursion
 interface RawDBConsultation {
   id: string;
   dossier_id: string;
@@ -68,7 +66,6 @@ const DossierConsultationsPage: React.FC = () => {
         .from("dossier_consultations")
         .select("*", { count: "exact" });
 
-      // Appliquer les filtres
       if (search) {
         query = query.or(`user_name.ilike.%${search}%,action.ilike.%${search}%`);
       }
@@ -86,7 +83,6 @@ const DossierConsultationsPage: React.FC = () => {
         query = query.eq("dossier_id", dossierFilter);
       }
 
-      // Pagination
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
       
@@ -124,7 +120,6 @@ const DossierConsultationsPage: React.FC = () => {
 
   const fetchFiltersData = async () => {
     try {
-      // Récupérer la liste des utilisateurs pour le filtre
       const { data: userData, error: userError } = await supabase
         .from("profiles")
         .select("id, nom, prenom");
@@ -138,7 +133,6 @@ const DossierConsultationsPage: React.FC = () => {
         })));
       }
 
-      // Récupérer la liste des dossiers pour le filtre
       const { data: dossierData, error: dossierError } = await supabase
         .from("dossiers")
         .select("id, client_id");
@@ -146,32 +140,30 @@ const DossierConsultationsPage: React.FC = () => {
       if (dossierError) throw dossierError;
       
       if (dossierData) {
-        // Créer un tableau de promesses pour récupérer les informations client
-        const dossierPromises = dossierData.map(async (dossier) => {
-          if (!dossier.client_id) {
-            return { id: dossier.id, client_name: `Dossier ${dossier.id.substring(0, 8)}` };
-          }
-          
-          // Use a separate query to avoid join issues
-          const { data: clientData } = await supabase
-            .from("profiles")
-            .select("nom, prenom")
-            .eq("id", dossier.client_id)
-            .single();
-          
-          if (!clientData) {
-            return { id: dossier.id, client_name: `Dossier ${dossier.id.substring(0, 8)}` };
-          }
-          
-          return {
-            id: dossier.id,
-            client_name: `${clientData.prenom} ${clientData.nom}`
-          };
-        });
+        const processedDossiers: DossierListItem[] = [];
         
-        // Attendre que toutes les promesses soient résolues
-        const dossierResults = await Promise.all(dossierPromises);
-        setDossiers(dossierResults);
+        for (const dossier of dossierData) {
+          let clientName = `Dossier ${dossier.id.substring(0, 8)}`;
+          
+          if (dossier.client_id) {
+            const { data: clientData } = await supabase
+              .from("profiles")
+              .select("nom, prenom")
+              .eq("id", dossier.client_id)
+              .single();
+            
+            if (clientData) {
+              clientName = `${clientData.prenom} ${clientData.nom}`;
+            }
+          }
+          
+          processedDossiers.push({
+            id: dossier.id,
+            client_name: clientName
+          });
+        }
+        
+        setDossiers(processedDossiers);
       }
     } catch (error) {
       console.error("Erreur lors du chargement des données pour les filtres:", error);
@@ -179,7 +171,6 @@ const DossierConsultationsPage: React.FC = () => {
   };
 
   const handleExportCSV = () => {
-    // Fonction pour exporter les consultations en CSV
     const headers = ["ID", "Dossier", "Utilisateur", "Rôle", "Action", "Date"];
     const csvRows = [
       headers.join(","),
@@ -211,7 +202,6 @@ const DossierConsultationsPage: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  // Formater l'action pour l'affichage
   const formatAction = (action: string): string => {
     switch (action) {
       case "view":
@@ -229,7 +219,6 @@ const DossierConsultationsPage: React.FC = () => {
     }
   };
 
-  // Vérifier si l'utilisateur a les droits d'accès à cette page
   const canAccessPage = user && ["superviseur", "responsable"].includes(user.role);
 
   if (!canAccessPage) {
@@ -431,7 +420,6 @@ const DossierConsultationsPage: React.FC = () => {
                   {Array.from({ length: totalPages }, (_, i) => i + 1)
                     .filter(p => p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1))
                     .map((p, i, arr) => {
-                      // Ajouter des points de suspension pour les sauts de pages
                       if (i > 0 && p > arr[i - 1] + 1) {
                         return (
                           <React.Fragment key={`ellipsis-${p}`}>
