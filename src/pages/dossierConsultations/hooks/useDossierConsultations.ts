@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { DossierConsultation } from "@/types";
 import { fetchFilterData } from "../utils/fetchFilterData";
-import { ToastType } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { Toast } from "@/hooks/use-toast";
 
 // Define interfaces for the filter items
 export interface UserListItem {
@@ -17,7 +18,7 @@ export interface DossierListItem {
   client_name: string;
 }
 
-interface Filters {
+export interface Filters {
   search: string;
   userFilter: string;
   actionFilter: string;
@@ -25,7 +26,7 @@ interface Filters {
   dossierFilter: string;
 }
 
-export const useDossierConsultations = (toast: ToastType) => {
+export const useDossierConsultations = (toast: ReturnType<typeof useToast>) => {
   const [consultations, setConsultations] = useState<DossierConsultation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -51,6 +52,7 @@ export const useDossierConsultations = (toast: ToastType) => {
   const fetchConsultations = async () => {
     setIsLoading(true);
     try {
+      // Use a temporary variable to build the query step by step to avoid deep nesting
       let query = supabase
         .from("dossier_consultations")
         .select("*", { count: "exact" });
@@ -58,16 +60,20 @@ export const useDossierConsultations = (toast: ToastType) => {
       if (filters.search) {
         query = query.or(`user_name.ilike.%${filters.search}%,action.ilike.%${filters.search}%`);
       }
+      
       if (filters.userFilter) {
         query = query.eq("user_id", filters.userFilter);
       }
+      
       if (filters.actionFilter) {
         query = query.eq("action", filters.actionFilter);
       }
+      
       if (filters.dateFilter) {
         const dateString = format(filters.dateFilter, "yyyy-MM-dd");
         query = query.gte("timestamp", `${dateString}T00:00:00Z`).lte("timestamp", `${dateString}T23:59:59Z`);
       }
+      
       if (filters.dossierFilter) {
         query = query.eq("dossier_id", filters.dossierFilter);
       }

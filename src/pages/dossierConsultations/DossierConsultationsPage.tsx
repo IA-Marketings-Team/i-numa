@@ -1,9 +1,8 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DossierConsultation } from "@/types";
 import AccessDeniedCard from "./components/AccessDeniedCard";
 import ConsultationsFilter from "./components/ConsultationsFilter";
 import ConsultationsTable from "./components/ConsultationsTable";

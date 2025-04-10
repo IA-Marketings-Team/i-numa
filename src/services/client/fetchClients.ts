@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Client, UserRole } from "@/types";
+import { Client } from "@/types";
 import { mapProfileToClient } from "./utils/mapProfileToClient";
 
 /**
@@ -11,14 +11,15 @@ export const fetchClients = async (): Promise<Client[]> => {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .eq('role', 'client');
+      .eq('role', 'client')
+      .order('nom', { ascending: true });
 
     if (error) {
       console.error("Erreur lors de la récupération des clients:", error);
       return [];
     }
 
-    return data.map(client => mapProfileToClient(client));
+    return data ? data.map(mapProfileToClient) : [];
   } catch (error) {
     console.error("Erreur inattendue lors de la récupération des clients:", error);
     return [];

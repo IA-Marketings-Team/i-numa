@@ -1,148 +1,144 @@
 
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { MessageSquare, PhoneCall } from "lucide-react";
+import { MessageCircle, Send } from "lucide-react";
+import { DossierComment, UserRole } from "@/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { DossierComment, UserRole } from "@/types";
-import { Separator } from "@/components/ui/separator";
+import LogCallButton from "./LogCallButton";
+import { CallData } from "./LogCallModal";
 
 interface DossierCommentSectionProps {
   comments: DossierComment[];
+  onAddComment: (content: string, isPublic?: boolean) => Promise<void>;
   userRole: UserRole;
-  onAddComment: (content: string, isPublic: boolean) => Promise<void>;
-  loading?: boolean;
+  loading: boolean;
 }
 
 const DossierCommentSection: React.FC<DossierCommentSectionProps> = ({
   comments,
-  userRole,
   onAddComment,
-  loading = false,
+  userRole,
+  loading
 }) => {
-  const [newComment, setNewComment] = useState("");
+  const [comment, setComment] = useState("");
   const [isPublic, setIsPublic] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Sort comments by date (newest first)
-  const sortedComments = [...comments].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim()) return;
+    if (!comment.trim()) return;
 
     setIsSubmitting(true);
     try {
-      await onAddComment(newComment, isPublic);
-      setNewComment("");
+      await onAddComment(comment, isPublic);
+      setComment("");
       setIsPublic(false);
     } catch (error) {
-      console.error("Error adding comment:", error);
+      console.error("Erreur lors de l'ajout du commentaire:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const canMakePublicComments = ["superviseur", "responsable"].includes(userRole);
+  const canAddCallNote = ["agent_phoner", "superviseur", "responsable"].includes(userRole);
 
   return (
-    <Card className="mt-6">
-      <CardHeader>
-        <CardTitle className="text-xl">Commentaires et Notes</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Add new comment form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Textarea
-            placeholder="Ajouter un commentaire..."
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            disabled={loading || isSubmitting}
-          />
-          
-          {canMakePublicComments && (
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="isPublic" 
-                checked={isPublic} 
-                onCheckedChange={(checked) => setIsPublic(checked === true)}
-                disabled={loading || isSubmitting}
-              />
-              <Label htmlFor="isPublic" className="text-sm">
-                Commentaire visible par le client
-              </Label>
-            </div>
-          )}
-          
-          <Button 
-            type="submit" 
-            disabled={loading || isSubmitting || !newComment.trim()}
-          >
-            {isSubmitting ? "Envoi en cours..." : "Ajouter un commentaire"}
-          </Button>
-        </form>
-        
-        <Separator className="my-4" />
-        
-        {/* Comments list */}
-        {sortedComments.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            Aucun commentaire pour ce dossier
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {sortedComments.map((comment) => (
-              <div
-                key={comment.id}
-                className={`rounded-lg p-4 ${
-                  comment.isCallNote
-                    ? "bg-blue-50 border border-blue-100"
-                    : comment.isPublic
-                    ? "bg-green-50 border border-green-100"
-                    : "bg-gray-50 border border-gray-100"
-                }`}
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-2">
-                    {comment.isCallNote ? (
-                      <PhoneCall className="h-4 w-4 text-blue-600" />
-                    ) : (
-                      <MessageSquare className="h-4 w-4 text-gray-600" />
-                    )}
-                    <span className="font-medium">{comment.userName}</span>
-                    <span className="text-sm text-gray-500">({comment.userRole})</span>
-                    {comment.isPublic && (
-                      <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
-                        Public
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-sm text-gray-500">
-                    {format(new Date(comment.createdAt), "dd/MM/yyyy à HH:mm", {
-                      locale: fr,
-                    })}
-                  </span>
-                </div>
-                
-                <div className="mt-2 whitespace-pre-wrap">{comment.content}</div>
-                
-                {comment.isCallNote && comment.callDuration && (
-                  <div className="mt-2 text-sm text-blue-600">
-                    Durée de l'appel: {comment.callDuration} minute(s)
-                  </div>
-                )}
-              </div>
-            ))}
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Commentaires et notes</h3>
+        {canAddCallNote && (
+          <div>
+            <LogCallButton 
+              dossierId="dossierId" 
+              onLogCall={async () => {}} 
+              disabled={loading}
+            />
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+
+      {comments.length > 0 ? (
+        <div className="space-y-3">
+          {comments.map((comment) => (
+            <div
+              key={comment.id}
+              className={`p-3 rounded-lg border ${
+                comment.isCallNote 
+                  ? "bg-blue-50 border-blue-200" 
+                  : comment.isPublic 
+                    ? "bg-green-50 border-green-200"
+                    : "bg-gray-50 border-gray-200"
+              }`}
+            >
+              <div className="flex justify-between items-start mb-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{comment.userName}</span>
+                  <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full">
+                    {comment.userRole.replace("_", " ")}
+                  </span>
+                  {comment.isCallNote && (
+                    <span className="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full">
+                      Note d'appel
+                    </span>
+                  )}
+                  {comment.isPublic && (
+                    <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full">
+                      Visible par le client
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs text-gray-500">
+                  {format(new Date(comment.createdAt), "dd/MM/yyyy HH:mm", { locale: fr })}
+                </span>
+              </div>
+              <p className="whitespace-pre-wrap text-sm">{comment.content}</p>
+              {comment.isCallNote && comment.callDuration && (
+                <div className="mt-1 text-xs text-gray-500">
+                  Durée de l'appel: {Math.floor(comment.callDuration / 60)}:{comment.callDuration % 60 < 10 ? `0${comment.callDuration % 60}` : comment.callDuration % 60}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg border">
+          <MessageCircle className="mx-auto h-8 w-8 mb-2 text-gray-400" />
+          <p>Aucun commentaire pour le moment</p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <Textarea
+          placeholder="Ajouter un commentaire..."
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          className="min-h-[100px]"
+        />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="is-public"
+              checked={isPublic}
+              onCheckedChange={(checked) => setIsPublic(checked as boolean)}
+            />
+            <Label htmlFor="is-public">Visible par le client</Label>
+          </div>
+          <Button
+            type="submit"
+            size="sm"
+            disabled={!comment.trim() || isSubmitting || loading}
+            className="flex items-center gap-2"
+          >
+            <Send className="h-4 w-4" />
+            {isSubmitting ? "Envoi en cours..." : "Ajouter"}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 };
 

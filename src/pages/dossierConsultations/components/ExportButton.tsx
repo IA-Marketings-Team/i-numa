@@ -1,7 +1,7 @@
 
-import React from 'react';
-import { Download } from "lucide-react";
+import React from "react";
 import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 
 interface ExportButtonProps {
   onExport: () => void;
@@ -9,8 +9,8 @@ interface ExportButtonProps {
 
 export const ExportButton: React.FC<ExportButtonProps> = ({ onExport }) => {
   return (
-    <Button onClick={onExport} className="flex items-center">
-      <Download className="mr-2 h-4 w-4" />
+    <Button onClick={onExport} className="flex items-center gap-2">
+      <Download className="h-4 w-4" />
       Exporter en CSV
     </Button>
   );

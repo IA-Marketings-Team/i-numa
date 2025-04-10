@@ -13,13 +13,13 @@ export const deleteClient = async (id: string): Promise<boolean> => {
       .eq('role', 'client');
 
     if (error) {
-      console.error(`Erreur lors de la suppression du client ${id}:`, error);
+      console.error("Erreur lors de la suppression du client:", error);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error(`Erreur inattendue lors de la suppression du client ${id}:`, error);
+    console.error("Erreur inattendue lors de la suppression du client:", error);
     return false;
   }
 };

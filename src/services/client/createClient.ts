@@ -18,10 +18,9 @@ export const createClient = async (clientData: Omit<Client, 'id' | 'dateCreation
 
     // When inserting to Supabase, the ID is generated automatically
     // so we don't need to include it in the dbData
-    // The correct type is handled by mapClientToDbFormat
     const { data, error } = await supabase
       .from('profiles')
-      .insert(dbData)
+      .insert([dbData])
       .select()
       .single();
 

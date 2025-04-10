@@ -1,6 +1,9 @@
 
-import { Client, UserRole } from "@/types";
+import { Client } from "@/types";
 
+/**
+ * Maps database profile data to the Client interface
+ */
 export const mapProfileToClient = (profile: any): Client => {
   return {
     id: profile.id,
@@ -8,14 +11,14 @@ export const mapProfileToClient = (profile: any): Client => {
     prenom: profile.prenom || '',
     email: profile.email || '',
     telephone: profile.telephone || '',
-    role: 'client' as UserRole,
-    dateCreation: new Date(profile.date_creation),
+    role: profile.role || 'client',
+    dateCreation: profile.date_creation ? new Date(profile.date_creation) : new Date(),
     adresse: profile.adresse || '',
     ville: profile.ville || '',
     codePostal: profile.code_postal || '',
-    iban: profile.iban,
-    bic: profile.bic,
-    nomBanque: profile.nom_banque,
+    iban: profile.iban || '',
+    bic: profile.bic || '',
+    nomBanque: profile.nom_banque || '',
     secteurActivite: profile.secteur_activite || '',
     typeEntreprise: profile.type_entreprise || '',
     besoins: profile.besoins || '',

@@ -7,12 +7,15 @@ import DossierDetailsPage from "@/pages/DossierDetailsPage";
 import DossierNewPage from "@/pages/DossierNewPage";
 import DossierEditPage from "@/pages/DossierEditPage";
 import ClientsPage from "@/pages/ClientsPage";
+import ClientDetail from "@/pages/ClientDetail";
+import ClientCreatePage from "@/pages/ClientCreatePage";
+import ClientEditPage from "@/pages/ClientEditPage";
 import LoginPage from "@/pages/LoginPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import ConsultationsPage from "@/pages/ConsultationsPage";
-import DossierConsultationsPage from "@/pages/DossierConsultationsPage";
 import MigrationPage from "@/pages/MigrationPage";
+import DossierConsultationsPage from "@/pages/dossierConsultations/DossierConsultationsPage";
 
 export const router = createBrowserRouter([
   {
@@ -54,6 +57,18 @@ export const router = createBrowserRouter([
       {
         path: "clients",
         element: <ProtectedRoute><ClientsPage /></ProtectedRoute>
+      },
+      {
+        path: "clients/nouveau",
+        element: <ProtectedRoute><ClientCreatePage /></ProtectedRoute>
+      },
+      {
+        path: "clients/:id",
+        element: <ProtectedRoute><ClientDetail /></ProtectedRoute>
+      },
+      {
+        path: "clients/:id/edit",
+        element: <ProtectedRoute><ClientEditPage /></ProtectedRoute>
       },
       {
         path: "migration",

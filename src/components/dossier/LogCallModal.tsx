@@ -1,36 +1,28 @@
 
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Phone } from "lucide-react";
+
+export interface CallData {
+  content: string;
+  duration: number;
+}
 
 interface LogCallModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (callData: CallData) => void;
+  onSubmit: (data: CallData) => Promise<void>;
   dossierId: string;
-}
-
-export interface CallData {
-  duration: number;
-  notes: string;
-  outcome: string;
-  followUpDate?: Date;
 }
 
 const LogCallModal: React.FC<LogCallModalProps> = ({
@@ -39,131 +31,115 @@ const LogCallModal: React.FC<LogCallModalProps> = ({
   onSubmit,
   dossierId,
 }) => {
-  const [duration, setDuration] = useState<number>(0);
-  const [notes, setNotes] = useState<string>("");
-  const [outcome, setOutcome] = useState<string>("discussed");
-  const [followUpDate, setFollowUpDate] = useState<Date | undefined>(undefined);
+  const [notes, setNotes] = useState("");
+  const [hours, setHours] = useState(0);
+  const [minutes, setMinutes] = useState(5);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
-      duration,
-      notes,
-      outcome,
-      followUpDate,
-    });
-    resetForm();
+    if (!notes.trim()) return;
+
+    const durationInMinutes = hours * 60 + minutes;
+    setIsSubmitting(true);
+
+    try {
+      await onSubmit({
+        content: notes,
+        duration: durationInMinutes,
+      });
+      // Modal will be closed by parent after successful submission
+    } catch (error) {
+      console.error("Error logging call:", error);
+      setIsSubmitting(false);
+    }
   };
 
-  const resetForm = () => {
-    setDuration(0);
-    setNotes("");
-    setOutcome("discussed");
-    setFollowUpDate(undefined);
+  const handleClose = () => {
+    if (!isSubmitting) {
+      setNotes("");
+      setHours(0);
+      setMinutes(5);
+      onClose();
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px]">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>Enregistrer un appel</DialogTitle>
-            <DialogDescription>
-              Enregistrez les détails de l'appel pour le dossier {dossierId.substring(0, 8)}...
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="duration" className="text-right">
-                Durée (min)
-              </Label>
-              <Input
-                id="duration"
-                type="number"
-                value={duration}
-                onChange={(e) => setDuration(parseInt(e.target.value, 10) || 0)}
-                min={0}
-                className="col-span-3"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="outcome" className="text-right">
-                Résultat
-              </Label>
-              <Select
-                value={outcome}
-                onValueChange={setOutcome}
-              >
-                <SelectTrigger id="outcome" className="col-span-3">
-                  <SelectValue placeholder="Sélectionner un résultat" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="discussed">Discussion</SelectItem>
-                  <SelectItem value="not_answered">Pas de réponse</SelectItem>
-                  <SelectItem value="callback">Rappel prévu</SelectItem>
-                  <SelectItem value="meeting_scheduled">RDV fixé</SelectItem>
-                  <SelectItem value="not_interested">Pas intéressé</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {outcome === "callback" && (
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="followUpDate" className="text-right">
-                  Date de rappel
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Phone className="h-5 w-5" />
+            Enregistrer un appel
+          </DialogTitle>
+          <DialogDescription>
+            Saisissez les détails de l'appel effectué avec le client.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="duration">Durée de l'appel</Label>
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <Input
+                  id="hours"
+                  type="number"
+                  min={0}
+                  max={24}
+                  value={hours}
+                  onChange={(e) => setHours(parseInt(e.target.value) || 0)}
+                  className="text-center"
+                />
+                <Label htmlFor="hours" className="text-xs text-center block mt-1">
+                  Heures
                 </Label>
-                <div className="col-span-3">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {followUpDate ? (
-                          format(followUpDate, "PPP", { locale: fr })
-                        ) : (
-                          <span>Sélectionner une date</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={followUpDate}
-                        onSelect={setFollowUpDate}
-                        initialFocus
-                        locale={fr}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
               </div>
-            )}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="notes" className="text-right">
-                Notes
-              </Label>
-              <Textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="col-span-3"
-                rows={4}
-                placeholder="Entrez les détails de l'appel..."
-                required
-              />
+              <div className="text-xl font-bold">:</div>
+              <div className="flex-1">
+                <Input
+                  id="minutes"
+                  type="number"
+                  min={0}
+                  max={59}
+                  value={minutes}
+                  onChange={(e) => setMinutes(parseInt(e.target.value) || 0)}
+                  className="text-center"
+                />
+                <Label htmlFor="minutes" className="text-xs text-center block mt-1">
+                  Minutes
+                </Label>
+              </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => {
-              resetForm();
-              onClose();
-            }}>
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes d'appel</Label>
+            <Textarea
+              id="notes"
+              placeholder="Saisissez les détails de votre appel..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={5}
+              required
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={isSubmitting}
+            >
               Annuler
             </Button>
-            <Button type="submit">Enregistrer</Button>
-          </DialogFooter>
+            <Button
+              type="submit"
+              disabled={!notes.trim() || isSubmitting}
+              className="flex items-center gap-2"
+            >
+              {isSubmitting ? "Enregistrement..." : "Enregistrer l'appel"}
+            </Button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

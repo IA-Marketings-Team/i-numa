@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DossierComment, UserRole } from "@/types";
 
 /**
- * Récupère tous les commentaires d'un dossier
+ * Récupère les commentaires associés à un dossier
  */
 export const fetchCommentsByDossierId = async (dossierId: string): Promise<DossierComment[]> => {
   try {
@@ -11,24 +11,27 @@ export const fetchCommentsByDossierId = async (dossierId: string): Promise<Dossi
       .from('dossier_commentaires')
       .select('*')
       .eq('dossier_id', dossierId)
-      .order('created_at', { ascending: false });
-    
-    if (error) throw error;
-    
-    return data.map(comment => ({
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error("Erreur lors de la récupération des commentaires:", error);
+      return [];
+    }
+
+    return data ? data.map(comment => ({
       id: comment.id,
       dossierId: comment.dossier_id,
       userId: comment.user_id,
       userName: comment.user_name,
-      userRole: comment.user_role as UserRole, // Cast to UserRole type
+      userRole: comment.user_role as UserRole,
       content: comment.content,
       createdAt: new Date(comment.created_at),
       isCallNote: comment.is_call_note || false,
       callDuration: comment.call_duration,
       isPublic: comment.is_public || false
-    }));
+    })) : [];
   } catch (error) {
-    console.error("Erreur lors de la récupération des commentaires:", error);
+    console.error("Erreur inattendue lors de la récupération des commentaires:", error);
     return [];
   }
 };
@@ -40,7 +43,7 @@ export const addCommentToDossier = async (
   dossierId: string,
   userId: string,
   userName: string,
-  userRole: string,
+  userRole: UserRole,
   content: string,
   isPublic: boolean = false,
   callDuration?: number
@@ -48,7 +51,6 @@ export const addCommentToDossier = async (
   try {
     const isCallNote = callDuration !== undefined;
     
-    // Utilisation de la fonction RPC add_dossier_comment
     const { data, error } = await supabase
       .rpc('add_dossier_comment', {
         p_dossier_id: dossierId,
@@ -58,33 +60,38 @@ export const addCommentToDossier = async (
         p_is_public: isPublic
       });
     
-    if (error) throw error;
+    if (error) {
+      console.error("Erreur lors de l'ajout du commentaire:", error);
+      return null;
+    }
     
-    // Récupérer le commentaire créé
+    // Record the consultation with the appropriate action
+    await recordDossierConsultation(
+      dossierId,
+      userId,
+      userName,
+      userRole,
+      isCallNote ? 'call_note' : 'comment'
+    );
+    
+    // Retrieve the newly created comment
     const { data: commentData, error: commentError } = await supabase
       .from('dossier_commentaires')
       .select('*')
       .eq('id', data)
       .single();
     
-    if (commentError) throw commentError;
-    
-    // Enregistrer la consultation du dossier
-    await supabase
-      .rpc('record_dossier_consultation', {
-        p_dossier_id: dossierId,
-        p_user_id: userId,
-        p_user_name: userName,
-        p_user_role: userRole,
-        p_action: isCallNote ? 'call_note' : 'comment'
-      });
+    if (commentError || !commentData) {
+      console.error("Erreur lors de la récupération du commentaire créé:", commentError);
+      return null;
+    }
     
     return {
       id: commentData.id,
       dossierId: commentData.dossier_id,
       userId: commentData.user_id,
       userName: commentData.user_name,
-      userRole: commentData.user_role as UserRole, // Cast to UserRole type
+      userRole: commentData.user_role as UserRole,
       content: commentData.content,
       createdAt: new Date(commentData.created_at),
       isCallNote: commentData.is_call_note || false,
@@ -92,7 +99,41 @@ export const addCommentToDossier = async (
       isPublic: commentData.is_public || false
     };
   } catch (error) {
-    console.error("Erreur lors de l'ajout du commentaire:", error);
+    console.error("Erreur inattendue lors de l'ajout du commentaire:", error);
     return null;
+  }
+};
+
+/**
+ * Function to record dossier consultation in the dossier_consultations table
+ */
+export const recordDossierConsultation = async (
+  dossierId: string,
+  userId: string,
+  userName: string,
+  userRole: UserRole,
+  action: string = 'view'
+): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from('dossier_consultations')
+      .insert({
+        dossier_id: dossierId,
+        user_id: userId,
+        user_name: userName,
+        user_role: userRole,
+        action: action,
+        timestamp: new Date().toISOString()
+      });
+
+    if (error) {
+      console.error("Erreur lors de l'enregistrement de la consultation:", error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Erreur inattendue lors de l'enregistrement de la consultation:", error);
+    return false;
   }
 };

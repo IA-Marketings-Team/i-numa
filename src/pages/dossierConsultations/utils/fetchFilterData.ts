@@ -3,16 +3,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { UserListItem, DossierListItem } from "../hooks/useDossierConsultations";
 
 export const fetchFilterData = async (
-  setUsers: React.Dispatch<React.SetStateAction<UserListItem[]>>,
-  setDossiers: React.Dispatch<React.SetStateAction<DossierListItem[]>>
+  setUsers: (users: UserListItem[]) => void,
+  setDossiers: (dossiers: DossierListItem[]) => void
 ) => {
-  await Promise.all([
-    fetchUsers(setUsers),
-    fetchDossiers(setDossiers)
-  ]);
+  try {
+    await fetchUsers(setUsers);
+    await fetchDossiers(setDossiers);
+  } catch (error) {
+    console.error("Error fetching filter data:", error);
+  }
 };
 
-const fetchUsers = async (setUsers: React.Dispatch<React.SetStateAction<UserListItem[]>>) => {
+const fetchUsers = async (setUsers: (users: UserListItem[]) => void) => {
   try {
     const { data, error } = await supabase
       .from("profiles")
@@ -32,7 +34,7 @@ const fetchUsers = async (setUsers: React.Dispatch<React.SetStateAction<UserList
   }
 };
 
-const fetchDossiers = async (setDossiers: React.Dispatch<React.SetStateAction<DossierListItem[]>>) => {
+const fetchDossiers = async (setDossiers: (dossiers: DossierListItem[]) => void) => {
   try {
     const { data, error } = await supabase
       .from("dossiers")

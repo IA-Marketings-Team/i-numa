@@ -16,13 +16,13 @@ export const fetchClientById = async (id: string): Promise<Client | null> => {
       .single();
 
     if (error || !data) {
-      console.error(`Erreur lors de la récupération du client ${id}:`, error);
+      console.error("Erreur lors de la récupération du client:", error);
       return null;
     }
 
     return mapProfileToClient(data);
   } catch (error) {
-    console.error(`Erreur inattendue lors de la récupération du client ${id}:`, error);
+    console.error("Erreur inattendue lors de la récupération du client:", error);
     return null;
   }
 };

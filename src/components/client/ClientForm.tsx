@@ -1,170 +1,349 @@
 
-import React from "react";
-import { useForm } from "react-hook-form";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import { Client } from "@/types";
-import { MultiSelect } from "@/components/ui/multi-select"; // Assuming you have a MultiSelect component
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { createClient, updateClient } from "@/services/client/clientService";
 
 interface ClientFormProps {
-  client?: Client;
-  onSubmit: (data: any) => Promise<void>;
-  isLoading: boolean;
-  onCancel: () => void;
+  initialData?: Client;
+  isEditing?: boolean;
 }
 
-const ClientForm: React.FC<ClientFormProps> = ({ client, onSubmit, isLoading, onCancel }) => {
-  const { register, handleSubmit, setValue, watch } = useForm({
-    defaultValues: {
-      nom: client?.nom || '',
-      prenom: client?.prenom || '',
-      email: client?.email || '',
-      telephone: client?.telephone || '',
-      adresse: client?.adresse || '',
-      ville: client?.ville || '',
-      codePostal: client?.codePostal || '',
-      secteurActivite: client?.secteurActivite || '',
-      typeEntreprise: client?.typeEntreprise || '',
-      besoins: client?.besoins || '',
-      statutJuridique: client?.statutJuridique || '',
-      activiteDetail: client?.activiteDetail || '',
-      siteWeb: client?.siteWeb || '',
-      moyensCommunication: client?.moyensCommunication || [],
-      commentaires: client?.commentaires || ''
-    }
+const ClientForm: React.FC<ClientFormProps> = ({ 
+  initialData,
+  isEditing = false 
+}) => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState<Partial<Client>>(initialData || {
+    nom: "",
+    prenom: "",
+    email: "",
+    telephone: "",
+    adresse: "",
+    ville: "",
+    codePostal: "",
+    iban: "",
+    bic: "",
+    nomBanque: "",
+    secteurActivite: "",
+    typeEntreprise: "",
+    besoins: "",
+    statutJuridique: "",
+    activiteDetail: "",
+    siteWeb: "",
+    moyensCommunication: [],
+    commentaires: ""
   });
 
-  const communicationOptions = [
-    { value: 'GMB', label: 'Google My Business' },
-    { value: 'Facebook', label: 'Facebook' },
-    { value: 'Instagram', label: 'Instagram' },
-    { value: 'LinkedIn', label: 'LinkedIn' },
-    { value: 'Site web', label: 'Site web' },
-    { value: 'Flyers', label: 'Flyers' },
-    { value: 'Email', label: 'Email' },
-    { value: 'SMS', label: 'SMS' }
-  ];
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const selectedCommunications = watch('moyensCommunication') || [];
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
-  const handleCommunicationChange = (selected: string[]) => {
-    setValue('moyensCommunication', selected);
+    try {
+      // Validate required fields
+      if (!formData.nom || !formData.prenom || !formData.email) {
+        toast({
+          variant: "destructive",
+          title: "Champs obligatoires",
+          description: "Veuillez remplir tous les champs obligatoires.",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (isEditing && initialData) {
+        // Update existing client
+        const success = await updateClient(initialData.id, formData);
+        if (success) {
+          toast({
+            title: "Client mis à jour",
+            description: "Les informations du client ont été mises à jour avec succès.",
+          });
+          navigate(`/clients/${initialData.id}`);
+        } else {
+          throw new Error("La mise à jour a échoué");
+        }
+      } else {
+        // Create new client
+        const newClient = await createClient(formData as Omit<Client, 'id' | 'dateCreation' | 'role'>);
+        if (newClient) {
+          toast({
+            title: "Client créé",
+            description: "Le client a été créé avec succès.",
+          });
+          navigate(`/clients/${newClient.id}`);
+        } else {
+          throw new Error("La création a échoué");
+        }
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: isEditing 
+          ? "Impossible de mettre à jour le client." 
+          : "Impossible de créer le client.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="nom">Nom / Nom de l'entreprise</Label>
-          <Input id="nom" {...register('nom')} disabled={isLoading} />
-        </div>
-        <div>
-          <Label htmlFor="prenom">Prénom / Nom du gérant</Label>
-          <Input id="prenom" {...register('prenom')} disabled={isLoading} />
-        </div>
-        <div>
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" {...register('email')} disabled={isLoading} />
-        </div>
-        <div>
-          <Label htmlFor="telephone">Téléphone</Label>
-          <Input id="telephone" {...register('telephone')} disabled={isLoading} />
-        </div>
-        <div>
-          <Label htmlFor="adresse">Adresse</Label>
-          <Input id="adresse" {...register('adresse')} disabled={isLoading} />
-        </div>
-        <div>
-          <Label htmlFor="codePostal">Code postal</Label>
-          <Input id="codePostal" {...register('codePostal')} disabled={isLoading} />
-        </div>
-        <div>
-          <Label htmlFor="ville">Ville</Label>
-          <Input id="ville" {...register('ville')} disabled={isLoading} />
-        </div>
-        <div>
-          <Label htmlFor="secteurActivite">Secteur d'activité</Label>
-          <Input id="secteurActivite" {...register('secteurActivite')} disabled={isLoading} />
-        </div>
-        <div>
-          <Label htmlFor="activiteDetail">Description de l'activité</Label>
-          <Input id="activiteDetail" {...register('activiteDetail')} disabled={isLoading} />
-        </div>
-        <div>
-          <Label htmlFor="statutJuridique">Statut juridique</Label>
-          <Select 
-            defaultValue={client?.statutJuridique || ''}
-            onValueChange={(value) => setValue('statutJuridique', value)} 
-            disabled={isLoading}
+    <form onSubmit={handleSubmit}>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Informations personnelles</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="nom">
+                  Nom <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="nom"
+                  name="nom"
+                  value={formData.nom || ""}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="prenom">
+                  Prénom <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="prenom"
+                  name="prenom"
+                  value={formData.prenom || ""}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">
+                  Email <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email || ""}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="telephone">Téléphone</Label>
+                <Input
+                  id="telephone"
+                  name="telephone"
+                  value={formData.telephone || ""}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Adresse</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="adresse">Adresse</Label>
+              <Input
+                id="adresse"
+                name="adresse"
+                value={formData.adresse || ""}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="ville">Ville</Label>
+                <Input
+                  id="ville"
+                  name="ville"
+                  value={formData.ville || ""}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="codePostal">Code postal</Label>
+                <Input
+                  id="codePostal"
+                  name="codePostal"
+                  value={formData.codePostal || ""}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Informations professionnelles</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="secteurActivite">Secteur d'activité</Label>
+                <Input
+                  id="secteurActivite"
+                  name="secteurActivite"
+                  value={formData.secteurActivite || ""}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="typeEntreprise">Type d'entreprise</Label>
+                <Input
+                  id="typeEntreprise"
+                  name="typeEntreprise"
+                  value={formData.typeEntreprise || ""}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="statutJuridique">Statut juridique</Label>
+                <Input
+                  id="statutJuridique"
+                  name="statutJuridique"
+                  value={formData.statutJuridique || ""}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="siteWeb">Site web</Label>
+                <Input
+                  id="siteWeb"
+                  name="siteWeb"
+                  value={formData.siteWeb || ""}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="activiteDetail">Détail de l'activité</Label>
+              <Textarea
+                id="activiteDetail"
+                name="activiteDetail"
+                value={formData.activiteDetail || ""}
+                onChange={handleChange}
+                rows={3}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="besoins">Besoins</Label>
+              <Textarea
+                id="besoins"
+                name="besoins"
+                value={formData.besoins || ""}
+                onChange={handleChange}
+                rows={3}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Informations bancaires</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="iban">IBAN</Label>
+                <Input
+                  id="iban"
+                  name="iban"
+                  value={formData.iban || ""}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bic">BIC</Label>
+                <Input
+                  id="bic"
+                  name="bic"
+                  value={formData.bic || ""}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="nomBanque">Nom de la banque</Label>
+                <Input
+                  id="nomBanque"
+                  name="nomBanque"
+                  value={formData.nomBanque || ""}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Notes internes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Label htmlFor="commentaires">Commentaires</Label>
+              <Textarea
+                id="commentaires"
+                name="commentaires"
+                value={formData.commentaires || ""}
+                onChange={handleChange}
+                rows={4}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate(isEditing && initialData ? `/clients/${initialData.id}` : "/clients")}
+            disabled={isSubmitting}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner le statut juridique" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="SAS">SAS</SelectItem>
-              <SelectItem value="SASU">SASU</SelectItem>
-              <SelectItem value="SARL">SARL</SelectItem>
-              <SelectItem value="EURL">EURL</SelectItem>
-              <SelectItem value="Micro-entrepreneur">Micro-entrepreneur</SelectItem>
-              <SelectItem value="EI">Entreprise Individuelle</SelectItem>
-              <SelectItem value="SCI">SCI</SelectItem>
-              <SelectItem value="Association">Association</SelectItem>
-            </SelectContent>
-          </Select>
+            Annuler
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting 
+              ? (isEditing ? "Mise à jour..." : "Création...") 
+              : (isEditing ? "Mettre à jour" : "Créer")}
+          </Button>
         </div>
-        <div>
-          <Label htmlFor="typeEntreprise">Type d'entreprise</Label>
-          <Select 
-            defaultValue={client?.typeEntreprise || ''}
-            onValueChange={(value) => setValue('typeEntreprise', value)} 
-            disabled={isLoading}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner un type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="PME">PME</SelectItem>
-              <SelectItem value="TPE">TPE</SelectItem>
-              <SelectItem value="ETI">ETI</SelectItem>
-              <SelectItem value="Indépendant">Indépendant</SelectItem>
-              <SelectItem value="Profession libérale">Profession libérale</SelectItem>
-              <SelectItem value="Commerçant">Commerçant</SelectItem>
-              <SelectItem value="Artisan">Artisan</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="siteWeb">Site web</Label>
-          <Input id="siteWeb" {...register('siteWeb')} disabled={isLoading} />
-        </div>
-        <div className="md:col-span-2">
-          <Label htmlFor="moyensCommunication">Moyens de communication actuels</Label>
-          <MultiSelect 
-            options={communicationOptions}
-            selected={selectedCommunications}
-            onChange={handleCommunicationChange}
-            placeholder="Sélectionnez les moyens de communication"
-          />
-        </div>
-        <div className="md:col-span-2">
-          <Label htmlFor="besoins">Besoins</Label>
-          <Textarea id="besoins" {...register('besoins')} rows={3} disabled={isLoading} />
-        </div>
-        <div className="md:col-span-2">
-          <Label htmlFor="commentaires">Commentaires</Label>
-          <Textarea id="commentaires" {...register('commentaires')} rows={4} disabled={isLoading} />
-        </div>
-      </div>
-      <div className="flex justify-end space-x-2 mt-4">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
-          Annuler
-        </Button>
-        <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={isLoading}>
-          {client ? "Mettre à jour" : "Créer"}
-        </Button>
       </div>
     </form>
   );

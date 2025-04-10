@@ -1,18 +1,17 @@
 
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter,
-  DialogDescription
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
-import { Upload, FileText, Check, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { importClientsFromCSV } from "@/services/clientService";
+import { Upload, AlertCircle, CheckCircle2 } from "lucide-react";
+import { importClientsFromCSV } from "@/services/client/clientService";
+import { Client } from "@/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface ClientImportModalProps {
@@ -21,202 +20,261 @@ interface ClientImportModalProps {
   onImportComplete: () => void;
 }
 
-const ClientImportModal: React.FC<ClientImportModalProps> = ({ isOpen, onClose, onImportComplete }) => {
+interface ImportResult {
+  success: boolean;
+  imported: number;
+  error?: string;
+}
+
+const ClientImportModal: React.FC<ClientImportModalProps> = ({
+  isOpen,
+  onClose,
+  onImportComplete,
+}) => {
   const { toast } = useToast();
   const [file, setFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [previewData, setPreviewData] = useState<string[][]>([]);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState<ImportResult | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    setErrorMessage(null);
-    
-    if (!selectedFile) {
-      setFile(null);
-      setPreviewData([]);
-      return;
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+      setResult(null);
     }
-    
-    // Check file type
-    if (selectedFile.type !== "text/csv" && !selectedFile.name.endsWith('.csv')) {
-      setErrorMessage("Veuillez sélectionner un fichier CSV valide.");
-      setFile(null);
-      setPreviewData([]);
-      return;
-    }
-    
-    setFile(selectedFile);
-    
-    // Generate preview
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target?.result as string;
-      const rows = text.split('\n').map(row => row.split(','));
-      
-      // Take only the first 5 rows for preview
-      const preview = rows.slice(0, 5);
-      setPreviewData(preview);
-      
-      // Basic validation
-      if (preview.length === 0) {
-        setErrorMessage("Le fichier CSV semble être vide.");
-        return;
-      }
-      
-      const headers = preview[0];
-      const requiredHeaders = ["nom", "prenom", "email"];
-      const missingHeaders = requiredHeaders.filter(
-        header => !headers.map(h => h.toLowerCase().trim()).includes(header.toLowerCase())
-      );
-      
-      if (missingHeaders.length > 0) {
-        setErrorMessage(`Colonnes obligatoires manquantes: ${missingHeaders.join(", ")}`);
-      }
-    };
-    
-    reader.readAsText(selectedFile);
   };
 
   const handleImport = async () => {
-    if (!file) return;
-    
-    setIsUploading(true);
-    setErrorMessage(null);
-    
+    if (!file) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Veuillez sélectionner un fichier CSV à importer",
+      });
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const result = await importClientsFromCSV(file);
+      const clientData = await parseCSV(file);
+      const importedClients = await importClientsFromCSV(clientData);
       
-      if (result.success) {
-        toast({
-          title: "Import réussi",
-          description: `${result.imported} clients ont été importés avec succès.`,
-        });
-        
-        // Reset state and close modal
-        setFile(null);
-        setPreviewData([]);
-        onImportComplete();
-        onClose();
-      } else {
-        setErrorMessage(result.error || "Une erreur est survenue lors de l'import.");
-      }
+      setResult({
+        success: true,
+        imported: importedClients.length,
+      });
+      
+      toast({
+        title: "Import réussi",
+        description: `${importedClients.length} clients ont été importés avec succès`,
+      });
+      
+      onImportComplete();
     } catch (error) {
       console.error("Error importing clients:", error);
-      setErrorMessage("Une erreur inattendue est survenue lors de l'import.");
+      setResult({
+        success: false,
+        imported: 0,
+        error: error instanceof Error ? error.message : "Une erreur est survenue lors de l'import",
+      });
+      toast({
+        variant: "destructive",
+        title: "Erreur d'import",
+        description: "Une erreur est survenue lors de l'import des clients",
+      });
     } finally {
-      setIsUploading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleClose = () => {
-    setFile(null);
-    setPreviewData([]);
-    setErrorMessage(null);
-    onClose();
+  const parseCSV = (file: File): Promise<Omit<Client, "id" | "dateCreation" | "role">[]> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const csvText = e.target?.result as string;
+          const lines = csvText.split("\n");
+          const headers = lines[0].split(",").map((h) => h.trim());
+          
+          const clients: Omit<Client, "id" | "dateCreation" | "role">[] = [];
+          
+          for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            
+            const values = lines[i].split(",").map((v) => v.trim());
+            const client: any = {};
+            
+            headers.forEach((header, index) => {
+              const value = values[index] || "";
+              
+              switch (header.toLowerCase()) {
+                case "nom":
+                  client.nom = value;
+                  break;
+                case "prenom":
+                  client.prenom = value;
+                  break;
+                case "email":
+                  client.email = value;
+                  break;
+                case "telephone":
+                  client.telephone = value;
+                  break;
+                case "adresse":
+                  client.adresse = value;
+                  break;
+                case "ville":
+                  client.ville = value;
+                  break;
+                case "code postal":
+                case "codepostal":
+                case "code_postal":
+                  client.codePostal = value;
+                  break;
+                case "iban":
+                  client.iban = value;
+                  break;
+                case "bic":
+                  client.bic = value;
+                  break;
+                case "nom banque":
+                case "nombanque":
+                case "nom_banque":
+                  client.nomBanque = value;
+                  break;
+                case "secteur activite":
+                case "secteuractivite":
+                case "secteur_activite":
+                  client.secteurActivite = value;
+                  break;
+                case "type entreprise":
+                case "typeentreprise":
+                case "type_entreprise":
+                  client.typeEntreprise = value;
+                  break;
+                case "besoins":
+                  client.besoins = value;
+                  break;
+                case "statut juridique":
+                case "statutjuridique":
+                case "statut_juridique":
+                  client.statutJuridique = value;
+                  break;
+                case "activite detail":
+                case "activitedetail":
+                case "activite_detail":
+                  client.activiteDetail = value;
+                  break;
+                case "site web":
+                case "siteweb":
+                case "site_web":
+                  client.siteWeb = value;
+                  break;
+                case "moyens communication":
+                case "moyenscommunication":
+                case "moyens_communication":
+                  client.moyensCommunication = value ? value.split(";") : [];
+                  break;
+                case "commentaires":
+                  client.commentaires = value;
+                  break;
+                default:
+                  // Ignore unknown headers
+                  break;
+              }
+            });
+            
+            // Required fields validation
+            if (!client.nom || !client.prenom || !client.email) {
+              console.warn(`Ligne ${i} ignorée: champs obligatoires manquants`);
+              continue;
+            }
+            
+            clients.push(client as Omit<Client, "id" | "dateCreation" | "role">);
+          }
+          
+          resolve(clients);
+        } catch (error) {
+          reject(new Error("Format de fichier CSV invalide"));
+        }
+      };
+      
+      reader.onerror = () => {
+        reject(new Error("Erreur lors de la lecture du fichier"));
+      };
+      
+      reader.readAsText(file);
+    });
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Importer des clients depuis un fichier CSV</DialogTitle>
+          <DialogTitle>Importer des clients</DialogTitle>
           <DialogDescription>
-            Sélectionnez un fichier CSV contenant les informations des clients à importer.
-            Le fichier doit contenir au minimum les colonnes: "nom", "prenom" et "email".
+            Sélectionnez un fichier CSV contenant les données des clients à importer.
           </DialogDescription>
         </DialogHeader>
-        
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Input
-              type="file"
-              accept=".csv"
-              id="csv-file"
-              onChange={handleFileChange}
-              className="flex-1"
-            />
-            <a 
-              href="#" 
-              onClick={(e) => {
-                e.preventDefault();
-                // In a real implementation, this would download a template
-                const template = "nom,prenom,email,telephone,adresse,ville,code_postal,secteur_activite,type_entreprise\n";
-                const blob = new Blob([template], { type: 'text/csv' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'template_clients.csv';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-              }}
-              className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+
+        <div className="space-y-4 py-4">
+          <div className="flex items-center justify-center w-full">
+            <label
+              htmlFor="file-upload"
+              className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
             >
-              <FileText className="h-3 w-3" />
-              Télécharger modèle
-            </a>
+              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                <Upload className="w-8 h-8 mb-2 text-gray-500" />
+                <p className="mb-2 text-sm text-gray-500">
+                  <span className="font-semibold">Cliquez pour sélectionner</span>{" "}
+                  ou glissez-déposez un fichier
+                </p>
+                <p className="text-xs text-gray-500">Format supporté: CSV</p>
+              </div>
+              <input
+                id="file-upload"
+                type="file"
+                accept=".csv"
+                className="hidden"
+                onChange={handleFileChange}
+                disabled={isLoading}
+              />
+            </label>
           </div>
-          
-          {errorMessage && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Erreur</AlertTitle>
-              <AlertDescription>{errorMessage}</AlertDescription>
-            </Alert>
-          )}
-          
-          {previewData.length > 0 && (
-            <div className="border rounded-md overflow-hidden">
-              <div className="text-sm font-medium p-2 bg-muted">
-                Aperçu des données (5 premières lignes)
-              </div>
-              <div className="overflow-auto max-h-[200px]">
-                <table className="w-full text-sm">
-                  <tbody>
-                    {previewData.map((row, rowIndex) => (
-                      <tr key={rowIndex} className="border-b last:border-0">
-                        {row.map((cell, cellIndex) => (
-                          <td key={cellIndex} className="p-2 border-r last:border-0">
-                            {cell}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+
+          {file && (
+            <div className="border rounded p-2 flex items-center gap-2 bg-slate-50">
+              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <div className="text-sm">{file.name}</div>
             </div>
           )}
-          
-          {file && !errorMessage && (
-            <Alert className="bg-green-50 border-green-200">
-              <Check className="h-4 w-4 text-green-600" />
-              <AlertTitle>Fichier prêt</AlertTitle>
+
+          {result && (
+            <Alert variant={result.success ? "default" : "destructive"}>
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>
+                {result.success ? "Import réussi" : "Erreur d'import"}
+              </AlertTitle>
               <AlertDescription>
-                Le fichier <span className="font-medium">{file.name}</span> ({(file.size / 1024).toFixed(2)} KB) est prêt à être importé.
+                {result.success
+                  ? `${result.imported} clients ont été importés avec succès.`
+                  : result.error}
               </AlertDescription>
             </Alert>
           )}
         </div>
-        
-        <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>
+
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose} disabled={isLoading}>
             Annuler
           </Button>
-          <Button 
-            onClick={handleImport} 
-            disabled={!file || !!errorMessage || isUploading}
-            className="flex items-center gap-2"
+          <Button
+            onClick={handleImport}
+            disabled={!file || isLoading}
+            className="gap-2"
           >
-            {isUploading ? "Importation en cours..." : (
-              <>
-                <Upload className="h-4 w-4" />
-                Importer
-              </>
-            )}
+            {isLoading ? "Importation en cours..." : "Importer"}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
