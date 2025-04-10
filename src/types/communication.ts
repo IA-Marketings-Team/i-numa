@@ -24,8 +24,9 @@ export interface Meeting {
   duree: number;
   lien: string;
   type: 'visio' | 'presentiel' | 'telephonique';
-  statut: 'planifie' | 'en_cours' | 'termine' | 'annule';
+  statut: 'planifie' | 'en_cours' | 'termine' | 'annule' | 'effectue' | 'manque';
   participants: string[];
+  heure?: string; // Added to match MeetingData requirements
 }
 
 export interface Email {

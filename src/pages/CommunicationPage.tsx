@@ -87,19 +87,19 @@ const CommunicationPage: React.FC = () => {
                 <Card key={meeting.id} className="overflow-hidden border hover:shadow-md transition-shadow">
                   <CardHeader className={`pb-2 ${
                     meeting.statut === 'planifie' ? 'bg-blue-50' : 
-                    meeting.statut === 'effectue' ? 'bg-green-50' : 
-                    meeting.statut === 'manque' ? 'bg-red-50' : 'bg-gray-50'
+                    meeting.statut === 'termine' ? 'bg-green-50' : 
+                    meeting.statut === 'annule' ? 'bg-red-50' : 'bg-gray-50'
                   }`}>
                     <div className="flex justify-between items-start">
                       <CardTitle className="text-lg">{meeting.titre}</CardTitle>
                       <Badge className={`${
                         meeting.statut === 'planifie' ? 'bg-blue-100 text-blue-800' : 
-                        meeting.statut === 'effectue' ? 'bg-green-100 text-green-800' : 
-                        meeting.statut === 'manque' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
+                        meeting.statut === 'termine' ? 'bg-green-100 text-green-800' : 
+                        meeting.statut === 'annule' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
                       }`}>
                         {meeting.statut === 'planifie' ? 'Planifié' : 
-                         meeting.statut === 'effectue' ? 'Effectué' : 
-                         meeting.statut === 'manque' ? 'Manqué' : meeting.statut}
+                         meeting.statut === 'termine' ? 'Terminé' : 
+                         meeting.statut === 'annule' ? 'Annulé' : meeting.statut}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -119,7 +119,7 @@ const CommunicationPage: React.FC = () => {
                         )}
                       </div>
                       {meeting.description && (
-                        <p className="text-sm text-gray-600 line-clamp-2">{meeting.description}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{meeting.description}</p>
                       )}
                     </div>
                   </CardContent>

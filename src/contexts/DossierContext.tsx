@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Dossier, DossierStatus, Offre, RendezVous, DossierComment } from "@/types";
 import { useAuth } from "./AuthContext";
@@ -74,7 +73,6 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setIsLoading(true);
       const data = await fetchDossiers();
       
-      // Pour chaque dossier, récupérer les commentaires
       const dossiersWithComments = await Promise.all(
         data.map(async (dossier) => {
           const comments = await fetchCommentsByDossierId(dossier.id);
@@ -240,7 +238,6 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
         dossier = await fetchDossierById(id);
         
         if (dossier) {
-          // Récupérer les commentaires du dossier
           const comments = await fetchCommentsByDossierId(id);
           dossier.commentaires = comments;
           
@@ -444,21 +441,28 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
       );
       
       if (comment) {
-        // Mettre à jour le dossier actuel si c'est celui concerné
         if (currentDossier && currentDossier.id === dossierId) {
-          const updatedComments = [...(currentDossier.commentaires || []), comment];
+          const commentArray: DossierComment[] = Array.isArray(currentDossier.commentaires) 
+            ? [...currentDossier.commentaires] 
+            : [];
+          
           setCurrentDossier({
             ...currentDossier,
-            commentaires: updatedComments
+            commentaires: [...commentArray, comment as DossierComment]
           });
         }
         
-        // Mettre à jour la liste des dossiers
         setDossiers(prev => 
           prev.map(dossier => {
             if (dossier.id === dossierId) {
-              const updatedComments = [...(dossier.commentaires || []), comment];
-              return { ...dossier, commentaires: updatedComments };
+              const commentArray: DossierComment[] = Array.isArray(dossier.commentaires) 
+                ? [...dossier.commentaires] 
+                : [];
+              
+              return { 
+                ...dossier, 
+                commentaires: [...commentArray, comment as DossierComment] 
+              };
             }
             return dossier;
           })
@@ -494,21 +498,28 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
       );
       
       if (comment) {
-        // Mettre à jour le dossier actuel si c'est celui concerné
         if (currentDossier && currentDossier.id === dossierId) {
-          const updatedComments = [...(currentDossier.commentaires || []), comment];
+          const commentArray: DossierComment[] = Array.isArray(currentDossier.commentaires) 
+            ? [...currentDossier.commentaires] 
+            : [];
+          
           setCurrentDossier({
             ...currentDossier,
-            commentaires: updatedComments
+            commentaires: [...commentArray, comment as DossierComment]
           });
         }
         
-        // Mettre à jour la liste des dossiers
         setDossiers(prev => 
           prev.map(dossier => {
             if (dossier.id === dossierId) {
-              const updatedComments = [...(dossier.commentaires || []), comment];
-              return { ...dossier, commentaires: updatedComments };
+              const commentArray: DossierComment[] = Array.isArray(dossier.commentaires) 
+                ? [...dossier.commentaires] 
+                : [];
+                
+              return { 
+                ...dossier, 
+                commentaires: [...commentArray, comment as DossierComment] 
+              };
             }
             return dossier;
           })
