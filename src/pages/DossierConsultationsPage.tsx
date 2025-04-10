@@ -29,6 +29,16 @@ interface RawDBConsultation {
   action?: string;
 }
 
+interface ClientData {
+  nom?: string;
+  prenom?: string;
+}
+
+interface DossierListItem {
+  id: string;
+  client_name: string;
+}
+
 const DossierConsultationsPage: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -43,7 +53,7 @@ const DossierConsultationsPage: React.FC = () => {
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
   const [dossierFilter, setDossierFilter] = useState("");
   const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
-  const [dossiers, setDossiers] = useState<{ id: string; client_name: string }[]>([]);
+  const [dossiers, setDossiers] = useState<DossierListItem[]>([]);
   const itemsPerPage = 10;
 
   useEffect(() => {
