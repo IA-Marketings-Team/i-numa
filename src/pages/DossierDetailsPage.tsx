@@ -13,7 +13,7 @@ import { DossierProvider } from "@/contexts/DossierContext";
 
 const DossierDetailsContent: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { getDossierById, updateDossierStatus, deleteDossier } = useDossier();
+  const { getDossierById, updateDossierStatus, deleteDossier, addComment, addCallNote } = useDossier();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -104,6 +104,68 @@ const DossierDetailsContent: React.FC = () => {
       setIsLoading(false);
     }
   };
+  
+  const handleAddComment = async (content: string) => {
+    if (!dossier || !user) return;
+    
+    try {
+      setIsLoading(true);
+      const success = await addComment(dossier.id, content);
+      
+      if (success) {
+        // Refresh dossier data
+        const updatedDossier = await getDossierById(dossier.id);
+        if (updatedDossier) {
+          setDossier(updatedDossier);
+        }
+        
+        toast({
+          title: "Commentaire ajouté",
+          description: "Votre commentaire a été ajouté avec succès.",
+        });
+      }
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'ajout du commentaire."
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleAddCallNote = async (content: string, duration: number) => {
+    if (!dossier || !user) return;
+    
+    try {
+      setIsLoading(true);
+      const success = await addCallNote(dossier.id, content, duration);
+      
+      if (success) {
+        // Refresh dossier data
+        const updatedDossier = await getDossierById(dossier.id);
+        if (updatedDossier) {
+          setDossier(updatedDossier);
+        }
+        
+        toast({
+          title: "Note d'appel ajoutée",
+          description: "Votre note d'appel a été ajoutée avec succès.",
+        });
+      }
+    } catch (error) {
+      console.error("Error adding call note:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'ajout de la note d'appel."
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -149,6 +211,8 @@ const DossierDetailsContent: React.FC = () => {
         dossier={dossier} 
         onStatusChange={handleStatusChange}
         onDelete={handleDeleteDossier}
+        onAddComment={handleAddComment}
+        onAddCallNote={handleAddCallNote}
         loading={isLoading}
         userRole={user?.role}
       />

@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import DossierStatusBadge from "./DossierStatusBadge";
 import { useDossier } from "@/contexts/DossierContext";
-import { Eye, FileEdit, Trash2, Calendar, PhoneCall } from "lucide-react";
+import { Eye, FileEdit, Trash2, Calendar, Phone } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface DossierListProps {
   dossiers: Dossier[];
@@ -19,13 +21,14 @@ interface DossierListProps {
 
 const DossierList: React.FC<DossierListProps> = ({ dossiers, showActions = true }) => {
   const navigate = useNavigate();
-  const { setCurrentDossier, deleteDossier, updateDossier } = useDossier();
+  const { setCurrentDossier, deleteDossier, addCallNote } = useDossier();
   const { user, hasPermission } = useAuth();
   const { toast } = useToast();
   
   const [deletingDossier, setDeletingDossier] = useState<Dossier | null>(null);
   const [callingDossier, setCallingDossier] = useState<Dossier | null>(null);
   const [callNotes, setCallNotes] = useState("");
+  const [callDuration, setCallDuration] = useState(5);
 
   const handleView = (dossier: Dossier) => {
     setCurrentDossier(dossier);
@@ -48,27 +51,22 @@ const DossierList: React.FC<DossierListProps> = ({ dossiers, showActions = true 
     }
   };
 
-  const handleCallComplete = () => {
+  const handleCallComplete = async () => {
     if (callingDossier) {
-      // Mise à jour des notes du dossier avec les notes d'appel
-      updateDossier(callingDossier.id, {
-        notes: callingDossier.notes 
-          ? `${callingDossier.notes}\n\nAppel du ${new Date().toLocaleDateString()} : ${callNotes}` 
-          : `Appel du ${new Date().toLocaleDateString()} : ${callNotes}`
-      });
-      
-      toast({
-        title: "Appel enregistré",
-        description: "Les notes d'appel ont été ajoutées au dossier"
-      });
+      await addCallNote(callingDossier.id, callNotes, callDuration);
       
       setCallingDossier(null);
       setCallNotes("");
+      setCallDuration(5);
     }
   };
 
   const handleNewRdv = (dossier: Dossier) => {
     navigate(`/dossiers/${dossier.id}/rendez-vous/nouveau`);
+  };
+  
+  const handleNoteCall = (dossier: Dossier) => {
+    setCallingDossier(dossier);
   };
 
   const formatDate = (date: Date | undefined) => {
@@ -160,11 +158,11 @@ const DossierList: React.FC<DossierListProps> = ({ dossiers, showActions = true 
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setCallingDossier(dossier)}
+                        onClick={() => handleNoteCall(dossier)}
                         className="flex items-center gap-1"
                       >
-                        <PhoneCall className="w-4 h-4" />
-                        <span className="sm:block hidden">Appeler</span>
+                        <Phone className="w-4 h-4" />
+                        <span className="sm:block hidden">Noter appel</span>
                       </Button>
                       
                       <Button
@@ -231,7 +229,7 @@ const DossierList: React.FC<DossierListProps> = ({ dossiers, showActions = true 
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              Appel à {callingDossier?.client.prenom} {callingDossier?.client.nom}
+              Note d'appel pour {callingDossier?.client.prenom} {callingDossier?.client.nom}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -241,8 +239,20 @@ const DossierList: React.FC<DossierListProps> = ({ dossiers, showActions = true 
             </div>
             
             <div className="space-y-2">
-              <p className="font-medium text-sm">Notes d'appel</p>
+              <Label htmlFor="callDuration">Durée de l'appel (minutes)</Label>
+              <Input 
+                id="callDuration"
+                type="number" 
+                min="1" 
+                value={callDuration} 
+                onChange={(e) => setCallDuration(parseInt(e.target.value) || 5)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="callNotes">Notes d'appel</Label>
               <Textarea 
+                id="callNotes"
                 placeholder="Entrez les détails de votre appel ici..."
                 value={callNotes}
                 onChange={(e) => setCallNotes(e.target.value)}
@@ -252,7 +262,7 @@ const DossierList: React.FC<DossierListProps> = ({ dossiers, showActions = true 
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCallingDossier(null)}>Annuler</Button>
-            <Button onClick={handleCallComplete}>Terminer l'appel</Button>
+            <Button onClick={handleCallComplete}>Enregistrer l'appel</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

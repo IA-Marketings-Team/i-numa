@@ -1,5 +1,6 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { Dossier, DossierStatus, Offre, RendezVous } from "@/types";
+import { Dossier, DossierStatus, Offre, RendezVous, DossierComment } from "@/types";
 import { useAuth } from "./AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -15,6 +16,10 @@ import {
   updateRendezVous as updateRendezVousService, 
   deleteRendezVous as deleteRendezVousService 
 } from "@/services/rendezVousService";
+import {
+  fetchCommentsByDossierId,
+  addCommentToDossier
+} from "@/services/commentService";
 
 interface DossierContextType {
   dossiers: Dossier[];
@@ -36,6 +41,9 @@ interface DossierContextType {
   deleteRendezVous: (id: string) => Promise<boolean>;
   updateDossierStatus: (dossierId: string, newStatus: DossierStatus) => Promise<boolean>;
   refreshDossiers: () => Promise<void>;
+  addComment: (dossierId: string, content: string) => Promise<boolean>;
+  addCallNote: (dossierId: string, content: string, duration: number) => Promise<boolean>;
+  getCommentsByDossierId: (dossierId: string) => Promise<DossierComment[]>;
 }
 
 const DossierContext = createContext<DossierContextType | undefined>(undefined);
@@ -43,6 +51,7 @@ const DossierContext = createContext<DossierContextType | undefined>(undefined);
 export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [dossiers, setDossiers] = useState<Dossier[]>([]);
   const [rendezVous, setRendezVous] = useState<RendezVous[]>([]);
+  const [comments, setComments] = useState<DossierComment[]>([]);
   const [statusFilter, setStatusFilter] = useState<DossierStatus | 'all'>('all');
   const [currentDossier, setCurrentDossier] = useState<Dossier | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -64,7 +73,19 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       setIsLoading(true);
       const data = await fetchDossiers();
-      setDossiers(data);
+      
+      // Pour chaque dossier, récupérer les commentaires
+      const dossiersWithComments = await Promise.all(
+        data.map(async (dossier) => {
+          const comments = await fetchCommentsByDossierId(dossier.id);
+          return {
+            ...dossier,
+            commentaires: comments
+          };
+        })
+      );
+      
+      setDossiers(dossiersWithComments);
       setError(null);
     } catch (err) {
       console.error("Error loading dossiers:", err);
@@ -219,6 +240,10 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
         dossier = await fetchDossierById(id);
         
         if (dossier) {
+          // Récupérer les commentaires du dossier
+          const comments = await fetchCommentsByDossierId(id);
+          dossier.commentaires = comments;
+          
           setDossiers(prev => {
             const exists = prev.some(d => d.id === dossier?.id);
             return exists 
@@ -394,6 +419,120 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return false;
     }
   };
+  
+  const getCommentsByDossierId = async (dossierId: string) => {
+    try {
+      const comments = await fetchCommentsByDossierId(dossierId);
+      return comments;
+    } catch (error) {
+      console.error(`Error fetching comments for dossier ${dossierId}:`, error);
+      return [];
+    }
+  };
+  
+  const addComment = async (dossierId: string, content: string) => {
+    if (!user) return false;
+    
+    try {
+      const comment = await addCommentToDossier(
+        dossierId,
+        user.id,
+        `${user.prenom} ${user.nom}`,
+        user.role,
+        content,
+        false
+      );
+      
+      if (comment) {
+        // Mettre à jour le dossier actuel si c'est celui concerné
+        if (currentDossier && currentDossier.id === dossierId) {
+          const updatedComments = [...(currentDossier.commentaires || []), comment];
+          setCurrentDossier({
+            ...currentDossier,
+            commentaires: updatedComments
+          });
+        }
+        
+        // Mettre à jour la liste des dossiers
+        setDossiers(prev => 
+          prev.map(dossier => {
+            if (dossier.id === dossierId) {
+              const updatedComments = [...(dossier.commentaires || []), comment];
+              return { ...dossier, commentaires: updatedComments };
+            }
+            return dossier;
+          })
+        );
+        
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error(`Error adding comment to dossier ${dossierId}:`, error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'ajouter le commentaire. Veuillez réessayer.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+  
+  const addCallNote = async (dossierId: string, content: string, duration: number) => {
+    if (!user) return false;
+    
+    try {
+      const comment = await addCommentToDossier(
+        dossierId,
+        user.id,
+        `${user.prenom} ${user.nom}`,
+        user.role,
+        content,
+        true,
+        duration
+      );
+      
+      if (comment) {
+        // Mettre à jour le dossier actuel si c'est celui concerné
+        if (currentDossier && currentDossier.id === dossierId) {
+          const updatedComments = [...(currentDossier.commentaires || []), comment];
+          setCurrentDossier({
+            ...currentDossier,
+            commentaires: updatedComments
+          });
+        }
+        
+        // Mettre à jour la liste des dossiers
+        setDossiers(prev => 
+          prev.map(dossier => {
+            if (dossier.id === dossierId) {
+              const updatedComments = [...(dossier.commentaires || []), comment];
+              return { ...dossier, commentaires: updatedComments };
+            }
+            return dossier;
+          })
+        );
+        
+        toast({
+          title: "Note d'appel ajoutée",
+          description: `La note d'appel a été ajoutée avec succès`,
+        });
+        
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error(`Error adding call note to dossier ${dossierId}:`, error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'ajouter la note d'appel. Veuillez réessayer.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
 
   return (
     <DossierContext.Provider value={{
@@ -415,7 +554,10 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
       updateRendezVous,
       deleteRendezVous,
       updateDossierStatus,
-      refreshDossiers
+      refreshDossiers,
+      addComment,
+      addCallNote,
+      getCommentsByDossierId
     }}>
       {children}
     </DossierContext.Provider>

@@ -1,8 +1,9 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Phone, Video, Edit, Archive, Trash2, ShoppingCart, Calendar } from "lucide-react";
-import { Dossier, DossierStatus } from "@/types";
+import { Video, Edit, Archive, Trash2, ShoppingCart, Calendar } from "lucide-react";
+import { Dossier, DossierComment, DossierStatus } from "@/types";
 import StatusSelector from "@/components/dossier/StatusSelector";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -10,11 +11,14 @@ import { fr } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import DossierStatusBadge from "./DossierStatusBadge";
 import { Badge } from "@/components/ui/badge";
+import DossierComments from "./DossierComments";
 
 interface DossierDetailProps {
   dossier: Dossier;
   onStatusChange: (status: DossierStatus) => Promise<void>;
   onDelete: () => Promise<void>;
+  onAddComment: (content: string) => Promise<void>;
+  onAddCallNote: (content: string, duration: number) => Promise<void>;
   loading: boolean;
   userRole?: string;
 }
@@ -23,6 +27,8 @@ const DossierDetail: React.FC<DossierDetailProps> = ({
   dossier,
   onStatusChange,
   onDelete,
+  onAddComment,
+  onAddCallNote,
   loading,
   userRole
 }) => {
@@ -35,10 +41,6 @@ const DossierDetail: React.FC<DossierDetailProps> = ({
   
   const handleEditClick = () => {
     navigate(`/dossiers/${dossier.id}/modifier`);
-  };
-  
-  const handleCallClick = () => {
-    navigate(`/dossiers/${dossier.id}/appel`);
   };
   
   const handleMeetingClick = () => {
@@ -143,6 +145,13 @@ const DossierDetail: React.FC<DossierDetailProps> = ({
             </div>
           )}
           
+          {/* Section des commentaires */}
+          <DossierComments
+            comments={dossier.commentaires || []}
+            onAddComment={onAddComment}
+            onAddCallNote={onAddCallNote}
+          />
+          
           {canModify && (
             <div className="pt-4">
               <h3 className="text-lg font-semibold mb-3">Modifier le statut</h3>
@@ -163,16 +172,6 @@ const DossierDetail: React.FC<DossierDetailProps> = ({
         
         <CardFooter className="flex flex-wrap gap-3 justify-between border-t pt-6">
           <div className="flex flex-wrap gap-3">
-            {canCall && (
-              <Button 
-                variant="outline" 
-                className="flex items-center gap-2" 
-                onClick={handleCallClick}
-              >
-                <Phone className="h-4 w-4" />
-                Appeler
-              </Button>
-            )}
             {canScheduleMeeting && (
               <Button 
                 variant="outline" 

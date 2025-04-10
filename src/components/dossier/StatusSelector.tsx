@@ -5,24 +5,31 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DossierStatus } from "@/types";
 
 interface StatusSelectorProps {
-  status: DossierStatus;
-  onStatusChange: (value: DossierStatus) => void;
+  status: string;
+  onStatusChange: (status: string) => void;
+  disabled?: boolean;
 }
 
-const StatusSelector: React.FC<StatusSelectorProps> = ({ status, onStatusChange }) => {
-  // S'assurer que le statut n'est jamais vide
-  const statusValue = status || "prospect";
-  
+const StatusSelector: React.FC<StatusSelectorProps> = ({
+  status,
+  onStatusChange,
+  disabled = false
+}) => {
   return (
     <div className="space-y-2">
-      <Label htmlFor="status">Statut</Label>
-      <Select value={statusValue} onValueChange={(value) => onStatusChange(value as DossierStatus)}>
-        <SelectTrigger id="status">
+      <Label htmlFor="status">Statut du dossier</Label>
+      <Select 
+        value={status} 
+        onValueChange={onStatusChange}
+        disabled={disabled}
+      >
+        <SelectTrigger id="status" className="w-full">
           <SelectValue placeholder="Sélectionner un statut" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="prospect">Prospect</SelectItem>
-          <SelectItem value="rdv_en_cours">RDV En Cours</SelectItem>
+          <SelectItem value="prospect_chaud">Prospect à chaud</SelectItem>
+          <SelectItem value="prospect_froid">Prospect à froid</SelectItem>
+          <SelectItem value="rdv_en_cours">RDV en cours</SelectItem>
           <SelectItem value="valide">Validé</SelectItem>
           <SelectItem value="signe">Signé</SelectItem>
           <SelectItem value="archive">Archivé</SelectItem>

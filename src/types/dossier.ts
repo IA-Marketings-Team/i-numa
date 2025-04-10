@@ -2,7 +2,7 @@
 import { Client, UserRole } from './user';
 import { Offre } from './offre';
 
-export type DossierStatus = 'prospect' | 'rdv_en_cours' | 'valide' | 'signe' | 'archive';
+export type DossierStatus = 'prospect_chaud' | 'prospect_froid' | 'rdv_en_cours' | 'valide' | 'signe' | 'archive';
 
 export interface Dossier {
   id: string;
@@ -20,6 +20,19 @@ export interface Dossier {
   dateArchivage?: Date;
   notes?: string;
   montant?: number;
+  commentaires?: DossierComment[];
+}
+
+export interface DossierComment {
+  id: string;
+  dossierId: string;
+  userId: string;
+  userName: string;
+  userRole: UserRole;
+  content: string;
+  createdAt: Date;
+  isCallNote?: boolean;
+  callDuration?: number;
 }
 
 export interface RendezVous {
