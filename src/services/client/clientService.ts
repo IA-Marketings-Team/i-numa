@@ -32,9 +32,13 @@ export const createClient = async (clientData: Omit<Client, "id" | "dateCreation
     date_creation: new Date().toISOString(),
   });
 
+  // When inserting to Supabase, pass the ID explicitly in a separate object rather than in dbData
   const { data, error } = await supabase
     .from("profiles")
-    .insert(dbData)
+    .insert([{ 
+      id: clientId,
+      ...dbData 
+    }])
     .select()
     .single();
 
@@ -112,15 +116,21 @@ export const deleteClient = async (id: string): Promise<boolean> => {
 export const importClientsFromCSV = async (
   clientsData: Omit<Client, "id" | "dateCreation" | "role">[]
 ): Promise<Client[]> => {
-  // Prepare data for insertion - assign UUID to each client
+  // Prepare data for insertion - assign UUID to each client with explicit id property
   const clientsToInsert = clientsData.map(client => {
     const clientId = crypto.randomUUID();
-    return mapClientToDbFormat({
+    const mappedClient = mapClientToDbFormat({
       ...client,
-      id: clientId, // Add ID to each client object
+      id: clientId,
       role: "client",
       date_creation: new Date().toISOString(),
     });
+    
+    // Ensure id is at the top level for Supabase insert
+    return {
+      id: clientId,
+      ...mappedClient
+    };
   });
 
   // Insert clients into the database
