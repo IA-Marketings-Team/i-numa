@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
@@ -106,13 +105,13 @@ const DossierPage = () => {
   const handleAddCall = async () => {
     if (!dossier) return;
     
-    // Simuler la mise à jour des notes du dossier
-    const updatedNotes = dossier.notes 
-      ? `${dossier.notes}\n\nAppel (${format(new Date(), "dd/MM/yyyy HH:mm")}):\n${callNote}`
-      : `Appel (${format(new Date(), "dd/MM/yyyy HH:mm")}):\n${callNote}`;
+    const callData: CallData = {
+      notes: callNote,
+      duration: callDuration,
+      outcome: 'discussed'
+    };
     
-    // Mettre à jour le dossier
-    await updateDossierStatus(dossier.id, dossier.status);
+    await addCallNote(dossier.id, callData.notes, callData.duration);
     
     setIsCallNoteOpen(false);
     setCallNote("");
@@ -141,7 +140,6 @@ const DossierPage = () => {
       setIsLoading(true);
       await updateDossierStatus(dossier.id, status);
       
-      // Update local state
       setDossier({
         ...dossier,
         status: status
@@ -192,10 +190,8 @@ const DossierPage = () => {
     
     try {
       setIsLoading(true);
-      // Call the addComment function from context
       await addComment(dossier.id, content);
       
-      // Refresh the dossier to get updated comments
       const refreshedDossier = await getDossierById(dossier.id);
       if (refreshedDossier) {
         setDossier(refreshedDossier);
@@ -222,10 +218,8 @@ const DossierPage = () => {
     
     try {
       setIsLoading(true);
-      // Call the addCallNote function from context with the data extracted from callData
       await addCallNote(dossier.id, callData.notes, callData.duration);
       
-      // Refresh the dossier to get updated comments
       const refreshedDossier = await getDossierById(dossier.id);
       if (refreshedDossier) {
         setDossier(refreshedDossier);
@@ -381,7 +375,7 @@ const DossierPage = () => {
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setIsCallNoteOpen(false)}>Annuler</Button>
-                  <Button onClick={() => handleAddCallNote(callNote, callDuration)}>Enregistrer</Button>
+                  <Button onClick={handleAddCall}>Enregistrer</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
