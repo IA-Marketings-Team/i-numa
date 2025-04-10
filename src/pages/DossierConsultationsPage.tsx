@@ -18,14 +18,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { DossierConsultation } from "@/types";
 
-interface DBConsultation {
+// Defining a simple interface for raw database consultations to avoid type recursion
+interface RawDBConsultation {
   id: string;
   dossier_id: string;
   user_id: string;
   user_name: string;
   user_role: string;
   timestamp: string;
-  action: string;
+  action?: string;
 }
 
 const DossierConsultationsPage: React.FC = () => {
@@ -86,7 +87,7 @@ const DossierConsultationsPage: React.FC = () => {
       if (error) throw error;
       
       if (data) {
-        const formattedData: DossierConsultation[] = data.map((item: DBConsultation) => ({
+        const formattedData: DossierConsultation[] = data.map((item: RawDBConsultation) => ({
           id: item.id,
           userId: item.user_id,
           userName: item.user_name,
@@ -114,9 +115,11 @@ const DossierConsultationsPage: React.FC = () => {
   const fetchFiltersData = async () => {
     try {
       // Récupérer la liste des utilisateurs pour le filtre
-      const { data: userData } = await supabase
+      const { data: userData, error: userError } = await supabase
         .from("profiles")
         .select("id, nom, prenom");
+      
+      if (userError) throw userError;
       
       if (userData) {
         setUsers(userData.map(user => ({
@@ -126,37 +129,38 @@ const DossierConsultationsPage: React.FC = () => {
       }
 
       // Récupérer la liste des dossiers pour le filtre
-      const { data: dossierData } = await supabase
+      const { data: dossierData, error: dossierError } = await supabase
         .from("dossiers")
-        .select("id")
-        .eq("id", "id"); // Requête factice pour obtenir la structure
+        .select("id, client_id");
 
-      // Puis faisons une requête séparée pour obtenir les données des dossiers avec les noms clients
+      if (dossierError) throw dossierError;
+      
       if (dossierData) {
-        const { data: dossierClientData } = await supabase
-          .from("dossiers")
-          .select(`
-            id,
-            client_id,
-            client:profiles!client_id(nom, prenom)
-          `);
+        // Créer un tableau de promesses pour récupérer les informations client
+        const dossierPromises = dossierData.map(async (dossier) => {
+          if (!dossier.client_id) {
+            return { id: dossier.id, client_name: `Dossier ${dossier.id.substring(0, 8)}` };
+          }
+          
+          const { data: clientData, error: clientError } = await supabase
+            .from("profiles")
+            .select("nom, prenom")
+            .eq("id", dossier.client_id)
+            .single();
+          
+          if (clientError || !clientData) {
+            return { id: dossier.id, client_name: `Dossier ${dossier.id.substring(0, 8)}` };
+          }
+          
+          return {
+            id: dossier.id,
+            client_name: `${clientData.prenom} ${clientData.nom}`
+          };
+        });
         
-        if (dossierClientData) {
-          setDossiers(dossierClientData.map(dossier => {
-            // Vérifier si client existe et a les propriétés attendues
-            const clientName = dossier.client && 
-                              typeof dossier.client === 'object' && 
-                              'prenom' in dossier.client && 
-                              'nom' in dossier.client
-                                ? `${dossier.client.prenom} ${dossier.client.nom}`
-                                : `Dossier ${dossier.id.substring(0, 8)}`;
-            
-            return {
-              id: dossier.id,
-              client_name: clientName
-            };
-          }));
-        }
+        // Attendre que toutes les promesses soient résolues
+        const dossierResults = await Promise.all(dossierPromises);
+        setDossiers(dossierResults);
       }
     } catch (error) {
       console.error("Erreur lors du chargement des données pour les filtres:", error);

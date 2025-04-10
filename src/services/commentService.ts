@@ -20,7 +20,7 @@ export const fetchCommentsByDossierId = async (dossierId: string): Promise<Dossi
       dossierId: comment.dossier_id,
       userId: comment.user_id,
       userName: comment.user_name,
-      userRole: comment.user_role as UserRole, // Cast pour assurer la compatibilité avec le type UserRole
+      userRole: comment.user_role as UserRole, // Cast to UserRole type
       content: comment.content,
       createdAt: new Date(comment.created_at),
       isCallNote: comment.is_call_note || false,
@@ -84,7 +84,7 @@ export const addCommentToDossier = async (
       dossierId: commentData.dossier_id,
       userId: commentData.user_id,
       userName: commentData.user_name,
-      userRole: commentData.user_role as UserRole, // Cast pour assurer la compatibilité avec le type UserRole
+      userRole: commentData.user_role as UserRole, // Cast to UserRole type
       content: commentData.content,
       createdAt: new Date(commentData.created_at),
       isCallNote: commentData.is_call_note || false,
