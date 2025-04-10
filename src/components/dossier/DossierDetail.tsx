@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import DossierStatusBadge from "./DossierStatusBadge";
 import { Badge } from "@/components/ui/badge";
 import DossierComments from "./DossierComments";
 import { CallData } from "./LogCallModal";
+import DossierCommentSection from "./DossierCommentSection";
 
 interface DossierDetailProps {
   dossier: Dossier;
@@ -54,6 +56,28 @@ const DossierDetail: React.FC<DossierDetailProps> = ({
   const formatDate = (date: Date | undefined) => {
     if (!date) return "Non définie";
     return format(new Date(date), "PPP à HH:mm", { locale: fr });
+  };
+
+  // Fonction pour gérer l'ajout de commentaire avec option de visibilité publique
+  const handleAddComment = async (content: string, isPublic: boolean = false) => {
+    if (!dossier) return;
+    
+    try {
+      // Appel à la fonction modifiée dans le contexte DossierContext
+      await onAddComment(content);
+      
+      toast({
+        title: "Commentaire ajouté",
+        description: `Le commentaire a été ajouté avec succès`,
+      });
+    } catch (error) {
+      console.error("Erreur lors de l'ajout du commentaire:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'ajout du commentaire"
+      });
+    }
   };
 
   return (
@@ -145,12 +169,15 @@ const DossierDetail: React.FC<DossierDetailProps> = ({
             </div>
           )}
           
-          {/* Section des commentaires */}
-          <DossierComments
-            comments={dossier.commentaires || []}
-            onAddComment={onAddComment}
-            onAddCallNote={onAddCallNote}
-          />
+          {/* Utilisation du nouveau composant DossierCommentSection */}
+          {userRole && (
+            <DossierCommentSection
+              comments={dossier.commentaires || []}
+              userRole={userRole as any}
+              onAddComment={handleAddComment}
+              loading={loading}
+            />
+          )}
           
           {canModify && (
             <div className="pt-4">

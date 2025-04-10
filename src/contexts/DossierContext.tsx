@@ -428,7 +428,7 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
   
-  const addComment = async (dossierId: string, content: string, isPublic?: boolean) => {
+  const addComment = async (dossierId: string, content: string, isPublic: boolean = false) => {
     if (!user) return false;
     
     try {

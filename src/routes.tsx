@@ -12,6 +12,7 @@ import NotFoundPage from "@/pages/NotFoundPage";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import ConsultationsPage from "@/pages/ConsultationsPage";
 import DossierConsultationsPage from "@/pages/DossierConsultationsPage";
+import MigrationPage from "@/pages/MigrationPage";
 
 export const router = createBrowserRouter([
   {
@@ -53,6 +54,10 @@ export const router = createBrowserRouter([
       {
         path: "clients",
         element: <ProtectedRoute><ClientsPage /></ProtectedRoute>
+      },
+      {
+        path: "migration",
+        element: <ProtectedRoute><MigrationPage /></ProtectedRoute>
       },
       {
         path: "*",

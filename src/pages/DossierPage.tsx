@@ -185,12 +185,12 @@ const DossierPage = () => {
     }
   };
 
-  const handleAddComment = async (content: string) => {
+  const handleAddComment = async (content: string, isPublic: boolean = false) => {
     if (!dossier || !user) return;
     
     try {
       setIsLoading(true);
-      await addComment(dossier.id, content);
+      await addComment(dossier.id, content, isPublic);
       
       const refreshedDossier = await getDossierById(dossier.id);
       if (refreshedDossier) {

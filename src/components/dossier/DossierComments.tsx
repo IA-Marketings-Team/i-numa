@@ -9,6 +9,8 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Phone } from "lucide-react";
 import { CallData } from "./LogCallModal";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 interface DossierCommentsProps {
   comments: DossierComment[];
@@ -22,6 +24,7 @@ const DossierComments: React.FC<DossierCommentsProps> = ({
   onAddCallNote,
 }) => {
   const [newComment, setNewComment] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
   const [isAddingCallNote, setIsAddingCallNote] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
   const { user } = useAuth();
@@ -31,6 +34,7 @@ const DossierComments: React.FC<DossierCommentsProps> = ({
     
     await onAddComment(newComment);
     setNewComment("");
+    setIsPublic(false);
   };
 
   const handleAddCallNote = async () => {
@@ -77,6 +81,9 @@ const DossierComments: React.FC<DossierCommentsProps> = ({
       .toUpperCase();
   };
 
+  // Vérifie si l'utilisateur peut créer des commentaires publics
+  const canMakePublicComments = user?.role === 'superviseur' || user?.role === 'responsable';
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold mb-3">Commentaires</h3>
@@ -90,7 +97,13 @@ const DossierComments: React.FC<DossierCommentsProps> = ({
           comments.map((comment) => (
             <div 
               key={comment.id} 
-              className={`border rounded-lg p-3 ${comment.isCallNote ? 'border-blue-200 bg-blue-50' : 'border-gray-200'}`}
+              className={`border rounded-lg p-3 ${
+                comment.isCallNote 
+                  ? 'border-blue-200 bg-blue-50' 
+                  : comment.isPublic 
+                  ? 'border-green-200 bg-green-50' 
+                  : 'border-gray-200'
+              }`}
             >
               <div className="flex items-start space-x-3">
                 <Avatar className="h-8 w-8">
@@ -109,6 +122,11 @@ const DossierComments: React.FC<DossierCommentsProps> = ({
                         <span className="flex items-center text-xs text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
                           <Phone className="h-3 w-3 mr-1" />
                           Appel ({comment.callDuration} min)
+                        </span>
+                      )}
+                      {comment.isPublic && (
+                        <span className="text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                          Public
                         </span>
                       )}
                     </div>
@@ -153,6 +171,19 @@ const DossierComments: React.FC<DossierCommentsProps> = ({
           rows={3}
           className="resize-none"
         />
+        
+        {!isAddingCallNote && canMakePublicComments && (
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="isPublic" 
+              checked={isPublic} 
+              onCheckedChange={(checked) => setIsPublic(checked === true)}
+            />
+            <Label htmlFor="isPublic" className="text-sm">
+              Commentaire visible par le client
+            </Label>
+          </div>
+        )}
         
         <div className="flex justify-between">
           {isAddingCallNote ? (

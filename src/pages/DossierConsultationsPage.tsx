@@ -1,398 +1,435 @@
 
-import React, { useEffect, useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Download, Search, X } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Eye, Download, Search, Calendar, User, FileText, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { fetchAllConsultations } from "@/services/consultationService";
-import { fetchUsers } from "@/services/userService";
-import { fetchDossiers } from "@/services/dossierService";
-import { DossierConsultation } from "@/types";
-import Papa from "papaparse";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Label } from "@/components/ui/label";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { useAuth } from "@/contexts/AuthContext";
+
+interface DossierConsultation {
+  id: string;
+  dossier_id: string;
+  user_id: string;
+  user_name: string;
+  user_role: string;
+  timestamp: string;
+  action: string;
+}
 
 const DossierConsultationsPage: React.FC = () => {
-  const { user, hasPermission } = useAuth();
+  const { toast } = useToast();
+  const { user } = useAuth();
   const [consultations, setConsultations] = useState<DossierConsultation[]>([]);
-  const [filteredConsultations, setFilteredConsultations] = useState<DossierConsultation[]>([]);
-  const [users, setUsers] = useState<{ id: string; fullName: string; role: string }[]>([]);
-  const [dossiers, setDossiers] = useState<{ id: string; client: string }[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Filter states
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUserId, setSelectedUserId] = useState<string | undefined>(undefined);
-  const [selectedDossierId, setSelectedDossierId] = useState<string | undefined>(undefined);
-  
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [isLoading, setIsLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
+  const [userFilter, setUserFilter] = useState("");
+  const [actionFilter, setActionFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
+  const [dossierFilter, setDossierFilter] = useState("");
+  const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
+  const [dossiers, setDossiers] = useState<{ id: string; client_name: string }[]>([]);
+  const itemsPerPage = 10;
 
-  // Fetch all consultations data
   useEffect(() => {
-    const loadConsultations = async () => {
-      setIsLoading(true);
-      
-      const filters: {
-        startDate?: Date;
-        endDate?: Date;
-        userId?: string;
-        dossierId?: string;
-      } = {};
-      
-      if (startDate) filters.startDate = startDate;
-      if (endDate) filters.endDate = endDate;
-      if (selectedUserId) filters.userId = selectedUserId;
-      if (selectedDossierId) filters.dossierId = selectedDossierId;
-      
-      // If not supervisor or responsable, only show own consultations
-      if (!hasPermission(['superviseur', 'responsable']) && user) {
-        filters.userId = user.id;
-      }
-      
-      try {
-        const data = await fetchAllConsultations(filters);
-        setConsultations(data);
-        setFilteredConsultations(data);
-      } catch (error) {
-        console.error("Error fetching consultations:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadConsultations();
-  }, [startDate, endDate, selectedUserId, selectedDossierId, user, hasPermission]);
+    fetchConsultations();
+    fetchFiltersData();
+  }, [page, search, userFilter, actionFilter, dateFilter, dossierFilter]);
 
-  // Load users for filtering (only for supervisors and responsables)
-  useEffect(() => {
-    const loadUsers = async () => {
-      if (hasPermission(['superviseur', 'responsable'])) {
-        try {
-          const userData = await fetchUsers();
-          const formattedUsers = userData.map(u => ({
-            id: u.id,
-            fullName: `${u.prenom} ${u.nom}`,
-            role: u.role
-          }));
-          setUsers(formattedUsers);
-        } catch (error) {
-          console.error("Error fetching users:", error);
-        }
-      }
-    };
-    
-    loadUsers();
-  }, [hasPermission]);
-  
-  // Load dossiers for filtering
-  useEffect(() => {
-    const loadDossiers = async () => {
-      try {
-        const dossierData = await fetchDossiers();
-        const formattedDossiers = dossierData.map(d => ({
-          id: d.id,
-          client: d.client ? `${d.client.prenom} ${d.client.nom}` : 'Client inconnu'
-        }));
-        setDossiers(formattedDossiers);
-      } catch (error) {
-        console.error("Error fetching dossiers:", error);
-      }
-    };
-    
-    loadDossiers();
-  }, []);
+  const fetchConsultations = async () => {
+    setIsLoading(true);
+    try {
+      let query = supabase
+        .from("dossier_consultations")
+        .select("*", { count: "exact" });
 
-  // Filter consultations by search term
-  useEffect(() => {
-    if (!searchTerm) {
-      setFilteredConsultations(consultations);
-      return;
+      // Appliquer les filtres
+      if (search) {
+        query = query.or(`user_name.ilike.%${search}%,action.ilike.%${search}%`);
+      }
+      if (userFilter) {
+        query = query.eq("user_id", userFilter);
+      }
+      if (actionFilter) {
+        query = query.eq("action", actionFilter);
+      }
+      if (dateFilter) {
+        const dateString = format(dateFilter, "yyyy-MM-dd");
+        query = query.gte("timestamp", `${dateString}T00:00:00Z`).lte("timestamp", `${dateString}T23:59:59Z`);
+      }
+      if (dossierFilter) {
+        query = query.eq("dossier_id", dossierFilter);
+      }
+
+      // Pagination
+      const from = (page - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
+      
+      const { data, error, count } = await query
+        .order("timestamp", { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+      
+      setConsultations(data || []);
+      setTotalPages(Math.ceil((count || 0) / itemsPerPage));
+    } catch (error) {
+      console.error("Erreur lors du chargement des consultations:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de charger l'historique des consultations"
+      });
+    } finally {
+      setIsLoading(false);
     }
-    
-    const searchLower = searchTerm.toLowerCase();
-    const filtered = consultations.filter(consultation => {
-      return (
-        consultation.userName.toLowerCase().includes(searchLower) ||
-        consultation.dossierId.toLowerCase().includes(searchLower) ||
-        consultation.userRole.toLowerCase().includes(searchLower)
-      );
-    });
-    
-    setFilteredConsultations(filtered);
-    setCurrentPage(1); // Reset to first page when filtering
-  }, [searchTerm, consultations]);
-
-  // Reset all filters
-  const resetFilters = () => {
-    setStartDate(undefined);
-    setEndDate(undefined);
-    setSelectedUserId(undefined);
-    setSelectedDossierId(undefined);
-    setSearchTerm("");
   };
-  
-  // Get current page items
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredConsultations.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredConsultations.length / itemsPerPage);
-  
-  // Change page
-  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
-  
-  // Export to CSV
-  const exportToCSV = () => {
-    const exportData = filteredConsultations.map(consultation => ({
-      Date: format(consultation.timestamp, "dd/MM/yyyy HH:mm", { locale: fr }),
-      Utilisateur: consultation.userName,
-      Role: consultation.userRole,
-      "ID Dossier": consultation.dossierId,
-      Action: consultation.action || 'view'
-    }));
-    
-    const csv = Papa.unparse(exportData);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    
+
+  const fetchFiltersData = async () => {
+    try {
+      // Récupérer la liste des utilisateurs pour le filtre
+      const { data: userData } = await supabase
+        .from("profiles")
+        .select("id, nom, prenom");
+      
+      if (userData) {
+        setUsers(userData.map(user => ({
+          id: user.id,
+          name: `${user.prenom} ${user.nom}`
+        })));
+      }
+
+      // Récupérer la liste des dossiers pour le filtre
+      const { data: dossierData } = await supabase
+        .from("dossiers")
+        .select(`
+          id,
+          client_id,
+          profiles!inner (
+            nom,
+            prenom
+          )
+        `);
+      
+      if (dossierData) {
+        setDossiers(dossierData.map(dossier => ({
+          id: dossier.id,
+          client_name: `${dossier.profiles.prenom} ${dossier.profiles.nom}`
+        })));
+      }
+    } catch (error) {
+      console.error("Erreur lors du chargement des données pour les filtres:", error);
+    }
+  };
+
+  const handleExportCSV = () => {
+    // Fonction pour exporter les consultations en CSV
+    const headers = ["ID", "Dossier", "Utilisateur", "Rôle", "Action", "Date"];
+    const csvRows = [
+      headers.join(","),
+      ...consultations.map(item => {
+        const date = new Date(item.timestamp);
+        const formattedDate = format(date, "dd/MM/yyyy HH:mm", { locale: fr });
+        return [
+          item.id,
+          item.dossier_id,
+          item.user_name,
+          item.user_role,
+          item.action,
+          formattedDate
+        ].join(",");
+      })
+    ];
+
+    const csvString = csvRows.join("\n");
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `consultations_${format(new Date(), 'yyyy-MM-dd')}.csv`);
-    link.style.visibility = 'hidden';
+    
+    link.setAttribute("href", url);
+    link.setAttribute("download", `consultations_dossiers_${format(new Date(), "yyyy-MM-dd")}.csv`);
+    link.style.visibility = "hidden";
     
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
+  // Formater l'action pour l'affichage
+  const formatAction = (action: string): string => {
+    switch (action) {
+      case "view":
+        return "Consultation";
+      case "comment":
+        return "Commentaire";
+      case "call_note":
+        return "Note d'appel";
+      case "edit":
+        return "Modification";
+      case "status_change":
+        return "Changement de statut";
+      default:
+        return action;
+    }
+  };
+
+  // Vérifier si l'utilisateur a les droits d'accès à cette page
+  const canAccessPage = user && ["superviseur", "responsable"].includes(user.role);
+
+  if (!canAccessPage) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Accès refusé</CardTitle>
+            <CardDescription>
+              Vous n'avez pas les droits nécessaires pour accéder à cette page.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <Card className="border shadow-sm">
-      <CardHeader className="pb-3 flex flex-row items-center justify-between">
-        <CardTitle>Historique des consultations de dossiers</CardTitle>
-        <Button 
-          variant="outline" 
-          onClick={exportToCSV}
-          className="flex items-center gap-2"
-        >
-          <Download className="h-4 w-4" />
-          Exporter CSV
-        </Button>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
-          {/* Date filters */}
-          <div className="flex flex-row gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="flex items-center justify-start gap-2 w-40"
-                >
-                  <CalendarIcon className="h-4 w-4" />
-                  {startDate ? format(startDate, "dd/MM/yyyy") : "Date début"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={startDate}
-                  onSelect={setStartDate}
-                  initialFocus
-                  locale={fr}
-                />
-              </PopoverContent>
-            </Popover>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="flex items-center justify-start gap-2 w-40"
-                >
-                  <CalendarIcon className="h-4 w-4" />
-                  {endDate ? format(endDate, "dd/MM/yyyy") : "Date fin"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={endDate}
-                  onSelect={setEndDate}
-                  initialFocus
-                  locale={fr}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {/* User filter (only for supervisors and responsables) */}
-          {hasPermission(['superviseur', 'responsable']) && (
-            <Select
-              value={selectedUserId || ""}
-              onValueChange={(value) => setSelectedUserId(value || undefined)}
-            >
-              <SelectTrigger className="w-[220px]">
-                <SelectValue placeholder="Tous les utilisateurs" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Tous les utilisateurs</SelectItem>
-                {users.map(user => (
-                  <SelectItem key={user.id} value={user.id}>
-                    {user.fullName} ({user.role})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-
-          {/* Dossier filter */}
-          <Select
-            value={selectedDossierId || ""}
-            onValueChange={(value) => setSelectedDossierId(value || undefined)}
-          >
-            <SelectTrigger className="w-[220px]">
-              <SelectValue placeholder="Tous les dossiers" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Tous les dossiers</SelectItem>
-              {dossiers.map(dossier => (
-                <SelectItem key={dossier.id} value={dossier.id}>
-                  {dossier.client} (ID: {dossier.id.substring(0, 8)}...)
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Search filter */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              type="text"
-              placeholder="Rechercher..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-
-          {/* Reset filters */}
-          <Button
-            variant="outline"
-            onClick={resetFilters}
-            className="flex items-center gap-2"
-          >
-            <X className="h-4 w-4" />
-            Réinitialiser
-          </Button>
-        </div>
-
-        {/* Consultations table */}
-        <div className="border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Utilisateur</TableHead>
-                <TableHead>Rôle</TableHead>
-                <TableHead>ID Dossier</TableHead>
-                <TableHead>Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4">
-                    Chargement des consultations...
-                  </TableCell>
-                </TableRow>
-              ) : currentItems.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4">
-                    Aucune consultation trouvée
-                  </TableCell>
-                </TableRow>
-              ) : (
-                currentItems.map((consultation) => (
-                  <TableRow key={consultation.id}>
-                    <TableCell>
-                      {format(consultation.timestamp, "dd/MM/yyyy HH:mm", { locale: fr })}
-                    </TableCell>
-                    <TableCell>{consultation.userName}</TableCell>
-                    <TableCell>{consultation.userRole}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="link"
-                        onClick={() => window.location.href = `/dossiers/${consultation.dossierId}`}
-                      >
-                        {consultation.dossierId.substring(0, 8)}...
-                      </Button>
-                    </TableCell>
-                    <TableCell>{consultation.action || 'view'}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        
-        {/* Pagination */}
-        {filteredConsultations.length > 0 && (
-          <div className="flex justify-between items-center mt-4">
-            <div className="text-sm text-gray-500">
-              Affichage de {indexOfFirstItem + 1} à {Math.min(indexOfLastItem, filteredConsultations.length)} sur {filteredConsultations.length} résultats
+    <div className="container mx-auto p-6">
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div>
+              <CardTitle>Historique des consultations</CardTitle>
+              <CardDescription>
+                Consultez l'historique des accès et actions sur les dossiers
+              </CardDescription>
             </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => paginate(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                Précédent
-              </Button>
-              {Array.from({ length: Math.min(totalPages, 5) }).map((_, index) => {
-                let pageNumber;
-                
-                if (totalPages <= 5) {
-                  pageNumber = index + 1;
-                } else if (currentPage <= 3) {
-                  pageNumber = index + 1;
-                } else if (currentPage >= totalPages - 2) {
-                  pageNumber = totalPages - 4 + index;
-                } else {
-                  pageNumber = currentPage - 2 + index;
-                }
-                
-                return (
-                  <Button
-                    key={pageNumber}
-                    variant={currentPage === pageNumber ? "default" : "outline"}
-                    onClick={() => paginate(pageNumber)}
-                    className="w-10 h-10 p-0"
-                  >
-                    {pageNumber}
+            <Button onClick={handleExportCSV} className="flex items-center">
+              <Download className="mr-2 h-4 w-4" />
+              Exporter en CSV
+            </Button>
+          </div>
+        </CardHeader>
+
+        <CardContent>
+          <div className="mb-6 flex flex-col lg:flex-row gap-4">
+            <div className="flex flex-1 items-center gap-2">
+              <Search className="h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Rechercher..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="flex-1"
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Select value={userFilter} onValueChange={setUserFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <User className="h-4 w-4 mr-2 text-gray-500" />
+                  <SelectValue placeholder="Utilisateur" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Tous les utilisateurs</SelectItem>
+                  {users.map(user => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={dossierFilter} onValueChange={setDossierFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <FileText className="h-4 w-4 mr-2 text-gray-500" />
+                  <SelectValue placeholder="Dossier" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Tous les dossiers</SelectItem>
+                  {dossiers.map(dossier => (
+                    <SelectItem key={dossier.id} value={dossier.id}>
+                      {dossier.client_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={actionFilter} onValueChange={setActionFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <Filter className="h-4 w-4 mr-2 text-gray-500" />
+                  <SelectValue placeholder="Action" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Toutes les actions</SelectItem>
+                  <SelectItem value="view">Consultation</SelectItem>
+                  <SelectItem value="comment">Commentaire</SelectItem>
+                  <SelectItem value="call_note">Note d'appel</SelectItem>
+                  <SelectItem value="edit">Modification</SelectItem>
+                  <SelectItem value="status_change">Changement de statut</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-[180px] flex justify-between items-center">
+                    <div className="flex items-center">
+                      <Calendar className="h-4 w-4 mr-2 text-gray-500" />
+                      {dateFilter ? format(dateFilter, "dd/MM/yyyy") : "Date"}
+                    </div>
                   </Button>
-                );
-              })}
-              <Button 
-                variant="outline" 
-                onClick={() => paginate(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                Suivant
-              </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <CalendarComponent
+                    mode="single"
+                    selected={dateFilter}
+                    onSelect={setDateFilter}
+                    initialFocus
+                  />
+                  {dateFilter && (
+                    <div className="p-2 border-t">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setDateFilter(undefined)}
+                        className="w-full"
+                      >
+                        Effacer
+                      </Button>
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          <div className="rounded-md border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Utilisateur</TableHead>
+                  <TableHead>Rôle</TableHead>
+                  <TableHead>Action</TableHead>
+                  <TableHead>Dossier</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8">
+                      Chargement des données...
+                    </TableCell>
+                  </TableRow>
+                ) : consultations.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                      Aucune consultation trouvée
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  consultations.map((item) => {
+                    const date = new Date(item.timestamp);
+                    const formattedDate = format(date, "dd/MM/yyyy HH:mm", { locale: fr });
+                    
+                    return (
+                      <TableRow key={item.id}>
+                        <TableCell>{formattedDate}</TableCell>
+                        <TableCell>{item.user_name}</TableCell>
+                        <TableCell>
+                          <span className="px-2 py-1 bg-gray-100 rounded-full text-xs">
+                            {item.user_role.replace("_", " ")}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="flex items-center">
+                            <Eye className="h-3 w-3 mr-1 text-gray-500" />
+                            {formatAction(item.action)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="link" 
+                            className="p-0 h-auto"
+                            onClick={() => navigate(`/dossiers/${item.dossier_id}`)}
+                          >
+                            Voir le dossier
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="mt-4 flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(p => p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1))
+                    .map((p, i, arr) => {
+                      // Ajouter des points de suspension pour les sauts de pages
+                      if (i > 0 && p > arr[i - 1] + 1) {
+                        return (
+                          <React.Fragment key={`ellipsis-${p}`}>
+                            <PaginationItem>
+                              <PaginationLink disabled>...</PaginationLink>
+                            </PaginationItem>
+                            <PaginationItem>
+                              <PaginationLink
+                                onClick={() => setPage(p)}
+                                isActive={page === p}
+                              >
+                                {p}
+                              </PaginationLink>
+                            </PaginationItem>
+                          </React.Fragment>
+                        );
+                      }
+                      
+                      return (
+                        <PaginationItem key={p}>
+                          <PaginationLink
+                            onClick={() => setPage(p)}
+                            isActive={page === p}
+                          >
+                            {p}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    })}
+                  
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                      disabled={page === totalPages}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
