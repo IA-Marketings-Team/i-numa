@@ -1,3 +1,4 @@
+
 // Reuse existing types for offers and secteurs
 export interface OffreSectionItem {
   id: string;

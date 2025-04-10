@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { AuthLog } from '@/types';
+import { AuthLog } from '@/types/auth';
 import { fetchAuthLogsByUser } from '@/services/authLogService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -23,7 +23,7 @@ const AuthLogsTable: React.FC<AuthLogsTableProps> = ({ userId }) => {
       setLoading(true);
       try {
         const response = await fetchAuthLogsByUser(userId);
-        setLogs(response); // fetchAuthLogsByUser now returns AuthLog[] directly
+        setLogs(response as AuthLog[]); // Explicit type casting to resolve the type mismatch
       } catch (error) {
         console.error(`Erreur lors du chargement des journaux pour l'utilisateur ${userId}:`, error);
       } finally {
