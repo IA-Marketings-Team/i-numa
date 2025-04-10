@@ -2,7 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dossier, UserRole } from "@/types";
+import { Dossier, UserRole, DossierStatus } from "@/types";
 import { useDossierForm } from "@/hooks/useDossierForm";
 
 // Import the smaller components
@@ -54,6 +54,11 @@ const DossierForm: React.FC<DossierFormProps> = ({ dossier, isEditing = false, u
     return hasPermission(roles);
   };
 
+  // Type-safe onStatusChange function
+  const handleStatusChange = (newStatus: string) => {
+    setStatus(newStatus as DossierStatus);
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
@@ -81,7 +86,7 @@ const DossierForm: React.FC<DossierFormProps> = ({ dossier, isEditing = false, u
           {/* Statut du dossier */}
           <StatusSelector 
             status={status} 
-            onStatusChange={setStatus}
+            onStatusChange={handleStatusChange}
           />
 
           {/* Date de rendez-vous (si statut est RDV en cours ou supérieur) */}

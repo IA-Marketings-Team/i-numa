@@ -87,6 +87,50 @@ export type Database = {
         }
         Relationships: []
       }
+      dossier_commentaires: {
+        Row: {
+          call_duration: number | null
+          content: string
+          created_at: string
+          dossier_id: string | null
+          id: string
+          is_call_note: boolean | null
+          user_id: string
+          user_name: string
+          user_role: string
+        }
+        Insert: {
+          call_duration?: number | null
+          content: string
+          created_at?: string
+          dossier_id?: string | null
+          id?: string
+          is_call_note?: boolean | null
+          user_id: string
+          user_name: string
+          user_role: string
+        }
+        Update: {
+          call_duration?: number | null
+          content?: string
+          created_at?: string
+          dossier_id?: string | null
+          id?: string
+          is_call_note?: boolean | null
+          user_id?: string
+          user_name?: string
+          user_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dossier_commentaires_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dossier_offres: {
         Row: {
           dossier_id: string

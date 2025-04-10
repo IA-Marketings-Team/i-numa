@@ -80,9 +80,10 @@ const DossierListPage = () => {
             onValueChange={handleStatusChange}
             className="w-full md:w-auto"
           >
-            <TabsList className="grid grid-cols-3 sm:grid-cols-6">
+            <TabsList className="grid grid-cols-3 sm:grid-cols-7">
               <TabsTrigger value="all">Tous</TabsTrigger>
-              <TabsTrigger value="prospect">Prospects</TabsTrigger>
+              <TabsTrigger value="prospect_chaud">Prospects chauds</TabsTrigger>
+              <TabsTrigger value="prospect_froid">Prospects froids</TabsTrigger>
               <TabsTrigger value="rdv_en_cours">RDV</TabsTrigger>
               <TabsTrigger value="valide">Validés</TabsTrigger>
               <TabsTrigger value="signe">Signés</TabsTrigger>

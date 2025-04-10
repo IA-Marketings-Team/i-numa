@@ -23,7 +23,7 @@ import { Dossier, DossierStatus } from "@/types";
 
 const DossierPage = () => {
   const { id } = useParams<{ id: string }>();
-  const { getDossierById, setCurrentDossier, currentDossier, addRendezVous, updateDossierStatus, deleteDossier } = useDossier();
+  const { getDossierById, setCurrentDossier, currentDossier, addRendezVous, updateDossierStatus, deleteDossier, addComment, addCallNote } = useDossier();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -184,6 +184,66 @@ const DossierPage = () => {
     }
   };
 
+  const handleAddComment = async (content: string) => {
+    if (!dossier || !user) return;
+    
+    try {
+      setIsLoading(true);
+      // Call the addComment function from context
+      await addComment(dossier.id, content);
+      
+      // Refresh the dossier to get updated comments
+      const refreshedDossier = await getDossierById(dossier.id);
+      if (refreshedDossier) {
+        setDossier(refreshedDossier);
+      }
+      
+      toast({
+        title: "Commentaire ajouté",
+        description: "Votre commentaire a été ajouté avec succès.",
+      });
+    } catch (error) {
+      console.error("Erreur lors de l'ajout du commentaire:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'ajout du commentaire."
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleAddCallNote = async (content: string, duration: number) => {
+    if (!dossier || !user) return;
+    
+    try {
+      setIsLoading(true);
+      // Call the addCallNote function from context
+      await addCallNote(dossier.id, content, duration);
+      
+      // Refresh the dossier to get updated comments
+      const refreshedDossier = await getDossierById(dossier.id);
+      if (refreshedDossier) {
+        setDossier(refreshedDossier);
+      }
+      
+      toast({
+        title: "Note d'appel ajoutée",
+        description: "Votre note d'appel a été ajoutée avec succès.",
+      });
+    } catch (error) {
+      console.error("Erreur lors de l'ajout de la note d'appel:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'ajout de la note d'appel."
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (isLoading || !dossier) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
@@ -323,6 +383,8 @@ const DossierPage = () => {
             onDelete={handleDeleteDossier}
             loading={isLoading}
             userRole={user?.role}
+            onAddComment={handleAddComment}
+            onAddCallNote={handleAddCallNote}
           />
         </div>
       </div>
@@ -348,6 +410,8 @@ const DossierPage = () => {
         onDelete={handleDeleteDossier}
         loading={isLoading}
         userRole={user?.role}
+        onAddComment={handleAddComment}
+        onAddCallNote={handleAddCallNote}
       />
     </div>
   );
