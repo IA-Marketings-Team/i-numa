@@ -15,8 +15,10 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { DossierConsultation } from "@/types";
 
-interface DossierConsultation {
+interface DBConsultation {
   id: string;
   dossier_id: string;
   user_id: string;
@@ -29,6 +31,7 @@ interface DossierConsultation {
 const DossierConsultationsPage: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [consultations, setConsultations] = useState<DossierConsultation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -82,8 +85,20 @@ const DossierConsultationsPage: React.FC = () => {
 
       if (error) throw error;
       
-      setConsultations(data || []);
-      setTotalPages(Math.ceil((count || 0) / itemsPerPage));
+      if (data) {
+        const formattedData: DossierConsultation[] = data.map((item: DBConsultation) => ({
+          id: item.id,
+          userId: item.user_id,
+          userName: item.user_name,
+          userRole: item.user_role,
+          dossierId: item.dossier_id,
+          timestamp: new Date(item.timestamp),
+          action: item.action || 'view'
+        }));
+        
+        setConsultations(formattedData);
+        setTotalPages(Math.ceil((count || 0) / itemsPerPage));
+      }
     } catch (error) {
       console.error("Erreur lors du chargement des consultations:", error);
       toast({
@@ -113,20 +128,35 @@ const DossierConsultationsPage: React.FC = () => {
       // Récupérer la liste des dossiers pour le filtre
       const { data: dossierData } = await supabase
         .from("dossiers")
-        .select(`
-          id,
-          client_id,
-          profiles!inner (
-            nom,
-            prenom
-          )
-        `);
-      
+        .select("id")
+        .eq("id", "id"); // Requête factice pour obtenir la structure
+
+      // Puis faisons une requête séparée pour obtenir les données des dossiers avec les noms clients
       if (dossierData) {
-        setDossiers(dossierData.map(dossier => ({
-          id: dossier.id,
-          client_name: `${dossier.profiles.prenom} ${dossier.profiles.nom}`
-        })));
+        const { data: dossierClientData } = await supabase
+          .from("dossiers")
+          .select(`
+            id,
+            client_id,
+            client:profiles!client_id(nom, prenom)
+          `);
+        
+        if (dossierClientData) {
+          setDossiers(dossierClientData.map(dossier => {
+            // Vérifier si client existe et a les propriétés attendues
+            const clientName = dossier.client && 
+                              typeof dossier.client === 'object' && 
+                              'prenom' in dossier.client && 
+                              'nom' in dossier.client
+                                ? `${dossier.client.prenom} ${dossier.client.nom}`
+                                : `Dossier ${dossier.id.substring(0, 8)}`;
+            
+            return {
+              id: dossier.id,
+              client_name: clientName
+            };
+          }));
+        }
       }
     } catch (error) {
       console.error("Erreur lors du chargement des données pour les filtres:", error);
@@ -139,13 +169,13 @@ const DossierConsultationsPage: React.FC = () => {
     const csvRows = [
       headers.join(","),
       ...consultations.map(item => {
-        const date = new Date(item.timestamp);
+        const date = item.timestamp;
         const formattedDate = format(date, "dd/MM/yyyy HH:mm", { locale: fr });
         return [
           item.id,
-          item.dossier_id,
-          item.user_name,
-          item.user_role,
+          item.dossierId,
+          item.userName,
+          item.userRole,
           item.action,
           formattedDate
         ].join(",");
@@ -337,16 +367,16 @@ const DossierConsultationsPage: React.FC = () => {
                   </TableRow>
                 ) : (
                   consultations.map((item) => {
-                    const date = new Date(item.timestamp);
+                    const date = item.timestamp;
                     const formattedDate = format(date, "dd/MM/yyyy HH:mm", { locale: fr });
                     
                     return (
                       <TableRow key={item.id}>
                         <TableCell>{formattedDate}</TableCell>
-                        <TableCell>{item.user_name}</TableCell>
+                        <TableCell>{item.userName}</TableCell>
                         <TableCell>
                           <span className="px-2 py-1 bg-gray-100 rounded-full text-xs">
-                            {item.user_role.replace("_", " ")}
+                            {item.userRole.replace("_", " ")}
                           </span>
                         </TableCell>
                         <TableCell>
@@ -359,7 +389,7 @@ const DossierConsultationsPage: React.FC = () => {
                           <Button 
                             variant="link" 
                             className="p-0 h-auto"
-                            onClick={() => navigate(`/dossiers/${item.dossier_id}`)}
+                            onClick={() => navigate(`/dossiers/${item.dossierId}`)}
                           >
                             Voir le dossier
                           </Button>
@@ -379,7 +409,7 @@ const DossierConsultationsPage: React.FC = () => {
                   <PaginationItem>
                     <PaginationPrevious
                       onClick={() => setPage(p => Math.max(1, p - 1))}
-                      disabled={page === 1}
+                      className={page === 1 ? "pointer-events-none opacity-50" : ""}
                     />
                   </PaginationItem>
                   
@@ -391,7 +421,7 @@ const DossierConsultationsPage: React.FC = () => {
                         return (
                           <React.Fragment key={`ellipsis-${p}`}>
                             <PaginationItem>
-                              <PaginationLink disabled>...</PaginationLink>
+                              <span className="px-4">...</span>
                             </PaginationItem>
                             <PaginationItem>
                               <PaginationLink
@@ -420,7 +450,7 @@ const DossierConsultationsPage: React.FC = () => {
                   <PaginationItem>
                     <PaginationNext
                       onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                      disabled={page === totalPages}
+                      className={page === totalPages ? "pointer-events-none opacity-50" : ""}
                     />
                   </PaginationItem>
                 </PaginationContent>
