@@ -1,77 +1,15 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { Client } from "@/types";
-import { mapProfileToClient } from "./utils/mapProfileToClient";
+// This file is no longer needed as the importClientsFromCSV function 
+// has been moved directly into clientService.ts
+</lov-delete>
 
-interface DbClientInput {
-  id: string; // Added ID field which is required by the profiles table
-  nom: string;
-  prenom: string;
-  email: string;
-  telephone: string;
-  role: string;
-  date_creation: string;
-  adresse?: string;
-  ville?: string;
-  code_postal?: string;
-  iban?: string;
-  bic?: string;
-  nom_banque?: string;
-  secteur_activite?: string;
-  type_entreprise?: string;
-  besoins?: string;
-  statut_juridique?: string;
-  activite_detail?: string;
-  site_web?: string;
-  moyens_communication?: string[];
-  commentaires?: string;
-}
-
-/**
- * Importe des clients depuis un fichier CSV
- */
-export const importClientsFromCSV = async (clientsData: Omit<Client, 'id' | 'dateCreation' | 'role'>[]): Promise<Client[]> => {
-  try {
-    // Format each client data for database
-    const dbClients: DbClientInput[] = clientsData.map(client => ({
-      id: crypto.randomUUID(), // Generate a unique ID for each client
-      nom: client.nom,
-      prenom: client.prenom,
-      email: client.email,
-      telephone: client.telephone,
-      role: 'client',
-      date_creation: new Date().toISOString(),
-      adresse: client.adresse,
-      ville: client.ville,
-      code_postal: client.codePostal,
-      iban: client.iban,
-      bic: client.bic,
-      nom_banque: client.nomBanque,
-      secteur_activite: client.secteurActivite,
-      type_entreprise: client.typeEntreprise,
-      besoins: client.besoins,
-      statut_juridique: client.statutJuridique,
-      activite_detail: client.activiteDetail,
-      site_web: client.siteWeb,
-      moyens_communication: client.moyensCommunication,
-      commentaires: client.commentaires
-    }));
-
-    // Insert clients into the database
-    const { data, error } = await supabase
-      .from('profiles')
-      .insert(dbClients)
-      .select();
-
-    if (error) {
-      console.error("Erreur lors de l'importation des clients:", error);
-      return [];
-    }
-
-    // Map database results to Client type
-    return data ? data.map(mapProfileToClient) : [];
-  } catch (error) {
-    console.error("Erreur inattendue lors de l'importation des clients:", error);
-    return [];
-  }
-};
+<lov-write file_path="src/services/index.ts">
+export * from './client/clientService';
+export * from './dossierService';
+export * from './offreService';
+export * from './statistiqueService';
+export * from './authLogService';
+export * from './userService';
+export { clientService } from './client/clientService';
+export { userService } from './userService';
+export { offreService } from './offreService';

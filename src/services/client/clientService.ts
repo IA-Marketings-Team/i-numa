@@ -1,6 +1,8 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Client } from "@/types";
+import { mapProfileToClient } from "./utils/mapProfileToClient";
+import { mapClientToDbFormat } from "./utils/mapClientToDbFormat";
 
 /**
  * Récupère tous les clients
@@ -18,23 +20,7 @@ export const fetchClients = async (): Promise<Client[]> => {
     }
 
     // Mapper les données à notre modèle Client
-    return data.map(item => ({
-      id: item.id,
-      nom: item.nom || '',
-      prenom: item.prenom || '',
-      email: item.email || '',
-      telephone: item.telephone || '',
-      adresse: item.adresse || '',
-      codePostal: item.code_postal || '',
-      ville: item.ville || '',
-      secteurActivite: item.secteur_activite || '',
-      typeEntreprise: item.type_entreprise || '',
-      dateCreation: new Date(item.date_creation),
-      besoins: item.besoins || '',
-      iban: item.iban || '',
-      bic: item.bic || '',
-      nomBanque: item.nom_banque || ''
-    }));
+    return data.map(mapProfileToClient);
   } catch (error) {
     console.error("Erreur lors de la récupération des clients:", error);
     return [];
@@ -59,23 +45,7 @@ export const fetchClientById = async (id: string): Promise<Client | null> => {
     }
 
     // Mapper les données à notre modèle Client
-    return {
-      id: data.id,
-      nom: data.nom || '',
-      prenom: data.prenom || '',
-      email: data.email || '',
-      telephone: data.telephone || '',
-      adresse: data.adresse || '',
-      codePostal: data.code_postal || '',
-      ville: data.ville || '',
-      secteurActivite: data.secteur_activite || '',
-      typeEntreprise: data.type_entreprise || '',
-      dateCreation: new Date(data.date_creation),
-      besoins: data.besoins || '',
-      iban: data.iban || '',
-      bic: data.bic || '',
-      nomBanque: data.nom_banque || ''
-    };
+    return mapProfileToClient(data);
   } catch (error) {
     console.error(`Erreur lors de la récupération du client ${id}:`, error);
     return null;
@@ -88,26 +58,11 @@ export const fetchClientById = async (id: string): Promise<Client | null> => {
 export const createClient = async (clientData: Omit<Client, 'id' | 'dateCreation'>): Promise<Client | null> => {
   try {
     // Format des données pour l'insertion dans Supabase
-    const supabaseData = {
-      nom: clientData.nom,
-      prenom: clientData.prenom,
-      email: clientData.email,
-      telephone: clientData.telephone || '',
-      adresse: clientData.adresse || '',
-      code_postal: clientData.codePostal || '',
-      ville: clientData.ville || '',
-      secteur_activite: clientData.secteurActivite || '',
-      type_entreprise: clientData.typeEntreprise || '',
-      besoins: clientData.besoins || '',
-      iban: clientData.iban || '',
-      bic: clientData.bic || '',
-      nom_banque: clientData.nomBanque || '',
-      role: 'client' // Assurez-vous que le rôle est défini
-    };
+    const supabaseData = mapClientToDbFormat(clientData);
 
     const { data, error } = await supabase
       .from('profiles')
-      .insert([supabaseData])
+      .insert(supabaseData)
       .select()
       .single();
 
@@ -117,23 +72,7 @@ export const createClient = async (clientData: Omit<Client, 'id' | 'dateCreation
     }
 
     // Retourner le client créé
-    return {
-      id: data.id,
-      nom: data.nom || '',
-      prenom: data.prenom || '',
-      email: data.email || '',
-      telephone: data.telephone || '',
-      adresse: data.adresse || '',
-      codePostal: data.code_postal || '',
-      ville: data.ville || '',
-      secteurActivite: data.secteur_activite || '',
-      typeEntreprise: data.type_entreprise || '',
-      dateCreation: new Date(data.date_creation),
-      besoins: data.besoins || '',
-      iban: data.iban || '',
-      bic: data.bic || '',
-      nomBanque: data.nom_banque || ''
-    };
+    return mapProfileToClient(data);
   } catch (error) {
     console.error("Erreur lors de la création du client:", error);
     return null;
@@ -146,20 +85,7 @@ export const createClient = async (clientData: Omit<Client, 'id' | 'dateCreation
 export const updateClient = async (id: string, clientData: Partial<Omit<Client, 'id' | 'dateCreation'>>): Promise<boolean> => {
   try {
     // Format des données pour la mise à jour dans Supabase
-    const supabaseData: any = {};
-    if (clientData.nom !== undefined) supabaseData.nom = clientData.nom;
-    if (clientData.prenom !== undefined) supabaseData.prenom = clientData.prenom;
-    if (clientData.email !== undefined) supabaseData.email = clientData.email;
-    if (clientData.telephone !== undefined) supabaseData.telephone = clientData.telephone;
-    if (clientData.adresse !== undefined) supabaseData.adresse = clientData.adresse;
-    if (clientData.codePostal !== undefined) supabaseData.code_postal = clientData.codePostal;
-    if (clientData.ville !== undefined) supabaseData.ville = clientData.ville;
-    if (clientData.secteurActivite !== undefined) supabaseData.secteur_activite = clientData.secteurActivite;
-    if (clientData.typeEntreprise !== undefined) supabaseData.type_entreprise = clientData.typeEntreprise;
-    if (clientData.besoins !== undefined) supabaseData.besoins = clientData.besoins;
-    if (clientData.iban !== undefined) supabaseData.iban = clientData.iban;
-    if (clientData.bic !== undefined) supabaseData.bic = clientData.bic;
-    if (clientData.nomBanque !== undefined) supabaseData.nom_banque = clientData.nomBanque;
+    const supabaseData = mapClientToDbFormat({ ...clientData, id });
 
     const { error } = await supabase
       .from('profiles')
@@ -202,10 +128,60 @@ export const deleteClient = async (id: string): Promise<boolean> => {
   }
 };
 
+/**
+ * Importe des clients depuis un fichier CSV
+ */
+export const importClientsFromCSV = async (clientsData: Omit<Client, 'id' | 'dateCreation' | 'role'>[]): Promise<Client[]> => {
+  try {
+    // Format each client data for database
+    const dbClients = clientsData.map(client => ({
+      id: crypto.randomUUID(), // Generate a unique ID for each client
+      nom: client.nom,
+      prenom: client.prenom,
+      email: client.email,
+      telephone: client.telephone,
+      role: 'client',
+      date_creation: new Date().toISOString(),
+      adresse: client.adresse,
+      ville: client.ville,
+      code_postal: client.codePostal,
+      iban: client.iban,
+      bic: client.bic,
+      nom_banque: client.nomBanque,
+      secteur_activite: client.secteurActivite,
+      type_entreprise: client.typeEntreprise,
+      besoins: client.besoins,
+      statut_juridique: client.statutJuridique,
+      activite_detail: client.activiteDetail,
+      site_web: client.siteWeb,
+      moyens_communication: client.moyensCommunication,
+      commentaires: client.commentaires
+    }));
+
+    // Insert clients into the database
+    const { data, error } = await supabase
+      .from('profiles')
+      .insert(dbClients)
+      .select();
+
+    if (error) {
+      console.error("Erreur lors de l'importation des clients:", error);
+      return [];
+    }
+
+    // Map database results to Client type
+    return data ? data.map(mapProfileToClient) : [];
+  } catch (error) {
+    console.error("Erreur inattendue lors de l'importation des clients:", error);
+    return [];
+  }
+};
+
 export const clientService = {
   fetchClients,
   fetchClientById,
   createClient,
   updateClient,
-  deleteClient
+  deleteClient,
+  importClientsFromCSV
 };

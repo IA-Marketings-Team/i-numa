@@ -8,7 +8,7 @@ import DossierDetailsPage from "@/pages/DossierDetailsPage";
 import DossierNewPage from "@/pages/DossierNewPage";
 import DossierEditPage from "@/pages/DossierEditPage";
 import ClientsPage from "@/pages/ClientsPage";
-import ClientDetail from "@/pages/ClientDetailPage";
+import ClientDetail from "@/pages/ClientDetail";
 import ClientCreatePage from "@/pages/ClientCreatePage";
 import ClientEditPage from "@/pages/ClientEditPage";
 import LoginPage from "@/pages/LoginPage";

@@ -83,7 +83,7 @@ const ClientNewPage: React.FC = () => {
       setIsLoading(true);
       
       // Prepare client data
-      const clientData: Omit<Client, 'id' | 'dateCreation' | 'role'> = {
+      const clientData: Omit<Client, 'id' | 'dateCreation'> = {
         nom: formData.nom,
         prenom: formData.prenom,
         email: formData.email,
@@ -101,7 +101,8 @@ const ClientNewPage: React.FC = () => {
         activiteDetail: formData.activiteDetail,
         siteWeb: formData.siteWeb,
         moyensCommunication: formData.moyensCommunication,
-        commentaires: formData.commentaires
+        commentaires: formData.commentaires,
+        role: 'client'
       };
       
       const newClient = await createClient(clientData);
