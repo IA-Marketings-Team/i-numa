@@ -1,204 +1,199 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Client } from "@/types";
-import Papa from "papaparse";
-import { mapProfileToClient } from "./utils/mapProfileToClient";
+import { parseCSVFile } from "./utils/parseCSVFile";
 import { mapClientToDbFormat } from "./utils/mapClientToDbFormat";
+import { mapProfileToClient } from "./utils/mapProfileToClient";
+import { v4 as uuidv4 } from 'uuid';
 
-// Fetch all clients
-export const fetchClients = async (): Promise<Client[]> => {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("role", "client")
-    .order("nom", { ascending: true });
+// Export des fonctions individuelles
+export * from "./createClient";
+export * from "./fetchClients";
+export * from "./fetchClientById";
+export * from "./updateClient";
+export * from "./deleteClient";
+export * from "./utils/parseCSVFile";
 
-  if (error) {
-    console.error("Error fetching clients:", error);
-    throw new Error("Failed to fetch clients");
-  }
-
-  return (data || []).map(mapProfileToClient);
-};
-
-// Create a new client
-export const createClient = async (clientData: Omit<Client, "id" | "dateCreation">): Promise<Client> => {
-  // Generate a new UUID for the client
-  const clientId = crypto.randomUUID();
-  
-  const dbData = mapClientToDbFormat({
-    ...clientData,
-    id: clientId, // Add ID to the object
-    date_creation: new Date().toISOString(),
-  });
-
-  // When inserting to Supabase, pass the ID explicitly in a separate object rather than in dbData
-  const { data, error } = await supabase
-    .from("profiles")
-    .insert([{ 
-      id: clientId,
-      ...dbData 
-    }])
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Error creating client:", error);
-    throw new Error("Failed to create client");
-  }
-
-  return mapProfileToClient(data);
-};
-
-// Fetch a client by ID
-export const fetchClientById = async (id: string): Promise<Client> => {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
-
-  if (error) {
-    console.error(`Error fetching client with ID ${id}:`, error);
-    throw new Error("Failed to fetch client");
-  }
-
-  if (!data) {
-    throw new Error(`Client with ID ${id} not found`);
-  }
-
-  return mapProfileToClient(data);
-};
-
-// Update a client
-export const updateClient = async (id: string, clientData: Partial<Client>): Promise<Client> => {
-  const updatedData = mapClientToDbFormat({
-    ...clientData,
-    id, // Make sure to include the ID for updates
-  });
-  
-  const { data, error } = await supabase
-    .from("profiles")
-    .update(updatedData)
-    .eq("id", id)
-    .select()
-    .maybeSingle();
-
-  if (error) {
-    console.error(`Error updating client with ID ${id}:`, error);
-    throw new Error("Failed to update client");
-  }
-
-  if (!data) {
-    throw new Error(`Client with ID ${id} not found`);
-  }
-
-  return mapProfileToClient(data);
-};
-
-// Delete a client
-export const deleteClient = async (id: string): Promise<boolean> => {
-  const { error } = await supabase
-    .from("profiles")
-    .delete()
-    .eq("id", id)
-    .eq("role", "client");
-
-  if (error) {
-    console.error(`Error deleting client with ID ${id}:`, error);
-    throw new Error("Failed to delete client");
-  }
-
-  return true;
-};
-
-// Import clients from CSV
-export const importClientsFromCSV = async (
-  clientsData: Omit<Client, "id" | "dateCreation" | "role">[]
-): Promise<Client[]> => {
-  // Prepare data for insertion - assign UUID to each client with explicit id property
-  const clientsToInsert = clientsData.map(client => {
-    const clientId = crypto.randomUUID();
-    const mappedClient = mapClientToDbFormat({
-      ...client,
-      id: clientId,
-      role: "client",
-      date_creation: new Date().toISOString(),
-    });
-    
-    // Ensure id is at the top level for Supabase insert
-    return {
-      id: clientId,
-      ...mappedClient
-    };
-  });
-
-  // Insert clients into the database
-  const { data, error } = await supabase
-    .from("profiles")
-    .insert(clientsToInsert)
-    .select();
-
-  if (error) {
-    console.error("Error importing clients:", error);
-    throw new Error("Failed to import clients");
-  }
-
-  return (data || []).map(mapProfileToClient);
-};
-
-// Parse CSV file and validate data
-export const parseCSVFile = async (file: File): Promise<Omit<Client, "id" | "dateCreation" | "role">[]> => {
-  return new Promise((resolve, reject) => {
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        try {
-          const clients: Omit<Client, "id" | "dateCreation" | "role">[] = [];
-          
-          // Process each row
-          results.data.forEach((row: any) => {
-            const client: any = {
-              nom: row.nom || row.Nom || "",
-              prenom: row.prenom || row.Prenom || "",
-              email: row.email || row.Email || "",
-              telephone: row.telephone || row.Telephone || row.tel || "",
-              adresse: row.adresse || row.Adresse || "",
-              ville: row.ville || row.Ville || "",
-              codePostal: row.code_postal || row.Code_Postal || row.codePostal || "",
-              secteurActivite: row.secteur_activite || row.Secteur_Activite || row.secteurActivite || "",
-              typeEntreprise: row.type_entreprise || row.Type_Entreprise || row.typeEntreprise || "",
-              commentaires: row.commentaires || row.Commentaires || ""
-            };
-            
-            // Validation
-            if (!client.nom || !client.prenom || !client.email) {
-              console.warn("Skipping invalid client row:", row);
-              return;
-            }
-            
-            clients.push(client);
-          });
-          
-          resolve(clients);
-        } catch (err) {
-          reject(new Error(`Error parsing CSV: ${err instanceof Error ? err.message : String(err)}`));
-        }
-      },
-      error: (err) => {
-        reject(new Error(`Error parsing CSV: ${err.message}`));
-      }
-    });
-  });
-};
-
+/**
+ * Service pour gérer les clients
+ */
 export const clientService = {
-  fetchClients,
-  fetchClientById,
-  createClient,
-  updateClient,
-  deleteClient,
-  importClientsFromCSV,
-  parseCSVFile
+  /**
+   * Crée un nouveau client
+   */
+  createClient: async (client: Partial<Client>): Promise<{ data: Client | null; error: any }> => {
+    try {
+      // Convertir le client en format DB
+      const clientData = mapClientToDbFormat(client);
+      
+      // Ajouter un ID si non fourni
+      if (!clientData.id) {
+        clientData.id = uuidv4();
+      }
+
+      // Insérer dans la table profiles
+      const { data, error } = await supabase
+        .from("profiles")
+        .insert(clientData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Erreur lors de la création du client:", error);
+        return { data: null, error };
+      }
+
+      // Convertir les données retournées en objet Client
+      const newClient = mapProfileToClient(data);
+      return { data: newClient, error: null };
+    } catch (error) {
+      console.error("Erreur inattendue lors de la création du client:", error);
+      return { data: null, error };
+    }
+  },
+
+  /**
+   * Récupère tous les clients
+   */
+  fetchClients: async (): Promise<{ data: Client[]; error: any }> => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("role", "client");
+
+      if (error) {
+        console.error("Erreur lors de la récupération des clients:", error);
+        return { data: [], error };
+      }
+
+      // Convertir les données en objets Client
+      const clients = data.map(mapProfileToClient);
+      return { data: clients, error: null };
+    } catch (error) {
+      console.error("Erreur inattendue lors de la récupération des clients:", error);
+      return { data: [], error };
+    }
+  },
+
+  /**
+   * Récupère un client par son ID
+   */
+  fetchClientById: async (clientId: string): Promise<{ data: Client | null; error: any }> => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", clientId)
+        .single();
+
+      if (error) {
+        console.error(`Erreur lors de la récupération du client ${clientId}:`, error);
+        return { data: null, error };
+      }
+
+      // Convertir les données en objet Client
+      const client = mapProfileToClient(data);
+      return { data: client, error: null };
+    } catch (error) {
+      console.error(`Erreur inattendue lors de la récupération du client ${clientId}:`, error);
+      return { data: null, error };
+    }
+  },
+
+  /**
+   * Met à jour un client existant
+   */
+  updateClient: async (clientId: string, updates: Partial<Client>): Promise<{ data: Client | null; error: any }> => {
+    try {
+      // Convertir les mises à jour en format DB
+      const updateData = mapClientToDbFormat(updates);
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .update(updateData)
+        .eq("id", clientId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error(`Erreur lors de la mise à jour du client ${clientId}:`, error);
+        return { data: null, error };
+      }
+
+      // Convertir les données en objet Client
+      const updatedClient = mapProfileToClient(data);
+      return { data: updatedClient, error: null };
+    } catch (error) {
+      console.error(`Erreur inattendue lors de la mise à jour du client ${clientId}:`, error);
+      return { data: null, error };
+    }
+  },
+
+  /**
+   * Importe des clients à partir d'un fichier CSV
+   */
+  importClientsFromCSV: async (file: File): Promise<{ data: Client[]; error: any }> => {
+    try {
+      // Analyser le fichier CSV
+      const clients = await parseCSVFile(file);
+      
+      if (!clients.length) {
+        return { data: [], error: new Error("Aucun client trouvé dans le fichier CSV") };
+      }
+
+      // Préparer les données pour insertion en masse
+      const clientsForDb = clients.map(client => {
+        const dbClient = mapClientToDbFormat(client);
+        // Ajouter un ID à chaque client
+        if (!dbClient.id) {
+          dbClient.id = uuidv4();
+        }
+        return dbClient;
+      });
+
+      // Insertion en masse dans la table profiles
+      const { data, error } = await supabase
+        .from("profiles")
+        .insert(clientsForDb)
+        .select();
+
+      if (error) {
+        console.error("Erreur lors de l'importation des clients:", error);
+        return { data: [], error };
+      }
+
+      // Convertir les données retournées en objets Client
+      const createdClients = data.map(mapProfileToClient);
+      return { data: createdClients, error: null };
+    } catch (error) {
+      console.error("Erreur inattendue lors de l'importation des clients:", error);
+      return { data: [], error };
+    }
+  },
+
+  /**
+   * Supprime un client
+   */
+  deleteClient: async (clientId: string): Promise<{ success: boolean; error: any }> => {
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", clientId);
+
+      if (error) {
+        console.error(`Erreur lors de la suppression du client ${clientId}:`, error);
+        return { success: false, error };
+      }
+
+      return { success: true, error: null };
+    } catch (error) {
+      console.error(`Erreur inattendue lors de la suppression du client ${clientId}:`, error);
+      return { success: false, error };
+    }
+  }
 };
+
+// Export par défaut pour compatibilité
+export default clientService;
