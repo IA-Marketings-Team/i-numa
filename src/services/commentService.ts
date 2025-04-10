@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { DossierComment } from "@/types";
+import { DossierComment, UserRole } from "@/types";
 
 /**
  * Add a comment to a dossier (renamed function)
@@ -8,7 +8,7 @@ export const addCommentToDossier = async (
   dossierId: string,
   userId: string,
   userName: string,
-  userRole: string,
+  userRole: UserRole,
   content: string,
   isCallNote: boolean = false,
   callDuration?: number,
@@ -54,7 +54,7 @@ export const addDossierComment = async (
   content: string,
   userId: string,
   userName: string,
-  userRole: string,
+  userRole: UserRole,
   isPublic: boolean = false
 ): Promise<string | null> => {
   try {
@@ -85,10 +85,9 @@ export const addCallNote = async (
   duration: number,
   userId: string,
   userName: string,
-  userRole: string
+  userRole: UserRole
 ): Promise<string | null> => {
   try {
-    // Using the record_call_note RPC function
     const { data, error } = await supabase.rpc('record_call_note', {
       p_dossier_id: dossierId,
       p_content: content,
@@ -139,4 +138,11 @@ export const fetchDossierComments = async (dossierId: string): Promise<DossierCo
     console.error(`Unexpected error fetching comments for dossier ${dossierId}:`, error);
     return [];
   }
+};
+
+/**
+ * Fetch comments by dossier ID - alias for fetchDossierComments for compatibility
+ */
+export const fetchCommentsByDossierId = async (dossierId: string): Promise<DossierComment[]> => {
+  return fetchDossierComments(dossierId);
 };

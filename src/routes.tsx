@@ -20,39 +20,39 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <ProtectedRoute element={<DashboardPage />} />
+        element: <ProtectedRoute><DashboardPage /></ProtectedRoute>
       },
       {
         path: "tableau-de-bord",
-        element: <ProtectedRoute element={<DashboardPage />} />
+        element: <ProtectedRoute><DashboardPage /></ProtectedRoute>
       },
       {
         path: "dossiers",
-        element: <ProtectedRoute element={<DossiersPage />} />
+        element: <ProtectedRoute><DossiersPage /></ProtectedRoute>
       },
       {
         path: "dossiers/nouveau",
-        element: <ProtectedRoute element={<DossierNewPage />} />
+        element: <ProtectedRoute><DossierNewPage /></ProtectedRoute>
       },
       {
         path: "dossiers/:id",
-        element: <ProtectedRoute element={<DossierDetailsPage />} />
+        element: <ProtectedRoute><DossierDetailsPage /></ProtectedRoute>
       },
       {
         path: "dossiers/:id/edit",
-        element: <ProtectedRoute element={<DossierEditPage />} />
+        element: <ProtectedRoute><DossierEditPage /></ProtectedRoute>
       },
       {
         path: "dossiers/consultations",
-        element: <ProtectedRoute element={<DossierConsultationsPage />} />
+        element: <ProtectedRoute><DossierConsultationsPage /></ProtectedRoute>
       },
       {
         path: "consultations",
-        element: <ProtectedRoute element={<ConsultationsPage />} />
+        element: <ProtectedRoute><ConsultationsPage /></ProtectedRoute>
       },
       {
         path: "clients",
-        element: <ProtectedRoute element={<ClientsPage />} />
+        element: <ProtectedRoute><ClientsPage /></ProtectedRoute>
       },
       {
         path: "*",
