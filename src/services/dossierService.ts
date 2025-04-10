@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Dossier, Offre } from "@/types";
+import { Dossier, DossierStatus, Offre } from "@/types";
 import { fetchClientById } from "./client/clientService";
 import { offreService } from "./offreService";
 
@@ -50,10 +50,11 @@ export const getDossiers = async (): Promise<Dossier[]> => {
 
       return {
         id: dossier.id,
+        clientId: dossier.client_id,
         client: client || { id: "", nom: "Inconnu", prenom: "Client", email: "" },
         agentPhonerId: dossier.agent_phoner_id,
         agentVisioId: dossier.agent_visio_id,
-        status: dossier.status,
+        status: dossier.status as DossierStatus,
         notes: dossier.notes,
         montant: dossier.montant,
         dateCreation: dossier.date_creation ? new Date(dossier.date_creation) : new Date(),
@@ -118,10 +119,11 @@ export const getDossierById = async (id: string): Promise<Dossier> => {
 
   return {
     id: data.id,
+    clientId: data.client_id,
     client: client || { id: "", nom: "Inconnu", prenom: "Client", email: "" },
     agentPhonerId: data.agent_phoner_id,
     agentVisioId: data.agent_visio_id,
-    status: data.status,
+    status: data.status as DossierStatus,
     notes: data.notes,
     montant: data.montant,
     dateCreation: data.date_creation ? new Date(data.date_creation) : new Date(),

@@ -23,14 +23,14 @@ export const fetchClients = async (): Promise<Client[]> => {
 
 // Create a new client
 export const createClient = async (clientData: Omit<Client, "id" | "dateCreation">): Promise<Client> => {
-  const newClient = mapClientToDbFormat({
+  const dbData = mapClientToDbFormat({
     ...clientData,
     date_creation: new Date().toISOString(),
   });
 
   const { data, error } = await supabase
     .from("profiles")
-    .insert(newClient)
+    .insert(dbData)
     .select()
     .single();
 

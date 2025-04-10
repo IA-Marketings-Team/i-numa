@@ -3,8 +3,8 @@ import { Dossier, DossierStatus, Offre, RendezVous, DossierComment } from "@/typ
 import { useAuth } from "./AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { 
-  fetchDossiers, 
-  fetchDossierById, 
+  getDossiers, 
+  getDossierById, 
   createDossier, 
   updateDossier as updateDossierService, 
   deleteDossier as deleteDossierService 
@@ -71,7 +71,7 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     try {
       setIsLoading(true);
-      const data = await fetchDossiers();
+      const data = await getDossiers();
       
       const dossiersWithComments = await Promise.all(
         data.map(async (dossier) => {
@@ -235,7 +235,7 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
       let dossier = dossiers.find(d => d.id === id);
       
       if (!dossier) {
-        dossier = await fetchDossierById(id);
+        dossier = await getDossierById(id);
         
         if (dossier) {
           const comments = await fetchCommentsByDossierId(id);

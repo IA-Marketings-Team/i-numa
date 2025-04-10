@@ -1,7 +1,6 @@
-
 import { RendezVous, Dossier } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchDossierById } from "./dossierService";
+import { getDossierById } from "./dossierService";
 
 export const fetchRendezVous = async (): Promise<RendezVous[]> => {
   const { data, error } = await supabase
@@ -16,7 +15,7 @@ export const fetchRendezVous = async (): Promise<RendezVous[]> => {
   // Transform and include dossier details
   const rendezVousList = await Promise.all(
     data.map(async (item) => {
-      const dossier = await fetchDossierById(item.dossier_id);
+      const dossier = await getDossierById(item.dossier_id);
       
       return {
         id: item.id,
@@ -51,7 +50,7 @@ export const fetchRendezVousById = async (id: string): Promise<RendezVous | null
   
   if (!item) return null;
   
-  const dossier = await fetchDossierById(item.dossier_id);
+  const dossier = await getDossierById(item.dossier_id);
   
   const rendezVous: RendezVous = {
     id: item.id,
@@ -159,7 +158,7 @@ export const fetchRendezVousByDossier = async (dossierId: string): Promise<Rende
     throw new Error(error.message);
   }
   
-  const dossier = await fetchDossierById(dossierId);
+  const dossier = await getDossierById(dossierId);
   
   // Transform and include dossier details
   const rendezVousList = data.map(item => ({
@@ -196,7 +195,7 @@ export const fetchUpcomingRendezVous = async (days: number = 7): Promise<RendezV
   // Transform and include dossier details
   const rendezVousList = await Promise.all(
     data.map(async (item) => {
-      const dossier = await fetchDossierById(item.dossier_id);
+      const dossier = await getDossierById(item.dossier_id);
       
       return {
         id: item.id,
