@@ -14,20 +14,24 @@ export const recordDossierConsultation = async (
 ): Promise<string | null> => {
   try {
     const { data, error } = await supabase
-      .rpc('record_dossier_consultation', {
-        p_dossier_id: dossierId,
-        p_user_id: userId,
-        p_user_name: userName,
-        p_user_role: userRole,
-        p_action: action
-      });
+      .from('dossier_consultations')
+      .insert([{
+        dossier_id: dossierId,
+        user_id: userId,
+        user_name: userName,
+        user_role: userRole,
+        action: action,
+        timestamp: new Date()
+      }])
+      .select('id')
+      .single();
       
     if (error) {
       console.error("Error recording dossier consultation:", error);
       return null;
     }
     
-    return data;
+    return data.id;
   } catch (error) {
     console.error("Unexpected error recording dossier consultation:", error);
     return null;
@@ -50,13 +54,14 @@ export const fetchConsultationsByDossierId = async (dossierId: string): Promise<
       return [];
     }
     
-    return data.map(consultation => ({
+    return data.map((consultation: any) => ({
       id: consultation.id,
       userId: consultation.user_id,
       userName: consultation.user_name,
       userRole: consultation.user_role,
       dossierId: consultation.dossier_id,
-      timestamp: new Date(consultation.timestamp)
+      timestamp: new Date(consultation.timestamp),
+      action: consultation.action || 'view'
     }));
   } catch (error) {
     console.error(`Unexpected error fetching consultations for dossier ${dossierId}:`, error);
@@ -105,13 +110,14 @@ export const fetchAllConsultations = async (
       return [];
     }
     
-    return data.map(consultation => ({
+    return data.map((consultation: any) => ({
       id: consultation.id,
       userId: consultation.user_id,
       userName: consultation.user_name,
       userRole: consultation.user_role,
       dossierId: consultation.dossier_id,
-      timestamp: new Date(consultation.timestamp)
+      timestamp: new Date(consultation.timestamp),
+      action: consultation.action || 'view'
     }));
   } catch (error) {
     console.error("Unexpected error fetching all consultations:", error);

@@ -1,4 +1,3 @@
-
 // Reuse existing types for offers and secteurs
 export interface OffreSectionItem {
   id: string;
@@ -31,6 +30,17 @@ export interface Offre {
   sections?: OffreSection[];
   secteurs?: SecteurActivite[];
   secteurActivite?: string; // Comma-separated list of sector IDs
+}
+
+// Add or update the DossierConsultation type
+export interface DossierConsultation {
+  id: string;
+  userId: string;
+  userName: string;
+  userRole: string; // Changed from UserRole to string to match the actual data
+  dossierId: string;
+  timestamp: Date;
+  action?: string; // Added to fix the error in ConsultationsPage
 }
 
 // Import and re-export all types from separate files

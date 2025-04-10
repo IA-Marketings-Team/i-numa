@@ -1,5 +1,6 @@
 
 import { UserRole, DossierStatus } from "@/types";
+import { navigationConfig } from "@/config/navigation";
 
 /**
  * Check if a user can access a specific dossier status based on their role
@@ -62,7 +63,48 @@ export const canPerformDossierAction = (
   }
 };
 
+/**
+ * Filter menu items based on user role permissions
+ */
+export const filterMenuItemsByPermission = (menuItems: any[], userRole?: UserRole): any[] => {
+  if (!userRole || !menuItems || menuItems.length === 0) {
+    return [];
+  }
+
+  // Filter based on allowed roles
+  return menuItems.filter(item => {
+    // If no roles specified, allow all
+    if (!item.roles || item.roles.length === 0) {
+      return true;
+    }
+    
+    // Check if the user's role is in the allowed roles
+    return item.roles.includes(userRole);
+  });
+};
+
+/**
+ * Get the default route for a specific user role
+ */
+export const getDefaultRouteForRole = (userRole: UserRole): string => {
+  switch (userRole) {
+    case 'superviseur':
+    case 'responsable':
+    case 'agent_phoner':
+    case 'agent_visio':
+      return '/tableau-de-bord';
+      
+    case 'client':
+      return '/mes-dossiers';
+      
+    default:
+      return '/connexion';
+  }
+};
+
 export default {
   canAccessDossierType,
-  canPerformDossierAction
+  canPerformDossierAction,
+  filterMenuItemsByPermission,
+  getDefaultRouteForRole
 };
