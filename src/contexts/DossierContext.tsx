@@ -40,7 +40,7 @@ interface DossierContextType {
   deleteRendezVous: (id: string) => Promise<boolean>;
   updateDossierStatus: (dossierId: string, newStatus: DossierStatus) => Promise<boolean>;
   refreshDossiers: () => Promise<void>;
-  addComment: (dossierId: string, content: string) => Promise<boolean>;
+  addComment: (dossierId: string, content: string, isPublic?: boolean) => Promise<boolean>;
   addCallNote: (dossierId: string, content: string, duration: number) => Promise<boolean>;
   getCommentsByDossierId: (dossierId: string) => Promise<DossierComment[]>;
 }
@@ -428,7 +428,7 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
   
-  const addComment = async (dossierId: string, content: string) => {
+  const addComment = async (dossierId: string, content: string, isPublic?: boolean) => {
     if (!user) return false;
     
     try {
@@ -438,7 +438,7 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
         `${user.prenom} ${user.nom}`,
         user.role,
         content,
-        false
+        isPublic
       );
       
       if (comment) {

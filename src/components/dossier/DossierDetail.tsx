@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,13 +11,14 @@ import { useNavigate } from "react-router-dom";
 import DossierStatusBadge from "./DossierStatusBadge";
 import { Badge } from "@/components/ui/badge";
 import DossierComments from "./DossierComments";
+import { CallData } from "./LogCallModal";
 
 interface DossierDetailProps {
   dossier: Dossier;
   onStatusChange: (status: DossierStatus) => Promise<void>;
   onDelete: () => Promise<void>;
   onAddComment: (content: string) => Promise<void>;
-  onAddCallNote: (content: string, duration: number) => Promise<void>;
+  onAddCallNote: (callData: CallData) => Promise<void>;
   loading: boolean;
   userRole?: string;
 }

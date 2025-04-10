@@ -8,11 +8,12 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Phone } from "lucide-react";
+import { CallData } from "./LogCallModal";
 
 interface DossierCommentsProps {
   comments: DossierComment[];
   onAddComment: (content: string) => Promise<void>;
-  onAddCallNote: (content: string, duration: number) => Promise<void>;
+  onAddCallNote: (callData: CallData) => Promise<void>;
 }
 
 const DossierComments: React.FC<DossierCommentsProps> = ({
@@ -35,7 +36,13 @@ const DossierComments: React.FC<DossierCommentsProps> = ({
   const handleAddCallNote = async () => {
     if (!newComment.trim()) return;
     
-    await onAddCallNote(newComment, callDuration);
+    const callData: CallData = {
+      duration: callDuration,
+      notes: newComment,
+      outcome: 'discussed'
+    };
+    
+    await onAddCallNote(callData);
     setNewComment("");
     setCallDuration(0);
     setIsAddingCallNote(false);
