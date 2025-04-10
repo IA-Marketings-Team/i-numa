@@ -4,9 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Users, Video, AlertCircle, BarChart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Statistique } from "@/types";
+import { Statistique, Dossier } from "@/types";
 import StatistiquesDashboard from "@/components/stats/StatistiquesDashboard";
 import PerformanceChart from "./PerformanceChart";
+import { format, isToday, isTomorrow } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface AgentVisioDashboardProps {
   recentDossiers: any[];
@@ -29,6 +31,15 @@ const AgentVisioDashboard: React.FC<AgentVisioDashboardProps> = ({
     name: new Date(stat.dateDebut).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
     value: stat.rendezVousHonores
   })).reverse();
+  
+  // Filtrer les rendez-vous pour afficher seulement ceux d'aujourd'hui et de demain
+  const todayDossiers = recentDossiers.filter(dossier => 
+    dossier.dateRdv && isToday(new Date(dossier.dateRdv))
+  );
+  
+  const tomorrowDossiers = recentDossiers.filter(dossier => 
+    dossier.dateRdv && isTomorrow(new Date(dossier.dateRdv))
+  );
   
   return (
     <div className="space-y-6">
@@ -141,31 +152,67 @@ const AgentVisioDashboard: React.FC<AgentVisioDashboardProps> = ({
             <CardTitle>Rendez-vous à venir</CardTitle>
           </CardHeader>
           <CardContent>
-            {recentDossiers.length === 0 ? (
-              <p className="text-muted-foreground">Aucun rendez-vous à venir</p>
+            {todayDossiers.length === 0 && tomorrowDossiers.length === 0 ? (
+              <p className="text-muted-foreground">Aucun rendez-vous à venir aujourd'hui ou demain</p>
             ) : (
               <div className="space-y-4">
-                {recentDossiers.map((dossier) => (
-                  <div 
-                    key={dossier.id} 
-                    className="flex items-center justify-between border-b pb-2"
-                    onClick={() => navigate(`/dossiers/${dossier.id}`)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <div>
-                      <p className="font-medium">
-                        RDV {dossier.dateRdv ? new Date(dossier.dateRdv).toLocaleDateString('fr-FR') : 'Non planifié'}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Dossier #{dossier.id.substring(0, 8)}
-                      </p>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <Video className="h-4 w-4 mr-1" />
-                      Démarrer
-                    </Button>
-                  </div>
-                ))}
+                {todayDossiers.length > 0 && (
+                  <>
+                    <h3 className="font-semibold text-sm text-muted-foreground mb-2">Aujourd'hui</h3>
+                    {todayDossiers.map((dossier) => (
+                      <div 
+                        key={dossier.id} 
+                        className="flex items-center justify-between border-b pb-2"
+                        onClick={() => navigate(`/dossiers/${dossier.id}`)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <div>
+                          <p className="font-medium">
+                            {dossier.dateRdv 
+                              ? format(new Date(dossier.dateRdv), "HH:mm", { locale: fr }) 
+                              : 'Heure non précisée'}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {dossier.client.nom} {dossier.client.prenom}
+                          </p>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          <Video className="h-4 w-4 mr-1" />
+                          Démarrer
+                        </Button>
+                      </div>
+                    ))}
+                  </>
+                )}
+                
+                {tomorrowDossiers.length > 0 && (
+                  <>
+                    <h3 className="font-semibold text-sm text-muted-foreground mb-2 mt-4">Demain</h3>
+                    {tomorrowDossiers.map((dossier) => (
+                      <div 
+                        key={dossier.id} 
+                        className="flex items-center justify-between border-b pb-2"
+                        onClick={() => navigate(`/dossiers/${dossier.id}`)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <div>
+                          <p className="font-medium">
+                            {dossier.dateRdv 
+                              ? format(new Date(dossier.dateRdv), "HH:mm", { locale: fr }) 
+                              : 'Heure non précisée'}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {dossier.client.nom} {dossier.client.prenom}
+                          </p>
+                        </div>
+                        <Button variant="outline" size="sm" className="text-gray-500">
+                          <Calendar className="h-4 w-4 mr-1" />
+                          Voir
+                        </Button>
+                      </div>
+                    ))}
+                  </>
+                )}
               </div>
             )}
           </CardContent>

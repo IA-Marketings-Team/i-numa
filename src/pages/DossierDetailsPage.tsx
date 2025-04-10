@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Dossier, DossierStatus } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DossierProvider } from "@/contexts/DossierContext";
+import { recordDossierConsultation } from "@/services/consultationService";
 
 const DossierDetailsContent: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -29,6 +30,16 @@ const DossierDetailsContent: React.FC = () => {
         const dossierData = await getDossierById(id);
         if (dossierData) {
           setDossier(dossierData);
+          
+          // Enregistrer automatiquement la consultation si un utilisateur est connecté
+          if (user) {
+            await recordDossierConsultation(
+              id,
+              user.id,
+              `${user.prenom} ${user.nom}`,
+              user.role
+            );
+          }
         } else {
           toast({
             variant: "destructive",
@@ -50,7 +61,7 @@ const DossierDetailsContent: React.FC = () => {
     };
 
     fetchDossier();
-  }, [id, getDossierById, navigate, toast]);
+  }, [id, getDossierById, navigate, toast, user]);
 
   const handleStatusChange = async (status: DossierStatus) => {
     if (!dossier) return;

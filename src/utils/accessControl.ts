@@ -50,3 +50,59 @@ export const filterMenuItemsByPermission = (items: any[], userRole: UserRole | u
     return hasPermission(userRole, item.permissions);
   });
 };
+
+/**
+ * Filtre les dossiers en fonction du rôle de l'utilisateur
+ * @param userRole - Le rôle de l'utilisateur
+ * @param userId - L'identifiant de l'utilisateur
+ * @returns Un objet contenant les filtres à appliquer
+ */
+export const getDossierFiltersForRole = (userRole: UserRole | undefined, userId: string | undefined): { 
+  statusFilter: string[], 
+  agentFilter?: { field: string, value: string } 
+} => {
+  // Par défaut, aucun filtre spécifique
+  const defaultFilter = {
+    statusFilter: []
+  };
+  
+  if (!userRole || !userId) return defaultFilter;
+  
+  switch (userRole) {
+    case 'agent_phoner':
+      // Les agents phoner ne voient que les prospects et leurs dossiers
+      return {
+        statusFilter: ['prospect_chaud', 'prospect_froid'],
+        agentFilter: { field: 'agentPhonerId', value: userId }
+      };
+    
+    case 'agent_visio':
+      // Les agents visio ne voient que les RDV et leurs dossiers
+      return {
+        statusFilter: ['rdv_honore', 'rdv_non_honore'],
+        agentFilter: { field: 'agentVisioId', value: userId }
+      };
+      
+    case 'superviseur':
+      // Les superviseurs voient tous les statuts mais pas les dossiers archivés
+      return {
+        statusFilter: ['prospect_chaud', 'prospect_froid', 'rdv_honore', 'rdv_non_honore', 'valide', 'signe']
+      };
+      
+    case 'responsable':
+      // Les responsables voient tout
+      return {
+        statusFilter: []
+      };
+      
+    case 'client':
+      // Les clients ne voient que leurs dossiers
+      return {
+        statusFilter: [],
+        agentFilter: { field: 'clientId', value: userId }
+      };
+      
+    default:
+      return defaultFilter;
+  }
+};
