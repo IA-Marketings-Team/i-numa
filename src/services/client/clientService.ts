@@ -23,8 +23,12 @@ export const fetchClients = async (): Promise<Client[]> => {
 
 // Create a new client
 export const createClient = async (clientData: Omit<Client, "id" | "dateCreation">): Promise<Client> => {
+  // Generate a new UUID for the client
+  const clientId = crypto.randomUUID();
+  
   const dbData = mapClientToDbFormat({
     ...clientData,
+    id: clientId, // Add ID to the object
     date_creation: new Date().toISOString(),
   });
 
@@ -64,7 +68,10 @@ export const fetchClientById = async (id: string): Promise<Client> => {
 
 // Update a client
 export const updateClient = async (id: string, clientData: Partial<Client>): Promise<Client> => {
-  const updatedData = mapClientToDbFormat(clientData);
+  const updatedData = mapClientToDbFormat({
+    ...clientData,
+    id, // Make sure to include the ID for updates
+  });
   
   const { data, error } = await supabase
     .from("profiles")
@@ -105,12 +112,16 @@ export const deleteClient = async (id: string): Promise<boolean> => {
 export const importClientsFromCSV = async (
   clientsData: Omit<Client, "id" | "dateCreation" | "role">[]
 ): Promise<Client[]> => {
-  // Prepare data for insertion
-  const clientsToInsert = clientsData.map(client => mapClientToDbFormat({
-    ...client,
-    role: "client",
-    date_creation: new Date().toISOString(),
-  }));
+  // Prepare data for insertion - assign UUID to each client
+  const clientsToInsert = clientsData.map(client => {
+    const clientId = crypto.randomUUID();
+    return mapClientToDbFormat({
+      ...client,
+      id: clientId, // Add ID to each client object
+      role: "client",
+      date_creation: new Date().toISOString(),
+    });
+  });
 
   // Insert clients into the database
   const { data, error } = await supabase
