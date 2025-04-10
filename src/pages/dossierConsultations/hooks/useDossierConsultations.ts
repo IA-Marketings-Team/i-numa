@@ -1,21 +1,12 @@
 
 import { useState, useEffect } from "react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 import { DossierConsultation } from "@/types";
 import { fetchFilterData } from "../utils/fetchFilterData";
+import { ToastType } from "@/hooks/use-toast";
 
-interface RawDBConsultation {
-  id: string;
-  dossier_id: string;
-  user_id: string;
-  user_name: string;
-  user_role: string;
-  timestamp: string;
-  action?: string;
-}
-
+// Define interfaces for the filter items
 export interface UserListItem {
   id: string;
   name: string;
@@ -26,7 +17,7 @@ export interface DossierListItem {
   client_name: string;
 }
 
-export interface ConsultationFilters {
+interface Filters {
   search: string;
   userFilter: string;
   actionFilter: string;
@@ -34,21 +25,23 @@ export interface ConsultationFilters {
   dossierFilter: string;
 }
 
-export const useDossierConsultations = (toast: any) => {
+export const useDossierConsultations = (toast: ToastType) => {
   const [consultations, setConsultations] = useState<DossierConsultation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [filters, setFilters] = useState<ConsultationFilters>({
+  const [users, setUsers] = useState<UserListItem[]>([]);
+  const [dossiers, setDossiers] = useState<DossierListItem[]>([]);
+  const itemsPerPage = 10;
+
+  // Consolidated filters into a single object to simplify state management
+  const [filters, setFilters] = useState<Filters>({
     search: "",
     userFilter: "",
     actionFilter: "",
     dateFilter: undefined,
     dossierFilter: ""
   });
-  const [users, setUsers] = useState<UserListItem[]>([]);
-  const [dossiers, setDossiers] = useState<DossierListItem[]>([]);
-  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchConsultations();
@@ -89,7 +82,7 @@ export const useDossierConsultations = (toast: any) => {
       if (error) throw error;
       
       if (data) {
-        const formattedData: DossierConsultation[] = data.map((item: RawDBConsultation) => ({
+        const formattedData: DossierConsultation[] = data.map((item: any) => ({
           id: item.id,
           userId: item.user_id,
           userName: item.user_name,
@@ -120,7 +113,7 @@ export const useDossierConsultations = (toast: any) => {
       headers.join(","),
       ...consultations.map(item => {
         const date = item.timestamp;
-        const formattedDate = format(date, "dd/MM/yyyy HH:mm", { locale: fr });
+        const formattedDate = format(date, "dd/MM/yyyy HH:mm");
         return [
           item.id,
           item.dossierId,

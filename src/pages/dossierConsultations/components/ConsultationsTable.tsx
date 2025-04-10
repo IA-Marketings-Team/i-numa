@@ -1,11 +1,11 @@
 
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { Eye } from "lucide-react";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { DossierConsultation } from "@/types";
 import { formatAction } from "../utils/formatAction";
 
@@ -14,10 +14,7 @@ interface ConsultationsTableProps {
   isLoading: boolean;
 }
 
-const ConsultationsTable: React.FC<ConsultationsTableProps> = ({
-  consultations,
-  isLoading
-}) => {
+const ConsultationsTable: React.FC<ConsultationsTableProps> = ({ consultations, isLoading }) => {
   const navigate = useNavigate();
 
   return (
@@ -47,8 +44,7 @@ const ConsultationsTable: React.FC<ConsultationsTableProps> = ({
             </TableRow>
           ) : (
             consultations.map((item) => {
-              const date = item.timestamp;
-              const formattedDate = format(date, "dd/MM/yyyy HH:mm", { locale: fr });
+              const formattedDate = format(item.timestamp, "dd/MM/yyyy HH:mm", { locale: fr });
               
               return (
                 <TableRow key={item.id}>

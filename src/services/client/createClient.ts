@@ -9,12 +9,16 @@ import { mapClientToDbFormat } from "./utils/mapClientToDbFormat";
  */
 export const createClient = async (clientData: Omit<Client, 'id' | 'dateCreation' | 'role'>): Promise<Client | null> => {
   try {
+    // Prepare the data for database insertion
     const dbData = mapClientToDbFormat({
       ...clientData,
       role: 'client',
       date_creation: new Date().toISOString()
     });
 
+    // When inserting to Supabase, the ID is generated automatically
+    // so we don't need to include it in the dbData
+    // The correct type is handled by mapClientToDbFormat
     const { data, error } = await supabase
       .from('profiles')
       .insert(dbData)

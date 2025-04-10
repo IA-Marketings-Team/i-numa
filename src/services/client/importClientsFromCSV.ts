@@ -1,54 +1,76 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { parseCSVFile } from "./utils/parseCSVFile";
+import { Client } from "@/types";
+import { mapProfileToClient } from "./utils/mapProfileToClient";
+
+interface DbClientInput {
+  id?: string;  // Make id optional but include it in the type
+  nom: string;
+  prenom: string;
+  email: string;
+  telephone: string;
+  role: string;
+  date_creation: string;
+  adresse?: string;
+  ville?: string;
+  code_postal?: string;
+  iban?: string;
+  bic?: string;
+  nom_banque?: string;
+  secteur_activite?: string;
+  type_entreprise?: string;
+  besoins?: string;
+  statut_juridique?: string;
+  activite_detail?: string;
+  site_web?: string;
+  moyens_communication?: string[];
+  commentaires?: string;
+}
 
 /**
- * Importe des clients à partir d'un fichier CSV
+ * Importe des clients depuis un fichier CSV
  */
-export const importClientsFromCSV = async (file: File): Promise<{ 
-  success: boolean; 
-  imported?: number; 
-  error?: string;
-}> => {
+export const importClientsFromCSV = async (clientsData: Omit<Client, 'id' | 'dateCreation' | 'role'>[]): Promise<Client[]> => {
   try {
-    const { clients, error: parseError } = await parseCSVFile(file);
-    
-    if (parseError) {
-      return {
-        success: false,
-        error: parseError
-      };
-    }
-    
-    if (clients.length === 0) {
-      return {
-        success: false,
-        error: 'Aucun client valide trouvé dans le fichier.'
-      };
-    }
-    
-    // Use proper method for multiple record insert
-    const { error } = await supabase
+    // Format each client data for database
+    const dbClients: DbClientInput[] = clientsData.map(client => ({
+      nom: client.nom,
+      prenom: client.prenom,
+      email: client.email,
+      telephone: client.telephone,
+      role: 'client',
+      date_creation: new Date().toISOString(),
+      adresse: client.adresse,
+      ville: client.ville,
+      code_postal: client.codePostal,
+      iban: client.iban,
+      bic: client.bic,
+      nom_banque: client.nomBanque,
+      secteur_activite: client.secteurActivite,
+      type_entreprise: client.typeEntreprise,
+      besoins: client.besoins,
+      statut_juridique: client.statutJuridique,
+      activite_detail: client.activiteDetail,
+      site_web: client.siteWeb,
+      moyens_communication: client.moyensCommunication,
+      commentaires: client.commentaires
+    }));
+
+    // Insert clients into the database
+    const { data, error } = await supabase
       .from('profiles')
-      .insert(clients);
-    
+      .insert(dbClients)
+      .select();
+
     if (error) {
-      console.error("Erreur lors de l'import des clients:", error);
-      return {
-        success: false,
-        error: `Erreur lors de l'import: ${error.message}`
-      };
+      console.error("Erreur lors de l'importation des clients:", error);
+      return [];
     }
-    
-    return {
-      success: true,
-      imported: clients.length
-    };
+
+    // Map database results to Client type
+    return data ? data.map(mapProfileToClient) : [];
   } catch (error) {
-    console.error("Erreur inattendue lors de l'import des clients:", error);
-    return {
-      success: false,
-      error: "Une erreur inattendue est survenue lors de l'import."
-    };
+    console.error("Erreur inattendue lors de l'importation des clients:", error);
+    return [];
   }
 };

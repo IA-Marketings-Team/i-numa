@@ -1,17 +1,24 @@
 
-import React from 'react';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import React from "react";
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationItem, 
+  PaginationLink, 
+  PaginationNext, 
+  PaginationPrevious 
+} from "@/components/ui/pagination";
 
 interface ConsultationsPaginationProps {
   page: number;
-  setPage: React.Dispatch<React.SetStateAction<number>>;
+  setPage: (page: number) => void;
   totalPages: number;
 }
 
-const ConsultationsPagination: React.FC<ConsultationsPaginationProps> = ({
-  page,
-  setPage,
-  totalPages
+const ConsultationsPagination: React.FC<ConsultationsPaginationProps> = ({ 
+  page, 
+  setPage, 
+  totalPages 
 }) => {
   return (
     <div className="mt-4 flex justify-center">
@@ -19,7 +26,7 @@ const ConsultationsPagination: React.FC<ConsultationsPaginationProps> = ({
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious
-              onClick={() => setPage(p => Math.max(1, p - 1))}
+              onClick={() => setPage(Math.max(1, page - 1))}
               className={page === 1 ? "pointer-events-none opacity-50" : ""}
             />
           </PaginationItem>
@@ -59,7 +66,7 @@ const ConsultationsPagination: React.FC<ConsultationsPaginationProps> = ({
           
           <PaginationItem>
             <PaginationNext
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              onClick={() => setPage(Math.min(totalPages, page + 1))}
               className={page === totalPages ? "pointer-events-none opacity-50" : ""}
             />
           </PaginationItem>

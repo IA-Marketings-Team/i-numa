@@ -1,6 +1,11 @@
 
+/**
+ * Maps client data to database format
+ * Makes sure all field names match the database schema
+ */
 export const mapClientToDbFormat = (client: any) => {
-  return {
+  // Create database object without id because it's auto-generated when inserting
+  const dbObject = {
     nom: client.nom,
     prenom: client.prenom,
     email: client.email,
@@ -22,4 +27,11 @@ export const mapClientToDbFormat = (client: any) => {
     moyens_communication: client.moyensCommunication || client.moyens_communication,
     commentaires: client.commentaires
   };
+
+  // Update with ID if it exists (for updates)
+  if (client.id) {
+    return { id: client.id, ...dbObject };
+  }
+
+  return dbObject;
 };

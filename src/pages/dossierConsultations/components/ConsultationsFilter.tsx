@@ -1,26 +1,34 @@
 
-import React from 'react';
-import { Calendar, Filter, FileText, Search, User } from "lucide-react";
+import React from "react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Search, Calendar, User, FileText, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { UserListItem, DossierListItem } from "../hooks/useDossierConsultations";
 import { format } from "date-fns";
-import { ConsultationFilters, UserListItem, DossierListItem } from "../hooks/useDossierConsultations";
+
+interface Filters {
+  search: string;
+  userFilter: string;
+  actionFilter: string;
+  dateFilter: Date | undefined;
+  dossierFilter: string;
+}
 
 interface ConsultationsFilterProps {
-  filters: ConsultationFilters;
-  setFilters: React.Dispatch<React.SetStateAction<ConsultationFilters>>;
+  filters: Filters;
+  setFilters: React.Dispatch<React.SetStateAction<Filters>>;
   users: UserListItem[];
   dossiers: DossierListItem[];
 }
 
-const ConsultationsFilter: React.FC<ConsultationsFilterProps> = ({
-  filters,
-  setFilters,
-  users,
-  dossiers
+const ConsultationsFilter: React.FC<ConsultationsFilterProps> = ({ 
+  filters, 
+  setFilters, 
+  users, 
+  dossiers 
 }) => {
   return (
     <div className="mb-6 flex flex-col lg:flex-row gap-4">
