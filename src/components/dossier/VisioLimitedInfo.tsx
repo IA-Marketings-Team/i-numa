@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Dossier, DossierStatus } from '@/types';
@@ -128,7 +127,7 @@ const VisioLimitedInfo: React.FC<VisioLimitedInfoProps> = ({ dossier }) => {
         </Dialog>
 
         {/* Dialog pour valider le dossier */}
-        {dossier.status === 'rdv_en_cours' && (
+        {dossier.status === 'rdv_honore' && (
           <Dialog open={isValidating} onOpenChange={setIsValidating}>
             <DialogTrigger asChild>
               <Button variant="default" className="flex items-center gap-2">

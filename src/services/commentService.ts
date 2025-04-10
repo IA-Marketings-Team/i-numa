@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { DossierComment } from "@/types";
+import { DossierComment, UserRole } from "@/types";
 
 /**
  * Fetch all comments for a specific dossier
@@ -33,7 +33,7 @@ export const fetchCommentsByDossierId = async (dossierId: string): Promise<Dossi
       dossierId: comment.dossier_id,
       userId: comment.user_id,
       userName: comment.user_name,
-      userRole: comment.user_role,
+      userRole: comment.user_role as UserRole,
       content: comment.content,
       createdAt: new Date(comment.created_at),
       isCallNote: comment.is_call_note,
@@ -83,7 +83,7 @@ export const addCommentToDossier = async (
       dossierId: data.dossier_id,
       userId: data.user_id,
       userName: data.user_name,
-      userRole: data.user_role,
+      userRole: data.user_role as UserRole,
       content: data.content,
       createdAt: new Date(data.created_at),
       isCallNote: data.is_call_note,

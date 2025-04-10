@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Dossier, DossierStatus, Offre, RendezVous, DossierComment } from "@/types";
 import { useAuth } from "./AuthContext";
@@ -74,7 +73,6 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setIsLoading(true);
       const data = await fetchDossiers();
       
-      // Pour chaque dossier, récupérer les commentaires
       const dossiersWithComments = await Promise.all(
         data.map(async (dossier) => {
           const comments = await fetchCommentsByDossierId(dossier.id);
@@ -240,7 +238,6 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
         dossier = await fetchDossierById(id);
         
         if (dossier) {
-          // Récupérer les commentaires du dossier
           const comments = await fetchCommentsByDossierId(id);
           dossier.commentaires = comments;
           
@@ -291,8 +288,8 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (rdv) {
         setRendezVous(prev => [...prev, rdv]);
         
-        if (newRendezVous.dossier.status !== 'rdv_en_cours') {
-          await updateDossierStatus(newRendezVous.dossierId, 'rdv_en_cours');
+        if (newRendezVous.dossier.status !== 'rdv_honore') {
+          await updateDossierStatus(newRendezVous.dossierId, 'rdv_honore');
         }
         
         toast({
@@ -385,7 +382,8 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const now = new Date();
       
       switch (newStatus) {
-        case 'rdv_en_cours':
+        case 'rdv_honore':
+        case 'rdv_non_honore':
           updates.dateRdv = now;
           break;
         case 'valide':
@@ -444,7 +442,6 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
       );
       
       if (comment) {
-        // Mettre à jour le dossier actuel si c'est celui concerné
         if (currentDossier && currentDossier.id === dossierId) {
           const updatedComments = [...(currentDossier.commentaires || []), comment];
           setCurrentDossier({
@@ -453,7 +450,6 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
           });
         }
         
-        // Mettre à jour la liste des dossiers
         setDossiers(prev => 
           prev.map(dossier => {
             if (dossier.id === dossierId) {
@@ -494,7 +490,6 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
       );
       
       if (comment) {
-        // Mettre à jour le dossier actuel si c'est celui concerné
         if (currentDossier && currentDossier.id === dossierId) {
           const updatedComments = [...(currentDossier.commentaires || []), comment];
           setCurrentDossier({
@@ -503,7 +498,6 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
           });
         }
         
-        // Mettre à jour la liste des dossiers
         setDossiers(prev => 
           prev.map(dossier => {
             if (dossier.id === dossierId) {

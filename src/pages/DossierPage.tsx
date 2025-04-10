@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
@@ -40,6 +41,7 @@ const DossierPage = () => {
     notes: ""
   });
   const [callNote, setCallNote] = useState("");
+  const [callDuration, setCallDuration] = useState(5);
 
   useEffect(() => {
     const loadDossier = async () => {
@@ -100,7 +102,7 @@ const DossierPage = () => {
     });
   };
   
-  const handleAddCallNote = async () => {
+  const handleAddCall = async () => {
     if (!dossier) return;
     
     // Simuler la mise à jour des notes du dossier
@@ -271,7 +273,7 @@ const DossierPage = () => {
               Retour à la liste
             </Button>
             
-            {dossier.status === 'rdv_en_cours' && (
+            {dossier.status === 'rdv_honore' && (
               <Button 
                 onClick={handleValidateDossier}
                 className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
@@ -365,10 +367,20 @@ const DossierPage = () => {
                       rows={6}
                     />
                   </div>
+                  <div className="grid gap-2">
+                    <label htmlFor="callDuration">Durée de l'appel (minutes)</label>
+                    <Input 
+                      id="callDuration" 
+                      type="number" 
+                      value={callDuration} 
+                      onChange={(e) => setCallDuration(parseInt(e.target.value) || 5)}
+                      min={1}
+                    />
+                  </div>
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setIsCallNoteOpen(false)}>Annuler</Button>
-                  <Button onClick={handleAddCallNote}>Enregistrer</Button>
+                  <Button onClick={() => handleAddCallNote(callNote, callDuration)}>Enregistrer</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>

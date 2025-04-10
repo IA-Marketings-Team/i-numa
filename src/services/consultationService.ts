@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { DossierConsultation } from "@/types";
+import { DossierConsultation, UserRole } from "@/types";
 
 /**
  * Record a consultation of a dossier by a user
@@ -9,7 +9,7 @@ export const recordDossierConsultation = async (
   dossierId: string,
   userId: string,
   userName: string,
-  userRole: string
+  userRole: UserRole
 ): Promise<DossierConsultation | null> => {
   try {
     const { data, error } = await supabase
@@ -33,7 +33,7 @@ export const recordDossierConsultation = async (
       id: data.id,
       userId: data.user_id,
       userName: data.user_name,
-      userRole: data.user_role,
+      userRole: data.user_role as UserRole,
       dossierId: data.dossier_id,
       timestamp: new Date(data.timestamp)
     };
@@ -63,7 +63,7 @@ export const fetchConsultationsByDossierId = async (dossierId: string): Promise<
       id: consultation.id,
       userId: consultation.user_id,
       userName: consultation.user_name,
-      userRole: consultation.user_role,
+      userRole: consultation.user_role as UserRole,
       dossierId: consultation.dossier_id,
       timestamp: new Date(consultation.timestamp)
     }));
@@ -93,7 +93,7 @@ export const fetchRecentConsultations = async (limit: number = 50): Promise<Doss
       id: consultation.id,
       userId: consultation.user_id,
       userName: consultation.user_name,
-      userRole: consultation.user_role,
+      userRole: consultation.user_role as UserRole,
       dossierId: consultation.dossier_id,
       timestamp: new Date(consultation.timestamp)
     }));
