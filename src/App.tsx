@@ -20,19 +20,19 @@ import OffresPage from "@/pages/OffresPage";
 import ConsultationsPage from "@/pages/ConsultationsPage";
 import DossierMeetingPage from "@/pages/DossierMeetingPage";
 import { Toaster } from "@/components/ui/toaster";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import AuthGuard from "@/components/auth/AuthGuard";
 
 function App() {
   return (
     <Router>
-      <ThemeProvider>
+      <ThemeProvider defaultTheme="light">
         <AuthProvider>
           <DossierProvider>
             <TooltipProvider>
               <Routes>
                 <Route path="/connexion" element={<LoginPage />} />
                 <Route path="/inscription" element={<RegisterPage />} />
-                <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+                <Route element={<AuthGuard><Layout /></AuthGuard>}>
                   <Route path="/" element={<Navigate to="/tableau-de-bord" replace />} />
                   <Route path="/tableau-de-bord" element={<DashboardPage />} />
                   <Route path="/dossiers" element={<DossierListPage />} />
