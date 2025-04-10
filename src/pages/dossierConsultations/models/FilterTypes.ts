@@ -2,17 +2,18 @@
 export interface UserListItem {
   id: string;
   name: string;
+  role: string;
 }
 
 export interface DossierListItem {
   id: string;
-  client_name: string;
+  label: string;
 }
 
 export interface Filters {
   search: string;
   userFilter: string;
   actionFilter: string;
-  dateFilter: Date | undefined;
+  dateFilter?: Date;
   dossierFilter: string;
 }

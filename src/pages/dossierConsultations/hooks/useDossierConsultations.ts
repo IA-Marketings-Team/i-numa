@@ -37,7 +37,7 @@ export const useDossierConsultations = () => {
       // Define query conditions based on filters
       const conditions: Record<string, any> = {};
       
-      // Apply explicit filters using a simple object to avoid chain nesting
+      // Apply explicit filters
       if (filters.userFilter) {
         conditions.user_id = filters.userFilter;
       }

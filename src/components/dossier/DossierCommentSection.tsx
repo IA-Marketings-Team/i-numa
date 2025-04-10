@@ -14,6 +14,7 @@ import { CallData } from "./LogCallModal";
 interface DossierCommentSectionProps {
   comments: DossierComment[];
   onAddComment: (content: string, isPublic?: boolean) => Promise<void>;
+  onLogCall?: (callData: CallData) => Promise<void>;
   userRole: UserRole;
   loading: boolean;
 }
@@ -21,6 +22,7 @@ interface DossierCommentSectionProps {
 const DossierCommentSection: React.FC<DossierCommentSectionProps> = ({
   comments,
   onAddComment,
+  onLogCall,
   userRole,
   loading
 }) => {
@@ -50,11 +52,11 @@ const DossierCommentSection: React.FC<DossierCommentSectionProps> = ({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Commentaires et notes</h3>
-        {canAddCallNote && (
+        {canAddCallNote && onLogCall && (
           <div>
             <LogCallButton 
               dossierId="dossierId" 
-              onLogCall={async () => {}} 
+              onLogCall={onLogCall} 
               disabled={loading}
             />
           </div>

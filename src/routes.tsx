@@ -1,14 +1,13 @@
 
 import { createBrowserRouter } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
-import DashboardLayout from "@/layouts/DashboardLayout";
 import DashboardPage from "@/pages/DashboardPage";
 import DossiersPage from "@/pages/DossiersPage";
 import DossierDetailsPage from "@/pages/DossierDetailsPage";
 import DossierNewPage from "@/pages/DossierNewPage";
 import DossierEditPage from "@/pages/DossierEditPage";
 import ClientsPage from "@/pages/ClientsPage";
-import ClientDetail from "@/pages/ClientDetail";
+import ClientDetail from "@/pages/ClientDetailPage";
 import ClientCreatePage from "@/pages/ClientCreatePage";
 import ClientEditPage from "@/pages/ClientEditPage";
 import LoginPage from "@/pages/LoginPage";

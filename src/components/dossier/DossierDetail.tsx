@@ -3,7 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Video, Edit, Archive, Trash2, ShoppingCart, Calendar } from "lucide-react";
-import { Dossier, DossierComment, DossierStatus } from "@/types";
+import { Dossier, DossierStatus } from "@/types";
 import StatusSelector from "@/components/dossier/StatusSelector";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -11,16 +11,11 @@ import { fr } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import DossierStatusBadge from "./DossierStatusBadge";
 import { Badge } from "@/components/ui/badge";
-import DossierComments from "./DossierComments";
-import { CallData } from "./LogCallModal";
-import DossierCommentSection from "./DossierCommentSection";
 
 interface DossierDetailProps {
   dossier: Dossier;
   onStatusChange: (status: DossierStatus) => Promise<void>;
   onDelete: () => Promise<void>;
-  onAddComment: (content: string) => Promise<void>;
-  onAddCallNote: (callData: CallData) => Promise<void>;
   loading: boolean;
   userRole?: string;
 }
@@ -29,20 +24,16 @@ const DossierDetail: React.FC<DossierDetailProps> = ({
   dossier,
   onStatusChange,
   onDelete,
-  onAddComment,
-  onAddCallNote,
   loading,
   userRole
 }) => {
-  const { toast } = useToast();
   const navigate = useNavigate();
   
   const canModify = userRole === "superviseur" || userRole === "responsable";
-  const canCall = userRole === "agent_phoner" || userRole === "superviseur" || userRole === "responsable";
   const canScheduleMeeting = userRole === "agent_phoner" || userRole === "agent_visio" || userRole === "superviseur" || userRole === "responsable";
   
   const handleEditClick = () => {
-    navigate(`/dossiers/${dossier.id}/modifier`);
+    navigate(`/dossiers/${dossier.id}/edit`);
   };
   
   const handleMeetingClick = () => {
@@ -56,28 +47,6 @@ const DossierDetail: React.FC<DossierDetailProps> = ({
   const formatDate = (date: Date | undefined) => {
     if (!date) return "Non définie";
     return format(new Date(date), "PPP à HH:mm", { locale: fr });
-  };
-
-  // Fonction pour gérer l'ajout de commentaire avec option de visibilité publique
-  const handleAddComment = async (content: string, isPublic: boolean = false) => {
-    if (!dossier) return;
-    
-    try {
-      // Appel à la fonction modifiée dans le contexte DossierContext
-      await onAddComment(content);
-      
-      toast({
-        title: "Commentaire ajouté",
-        description: `Le commentaire a été ajouté avec succès`,
-      });
-    } catch (error) {
-      console.error("Erreur lors de l'ajout du commentaire:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Une erreur est survenue lors de l'ajout du commentaire"
-      });
-    }
   };
 
   return (
@@ -167,16 +136,6 @@ const DossierDetail: React.FC<DossierDetailProps> = ({
                 {dossier.notes}
               </div>
             </div>
-          )}
-          
-          {/* Utilisation du nouveau composant DossierCommentSection */}
-          {userRole && (
-            <DossierCommentSection
-              comments={dossier.commentaires || []}
-              userRole={userRole as any}
-              onAddComment={handleAddComment}
-              loading={loading}
-            />
           )}
           
           {canModify && (

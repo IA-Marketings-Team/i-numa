@@ -1,18 +1,22 @@
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ShieldAlert } from "lucide-react";
 
-const AccessDeniedCard: React.FC = () => {
+const AccessDeniedCard = () => {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Accès refusé</CardTitle>
-        <CardDescription>
-          Vous n'avez pas les droits nécessaires pour accéder à cette page.
-        </CardDescription>
+    <Card className="mx-auto max-w-md mt-8">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center text-red-600">
+          <ShieldAlert className="h-5 w-5 mr-2" />
+          Accès refusé
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <p>Seuls les superviseurs et les responsables peuvent consulter l'historique des consultations des dossiers.</p>
+        <p className="text-muted-foreground">
+          Vous n'avez pas les permissions nécessaires pour accéder à cette fonctionnalité. 
+          Cette page est réservée aux superviseurs et responsables.
+        </p>
       </CardContent>
     </Card>
   );

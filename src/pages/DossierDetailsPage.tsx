@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
@@ -213,16 +214,17 @@ const DossierDetailsPage: React.FC = () => {
             onDelete={handleDeleteDossier}
             loading={isLoading}
             userRole={user?.role}
-            onAddComment={handleAddComment}
-            onAddCallNote={handleLogCall}
           />
           
-          <DossierCommentSection 
-            comments={dossier.commentaires || []}
-            userRole={user?.role}
-            onAddComment={handleAddComment}
-            loading={isLoading}
-          />
+          <div className="mt-6">
+            <DossierCommentSection 
+              comments={dossier.commentaires || []}
+              userRole={user?.role}
+              onAddComment={handleAddComment}
+              onLogCall={handleLogCall}
+              loading={isLoading}
+            />
+          </div>
         </>
       )}
     </div>

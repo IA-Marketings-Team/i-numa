@@ -56,6 +56,7 @@ const LogCallModal: React.FC<LogCallModalProps> = ({
       // Modal will be closed by parent after successful submission
     } catch (error) {
       console.error("Error logging call:", error);
+    } finally {
       setIsSubmitting(false);
     }
   };

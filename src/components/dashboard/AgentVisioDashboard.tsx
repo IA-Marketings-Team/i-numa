@@ -45,7 +45,7 @@ const AgentVisioDashboard: React.FC<AgentVisioDashboardProps> = ({
               <p className="text-white/70">RDV effectués aujourd'hui</p>
               <Button 
                 className="mt-4 bg-white text-purple-600 hover:bg-white/90"
-                onClick={() => navigate("/agenda-global")}
+                onClick={() => navigate("/agenda")}
               >
                 <Video className="mr-2 h-4 w-4" />
                 Voir rendez-vous
@@ -85,7 +85,7 @@ const AgentVisioDashboard: React.FC<AgentVisioDashboardProps> = ({
               </p>
               <Button 
                 variant="outline"
-                onClick={() => navigate("/agenda-global")}
+                onClick={() => navigate("/agenda")}
               >
                 <Calendar className="mr-2 h-4 w-4" />
                 Voir l'agenda

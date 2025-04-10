@@ -8,13 +8,16 @@ interface ExportButtonProps {
   disabled?: boolean;
 }
 
-export const ExportButton: React.FC<ExportButtonProps> = ({ onClick, disabled }) => {
+export const ExportButton: React.FC<ExportButtonProps> = ({ onClick, disabled = false }) => {
   return (
-    <Button onClick={onClick} disabled={disabled} className="flex items-center gap-2">
+    <Button
+      variant="outline"
+      className="flex items-center gap-2"
+      onClick={onClick}
+      disabled={disabled}
+    >
       <Download className="h-4 w-4" />
       Exporter en CSV
     </Button>
   );
 };
-
-export default ExportButton;
