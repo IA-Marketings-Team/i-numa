@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Dossier, DossierStatus } from "@/types";
+import { CallData } from "@/components/dossier/LogCallModal";
 
 const DossierPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -216,13 +217,13 @@ const DossierPage = () => {
     }
   };
   
-  const handleAddCallNote = async (content: string, duration: number) => {
+  const handleAddCallNote = async (callData: CallData) => {
     if (!dossier || !user) return;
     
     try {
       setIsLoading(true);
-      // Call the addCallNote function from context
-      await addCallNote(dossier.id, content, duration);
+      // Call the addCallNote function from context with the data extracted from callData
+      await addCallNote(dossier.id, callData.notes, callData.duration);
       
       // Refresh the dossier to get updated comments
       const refreshedDossier = await getDossierById(dossier.id);
