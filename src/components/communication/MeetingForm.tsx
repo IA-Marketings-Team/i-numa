@@ -29,7 +29,7 @@ export const MeetingForm: React.FC<MeetingFormProps> = ({ meetingId, onSuccess }
     duree: number;
     lien: string;
     type: 'visio' | 'presentiel' | 'telephonique';
-    statut: 'planifie' | 'en_cours' | 'termine' | 'annule';
+    statut: 'planifie' | 'en_cours' | 'termine' | 'annule' | 'effectue' | 'manque';
     participants: string[];
     newParticipant: string;
   }>({
@@ -203,7 +203,7 @@ export const MeetingForm: React.FC<MeetingFormProps> = ({ meetingId, onSuccess }
           <Label htmlFor="type">Type</Label>
           <Select 
             value={formData.type}
-            onValueChange={(value) => handleSelectChange('type', value)}
+            onValueChange={(value: 'visio' | 'presentiel' | 'telephonique') => handleSelectChange('type', value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Sélectionner un type" />
@@ -220,7 +220,9 @@ export const MeetingForm: React.FC<MeetingFormProps> = ({ meetingId, onSuccess }
           <Label htmlFor="statut">Statut</Label>
           <Select 
             value={formData.statut}
-            onValueChange={(value) => handleSelectChange('statut', value)}
+            onValueChange={(value: 'planifie' | 'en_cours' | 'termine' | 'annule' | 'effectue' | 'manque') => 
+              handleSelectChange('statut', value)
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="Sélectionner un statut" />
@@ -230,6 +232,8 @@ export const MeetingForm: React.FC<MeetingFormProps> = ({ meetingId, onSuccess }
               <SelectItem value="en_cours">En cours</SelectItem>
               <SelectItem value="termine">Terminée</SelectItem>
               <SelectItem value="annule">Annulée</SelectItem>
+              <SelectItem value="effectue">Effectuée</SelectItem>
+              <SelectItem value="manque">Manquée</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -49,6 +49,29 @@ const CommunicationPage: React.FC = () => {
     return format(new Date(date), 'dd MMMM yyyy à HH:mm', { locale: fr });
   };
 
+  const getStatusClass = (statut: string) => {
+    if (statut === 'planifie') return 'bg-blue-50';
+    if (statut === 'termine' || statut === 'effectue') return 'bg-green-50';
+    if (statut === 'annule' || statut === 'manque') return 'bg-red-50';
+    return 'bg-gray-50';
+  };
+
+  const getStatusBadgeClass = (statut: string) => {
+    if (statut === 'planifie') return 'bg-blue-100 text-blue-800';
+    if (statut === 'termine' || statut === 'effectue') return 'bg-green-100 text-green-800';
+    if (statut === 'annule' || statut === 'manque') return 'bg-red-100 text-red-800';
+    return 'bg-gray-100 text-gray-800';
+  };
+
+  const getStatusLabel = (statut: string) => {
+    if (statut === 'planifie') return 'Planifié';
+    if (statut === 'termine') return 'Terminé';
+    if (statut === 'effectue') return 'Effectué';
+    if (statut === 'annule') return 'Annulé';
+    if (statut === 'manque') return 'Manqué';
+    return statut;
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold mb-6">Communications</h1>
@@ -85,21 +108,11 @@ const CommunicationPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {meetings.map((meeting) => (
                 <Card key={meeting.id} className="overflow-hidden border hover:shadow-md transition-shadow">
-                  <CardHeader className={`pb-2 ${
-                    meeting.statut === 'planifie' ? 'bg-blue-50' : 
-                    meeting.statut === 'termine' ? 'bg-green-50' : 
-                    meeting.statut === 'annule' ? 'bg-red-50' : 'bg-gray-50'
-                  }`}>
+                  <CardHeader className={`pb-2 ${getStatusClass(meeting.statut)}`}>
                     <div className="flex justify-between items-start">
                       <CardTitle className="text-lg">{meeting.titre}</CardTitle>
-                      <Badge className={`${
-                        meeting.statut === 'planifie' ? 'bg-blue-100 text-blue-800' : 
-                        meeting.statut === 'termine' ? 'bg-green-100 text-green-800' : 
-                        meeting.statut === 'annule' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {meeting.statut === 'planifie' ? 'Planifié' : 
-                         meeting.statut === 'termine' ? 'Terminé' : 
-                         meeting.statut === 'annule' ? 'Annulé' : meeting.statut}
+                      <Badge className={getStatusBadgeClass(meeting.statut)}>
+                        {getStatusLabel(meeting.statut)}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -111,7 +124,7 @@ const CommunicationPage: React.FC = () => {
                       </div>
                       <div className="flex items-center text-sm">
                         <Monitor className="mr-2 h-4 w-4 text-gray-400" />
-                        <span>{meeting.type === 'visio' ? 'Visio-conférence' : 'Présentiel'}</span>
+                        <span>{meeting.type === 'visio' ? 'Visio-conférence' : meeting.type === 'telephonique' ? 'Téléphonique' : 'Présentiel'}</span>
                         {meeting.type === 'visio' && meeting.lien && (
                           <a href={meeting.lien} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 hover:text-blue-800">
                             Rejoindre

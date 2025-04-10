@@ -48,9 +48,9 @@ export const addDossierComment = async (
   content: string,
   isCallNote: boolean = false,
   callDuration?: number
-): Promise<boolean> => {
+): Promise<DossierComment | null> => {
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('dossier_commentaires')
       .insert({
         dossier_id: dossierId,
@@ -60,17 +60,29 @@ export const addDossierComment = async (
         content: content,
         is_call_note: isCallNote,
         call_duration: callDuration
-      });
+      })
+      .select('*')
+      .single();
 
     if (error) {
       console.error("Erreur lors de l'ajout du commentaire:", error);
-      return false;
+      return null;
     }
 
-    return true;
+    return {
+      id: data.id,
+      dossierId: data.dossier_id,
+      userId: data.user_id,
+      userName: data.user_name,
+      userRole: data.user_role as UserRole,
+      content: data.content,
+      createdAt: new Date(data.created_at),
+      isCallNote: data.is_call_note || false,
+      callDuration: data.call_duration
+    };
   } catch (error) {
     console.error("Erreur inattendue lors de l'ajout du commentaire:", error);
-    return false;
+    return null;
   }
 };
 

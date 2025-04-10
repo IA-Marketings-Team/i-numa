@@ -1,51 +1,67 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { Meeting } from "@/types";
 
 interface MeetingData {
   titre: string;
   description?: string;
   date: Date;
-  heure: string;
-  type: 'visio' | 'presentiel';
+  heure?: string;
+  duree?: number;
+  type: 'visio' | 'presentiel' | 'telephonique';
   participants: string[];
   lien?: string;
-  statut?: string;
+  statut?: 'planifie' | 'en_cours' | 'termine' | 'annule' | 'effectue' | 'manque';
 }
 
 /**
  * Créer un nouveau meeting
  */
-export const createMeeting = async (meetingData: MeetingData): Promise<boolean> => {
+export const createMeeting = async (meetingData: MeetingData): Promise<Meeting | null> => {
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('meetings')
       .insert({
         titre: meetingData.titre,
         description: meetingData.description,
         date: meetingData.date.toISOString(),
-        duree: 30, // Durée par défaut de 30 minutes
+        heure: meetingData.heure,
+        duree: meetingData.duree || 30, // Durée par défaut de 30 minutes
         participants: meetingData.participants,
         type: meetingData.type,
-        lien: meetingData.lien,
+        lien: meetingData.lien || '',
         statut: meetingData.statut || 'planifie'
-      });
+      })
+      .select('*')
+      .single();
 
     if (error) {
       console.error("Erreur lors de la création du meeting:", error);
-      return false;
+      return null;
     }
 
-    return true;
+    return {
+      id: data.id,
+      titre: data.titre,
+      description: data.description || '',
+      date: new Date(data.date),
+      duree: data.duree,
+      lien: data.lien || '',
+      type: data.type as 'visio' | 'presentiel' | 'telephonique',
+      statut: data.statut as 'planifie' | 'en_cours' | 'termine' | 'annule' | 'effectue' | 'manque',
+      participants: data.participants || [],
+      heure: data.heure
+    };
   } catch (error) {
     console.error("Erreur inattendue lors de la création du meeting:", error);
-    return false;
+    return null;
   }
 };
 
 /**
  * Récupérer tous les meetings
  */
-export const fetchMeetings = async (): Promise<any[]> => {
+export const fetchMeetings = async (): Promise<Meeting[]> => {
   try {
     const { data, error } = await supabase
       .from('meetings')
@@ -57,7 +73,18 @@ export const fetchMeetings = async (): Promise<any[]> => {
       return [];
     }
 
-    return data;
+    return data.map(item => ({
+      id: item.id,
+      titre: item.titre,
+      description: item.description || '',
+      date: new Date(item.date),
+      duree: item.duree,
+      lien: item.lien || '',
+      type: item.type as 'visio' | 'presentiel' | 'telephonique',
+      statut: item.statut as 'planifie' | 'en_cours' | 'termine' | 'annule' | 'effectue' | 'manque',
+      participants: item.participants || [],
+      heure: item.heure
+    }));
   } catch (error) {
     console.error("Erreur inattendue lors de la récupération des meetings:", error);
     return [];
@@ -67,7 +94,7 @@ export const fetchMeetings = async (): Promise<any[]> => {
 /**
  * Récupérer un meeting par son ID
  */
-export const fetchMeetingById = async (id: string): Promise<any | null> => {
+export const fetchMeetingById = async (id: string): Promise<Meeting | null> => {
   try {
     const { data, error } = await supabase
       .from('meetings')
@@ -80,7 +107,18 @@ export const fetchMeetingById = async (id: string): Promise<any | null> => {
       return null;
     }
 
-    return data;
+    return {
+      id: data.id,
+      titre: data.titre,
+      description: data.description || '',
+      date: new Date(data.date),
+      duree: data.duree,
+      lien: data.lien || '',
+      type: data.type as 'visio' | 'presentiel' | 'telephonique',
+      statut: data.statut as 'planifie' | 'en_cours' | 'termine' | 'annule' | 'effectue' | 'manque',
+      participants: data.participants || [],
+      heure: data.heure
+    };
   } catch (error) {
     console.error(`Erreur inattendue lors de la récupération du meeting ${id}:`, error);
     return null;
@@ -102,6 +140,7 @@ export const updateMeeting = async (id: string, meetingData: Partial<MeetingData
     if (meetingData.participants) updateData.participants = meetingData.participants;
     if (meetingData.lien !== undefined) updateData.lien = meetingData.lien;
     if (meetingData.statut) updateData.statut = meetingData.statut;
+    if (meetingData.duree) updateData.duree = meetingData.duree;
 
     const { error } = await supabase
       .from('meetings')

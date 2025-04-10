@@ -440,7 +440,7 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
         false
       );
       
-      if (comment) {
+      if (comment && typeof comment !== 'boolean') {
         if (currentDossier && currentDossier.id === dossierId) {
           const commentArray: DossierComment[] = Array.isArray(currentDossier.commentaires) 
             ? [...currentDossier.commentaires] 
@@ -448,7 +448,7 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
           
           setCurrentDossier({
             ...currentDossier,
-            commentaires: [...commentArray, comment as DossierComment]
+            commentaires: [...commentArray, comment]
           });
         }
         
@@ -461,7 +461,7 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
               
               return { 
                 ...dossier, 
-                commentaires: [...commentArray, comment as DossierComment] 
+                commentaires: [...commentArray, comment] 
               };
             }
             return dossier;
@@ -497,7 +497,7 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
         duration
       );
       
-      if (comment) {
+      if (comment && typeof comment !== 'boolean') {
         if (currentDossier && currentDossier.id === dossierId) {
           const commentArray: DossierComment[] = Array.isArray(currentDossier.commentaires) 
             ? [...currentDossier.commentaires] 
@@ -505,7 +505,7 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
           
           setCurrentDossier({
             ...currentDossier,
-            commentaires: [...commentArray, comment as DossierComment]
+            commentaires: [...commentArray, comment]
           });
         }
         
@@ -518,7 +518,7 @@ export const DossierProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 
               return { 
                 ...dossier, 
-                commentaires: [...commentArray, comment as DossierComment] 
+                commentaires: [...commentArray, comment] 
               };
             }
             return dossier;

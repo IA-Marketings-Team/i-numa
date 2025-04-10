@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { 
   createAppel, 
@@ -162,7 +163,7 @@ export const CommunicationProvider: React.FC<{ children: ReactNode }> = ({ child
       heure: meeting.heure || format(new Date(meeting.date), 'HH:mm')
     };
     
-    const newMeeting = await createMeeting(meetingData as any);
+    const newMeeting = await createMeeting(meetingData);
     if (newMeeting) {
       setMeetings(prevMeetings => [...prevMeetings, newMeeting]);
       return newMeeting;
@@ -173,7 +174,7 @@ export const CommunicationProvider: React.FC<{ children: ReactNode }> = ({ child
   const editMeeting = async (id: string, updates: Partial<Meeting>) => {
     const updatesData = {
       ...updates,
-      type: updates.type as any
+      type: updates.type as 'visio' | 'presentiel' | 'telephonique'
     };
     
     const success = await updateMeeting(id, updatesData);
