@@ -3,7 +3,7 @@ import React from "react";
 import { Client } from "@/types";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
-import { Eye, FileEdit, Trash2, Phone } from "lucide-react";
+import { Eye, FileEdit, Trash2, MessageSquare } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface ClientCardProps {
@@ -62,8 +62,8 @@ const ClientCard: React.FC<ClientCardProps> = ({
               onClick={() => onCall(client)}
               className="flex items-center gap-1"
             >
-              <Phone className="w-4 h-4" />
-              <span className="hidden sm:inline">Appeler</span>
+              <MessageSquare className="w-4 h-4" />
+              <span className="hidden sm:inline">Noter appel</span>
             </Button>
           )}
           
