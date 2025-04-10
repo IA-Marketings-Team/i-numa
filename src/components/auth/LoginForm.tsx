@@ -31,7 +31,7 @@ const LoginForm: React.FC = () => {
           title: "Connexion réussie",
           description: "Bienvenue !",
         });
-        navigate("/dashboard");
+        navigate("/tableau-de-bord");
       } else {
         setError(error?.message || "Échec de la connexion. Veuillez vérifier vos identifiants.");
       }
@@ -76,7 +76,7 @@ const LoginForm: React.FC = () => {
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Mot de passe</Label>
               <a
-                href="/forgot-password"
+                href="/mot-de-passe-oublie"
                 className="text-sm text-blue-600 hover:text-blue-800"
               >
                 Mot de passe oublié ?
@@ -105,7 +105,7 @@ const LoginForm: React.FC = () => {
         <div className="text-center text-sm">
           Vous n'avez pas de compte ?{" "}
           <a
-            href="/register"
+            href="/inscription"
             className="text-blue-600 hover:text-blue-800 font-medium"
           >
             S'inscrire

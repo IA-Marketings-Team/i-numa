@@ -1,6 +1,5 @@
 
 import { createBrowserRouter } from "react-router-dom";
-import App from "./App";
 import Layout from "./components/layout/Layout";
 import AuthGuard from "./components/auth/AuthGuard";
 import LoginPage from "./pages/LoginPage";
@@ -50,15 +49,15 @@ export const router = createBrowserRouter([
         element: <Index />,
       },
       {
-        path: "login",
+        path: "connexion",
         element: <LoginPage />,
       },
       {
-        path: "register",
+        path: "inscription",
         element: <RegisterPage />,
       },
       {
-        path: "unauthorized",
+        path: "non-autorise",
         element: <UnauthorizedPage />,
       },
       {
@@ -290,6 +289,27 @@ export const router = createBrowserRouter([
         element: (
           <AuthGuard>
             <AppelsPage />
+          </AuthGuard>
+        ),
+      },
+      // Correction des anciens chemins pour redirection
+      {
+        path: "login",
+        element: <LoginPage />,
+      },
+      {
+        path: "register",
+        element: <RegisterPage />,
+      },
+      {
+        path: "unauthorized",
+        element: <UnauthorizedPage />,
+      },
+      {
+        path: "dashboard",
+        element: (
+          <AuthGuard>
+            <DashboardPage />
           </AuthGuard>
         ),
       },

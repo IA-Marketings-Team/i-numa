@@ -50,7 +50,7 @@ const LoginPage: React.FC = () => {
   }, []);
   
   // Obtenir la destination prévue depuis l'état de l'emplacement, ou par défaut au tableau de bord
-  const from = location.state?.from || "/dashboard";
+  const from = location.state?.from || "/tableau-de-bord";
   
   // Vérifier les messages provenant d'autres pages
   useEffect(() => {
