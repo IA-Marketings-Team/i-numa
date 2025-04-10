@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +17,8 @@ interface DossierDetailProps {
   onDelete: () => Promise<void>;
   loading: boolean;
   userRole?: string;
+  onAddComment?: (content: string, isPublic?: boolean) => Promise<void>;
+  onAddCallNote?: (callData: any) => Promise<void>;
 }
 
 const DossierDetail: React.FC<DossierDetailProps> = ({
@@ -25,7 +26,9 @@ const DossierDetail: React.FC<DossierDetailProps> = ({
   onStatusChange,
   onDelete,
   loading,
-  userRole
+  userRole,
+  onAddComment,
+  onAddCallNote
 }) => {
   const navigate = useNavigate();
   

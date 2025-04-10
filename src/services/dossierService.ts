@@ -1,8 +1,6 @@
-
-import { Dossier, Offre, DossierStatus, Client } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchOffreById } from "./offreService";
-import { fetchClientById } from "./clientService";
+import { Dossier, DossierStatus, Offre } from "@/types";
+import { fetchClientById } from "@/services/client/clientService";
 
 export const fetchDossiers = async (): Promise<Dossier[]> => {
   const { data, error } = await supabase

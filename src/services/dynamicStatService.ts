@@ -61,7 +61,7 @@ export const dynamicStatService = {
   // Get dossiers by status
   getDossiersByStatus: async (startDate?: Date, endDate?: Date): Promise<DossierStatusStats[]> => {
     try {
-      const { data, error } = await supabase.rpc('calculate_dossiers_by_status', {
+      const { data, error } = await supabase.rpc("calculate_dossiers_by_status", {
         start_date: startDate?.toISOString(),
         end_date: endDate?.toISOString()
       });
@@ -81,7 +81,7 @@ export const dynamicStatService = {
   // Get RDV completion rate
   getRdvCompletionRate: async (startDate?: Date, endDate?: Date): Promise<RdvCompletionStats | null> => {
     try {
-      const { data, error } = await supabase.rpc('calculate_rdv_completion_rate', {
+      const { data, error } = await supabase.rpc("calculate_rdv_completion_rate", {
         start_date: startDate?.toISOString(),
         end_date: endDate?.toISOString()
       });
@@ -91,7 +91,7 @@ export const dynamicStatService = {
         return null;
       }
 
-      return data[0] as RdvCompletionStats;
+      return (data && data.length > 0) ? data[0] as RdvCompletionStats : null;
     } catch (error) {
       console.error('Unexpected error fetching RDV completion rate:', error);
       return null;
@@ -101,7 +101,7 @@ export const dynamicStatService = {
   // Get agent performance
   getAgentPerformance: async (startDate?: Date, endDate?: Date): Promise<AgentPerformanceStats[]> => {
     try {
-      const { data, error } = await supabase.rpc('calculate_agent_performance', {
+      const { data, error } = await supabase.rpc("calculate_agent_performance", {
         start_date: startDate?.toISOString(),
         end_date: endDate?.toISOString()
       });
@@ -121,7 +121,7 @@ export const dynamicStatService = {
   // Get conversion metrics
   getConversionMetrics: async (startDate?: Date, endDate?: Date): Promise<ConversionMetricsStats[]> => {
     try {
-      const { data, error } = await supabase.rpc('calculate_conversion_metrics', {
+      const { data, error } = await supabase.rpc("calculate_conversion_metrics", {
         start_date: startDate?.toISOString(),
         end_date: endDate?.toISOString()
       });
