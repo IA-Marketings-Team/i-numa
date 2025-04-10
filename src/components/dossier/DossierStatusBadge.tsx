@@ -21,6 +21,12 @@ const DossierStatusBadge: React.FC<DossierStatusBadgeProps> = ({ status }) => {
           Prospect à froid
         </Badge>
       );
+    case "rdv_en_cours":
+      return (
+        <Badge variant="outline" className="bg-cyan-50 text-cyan-700 border-cyan-200">
+          RDV en cours
+        </Badge>
+      );
     case "rdv_honore":
       return (
         <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
