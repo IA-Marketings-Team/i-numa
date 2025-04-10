@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Edit, Eye, MoreHorizontal, Trash, PhoneCall } from "lucide-react";
+import { Plus, Search, Edit, Eye, MoreHorizontal, Trash, PhoneCall, Download, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { fetchClients, deleteClient } from "@/services/clientService";
 import { Client } from "@/types";
@@ -31,6 +31,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ClientImportModal from "@/components/client/ClientImportModal";
 
 const ClientsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -38,6 +40,7 @@ const ClientsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const { toast } = useToast();
   
   useEffect(() => {
@@ -82,108 +85,154 @@ const ClientsPage: React.FC = () => {
     }
   };
   
+  const handleExportCSV = () => {
+    const headers = ["ID", "Nom", "Prénom", "Email", "Téléphone", "Secteur d'activité", "Type d'entreprise"];
+    
+    const csvData = clients.map(client => [
+      client.id,
+      client.nom,
+      client.prenom,
+      client.email,
+      client.telephone,
+      client.secteurActivite || "",
+      client.typeEntreprise || ""
+    ]);
+    
+    const csvContent = [
+      headers.join(","),
+      ...csvData.map(row => row.join(","))
+    ].join("\n");
+    
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    
+    link.setAttribute("href", url);
+    link.setAttribute("download", `clients_export_${new Date().toISOString().split("T")[0]}.csv`);
+    link.style.visibility = "hidden";
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
   const filteredClients = clients.filter(client => {
     const searchLower = searchTerm.toLowerCase();
     return (
       client.nom.toLowerCase().includes(searchLower) ||
       client.prenom.toLowerCase().includes(searchLower) ||
       client.email.toLowerCase().includes(searchLower) ||
-      (client.secteurActivite && client.secteurActivite.toLowerCase().includes(searchLower))
+      (client.secteurActivite && client.secteurActivite.toLowerCase().includes(searchLower)) ||
+      (client.telephone && client.telephone.toLowerCase().includes(searchLower))
     );
   });
   
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Clients</h1>
-        <Button onClick={() => navigate("/clients/nouveau")}>
-          <Plus className="mr-2 h-4 w-4" /> Ajouter un client
-        </Button>
-      </div>
-      
-      <div className="flex items-center space-x-2">
-        <Search className="h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Rechercher des clients..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
-        />
-      </div>
-      
-      {isLoading ? (
-        <div className="text-center p-6">
-          <p>Chargement des clients...</p>
-        </div>
-      ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nom</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Téléphone</TableHead>
-                <TableHead>Secteur d'activité</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredClients.length > 0 ? (
-                filteredClients.map((client) => (
-                  <TableRow key={client.id}>
-                    <TableCell className="font-medium">
-                      {client.prenom} {client.nom}
-                    </TableCell>
-                    <TableCell>{client.email}</TableCell>
-                    <TableCell>{client.telephone || "Non renseigné"}</TableCell>
-                    <TableCell>{client.secteurActivite || "Non spécifié"}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/clients/${client.id}`)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Voir
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate(`/clients/${client.id}/modifier`)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Modifier
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate(`/dossiers/nouveau`, { state: { client } })}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Créer un dossier
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => window.open(`tel:${client.telephone}`)}>
-                            <PhoneCall className="mr-2 h-4 w-4" />
-                            Appeler
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => setClientToDelete(client)}
-                            className="text-red-600 focus:text-red-600"
-                          >
-                            <Trash className="mr-2 h-4 w-4" />
-                            Supprimer
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+    <div className="container mx-auto p-6">
+      <Card className="border shadow-sm">
+        <CardHeader className="pb-3">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <CardTitle className="text-xl">Clients</CardTitle>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => navigate("/clients/nouveau")} className="flex items-center gap-2">
+                <Plus className="h-4 w-4" /> Nouveau client
+              </Button>
+              <Button variant="outline" onClick={handleExportCSV} className="flex items-center gap-2">
+                <Download className="h-4 w-4" /> Exporter CSV
+              </Button>
+              <Button variant="outline" onClick={() => setIsImportModalOpen(true)} className="flex items-center gap-2">
+                <Upload className="h-4 w-4" /> Importer CSV
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        
+        <CardContent>
+          <div className="flex items-center space-x-2 mb-4">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher des clients..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+          </div>
+          
+          <div className="rounded-md border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nom</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Téléphone</TableHead>
+                  <TableHead>Secteur d'activité</TableHead>
+                  <TableHead className="w-[100px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                      Chargement des clients...
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
-                    Aucun client trouvé.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+                ) : filteredClients.length > 0 ? (
+                  filteredClients.map((client) => (
+                    <TableRow key={client.id}>
+                      <TableCell className="font-medium">
+                        {client.prenom} {client.nom}
+                      </TableCell>
+                      <TableCell>{client.email}</TableCell>
+                      <TableCell>{client.telephone || "Non renseigné"}</TableCell>
+                      <TableCell>{client.secteurActivite || "Non spécifié"}</TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => navigate(`/clients/${client.id}`)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              Voir
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate(`/clients/${client.id}/edit`)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Modifier
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate(`/dossiers/nouveau`, { state: { client } })}>
+                              <Plus className="mr-2 h-4 w-4" />
+                              Créer un dossier
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => window.open(`tel:${client.telephone}`)}>
+                              <PhoneCall className="mr-2 h-4 w-4" />
+                              Appeler
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => setClientToDelete(client)}
+                              className="text-red-600 focus:text-red-600"
+                            >
+                              <Trash className="mr-2 h-4 w-4" />
+                              Supprimer
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                      Aucun client trouvé.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
       
       <AlertDialog open={!!clientToDelete} onOpenChange={(open) => !open && setClientToDelete(null)}>
         <AlertDialogContent>
@@ -201,6 +250,12 @@ const ClientsPage: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      <ClientImportModal 
+        isOpen={isImportModalOpen} 
+        onClose={() => setIsImportModalOpen(false)}
+        onImportComplete={loadClients}
+      />
     </div>
   );
 };

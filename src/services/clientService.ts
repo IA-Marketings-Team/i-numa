@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Client } from "@/types";
+import { Client, UserRole } from "@/types";
 
 /**
  * Récupère tous les clients
@@ -23,7 +23,7 @@ export const fetchClients = async (): Promise<Client[]> => {
       prenom: client.prenom || '',
       email: client.email || '',
       telephone: client.telephone || '',
-      role: 'client',
+      role: 'client' as UserRole,
       dateCreation: new Date(client.date_creation),
       adresse: client.adresse || '',
       ville: client.ville || '',
@@ -69,7 +69,7 @@ export const fetchClientById = async (id: string): Promise<Client | null> => {
       prenom: data.prenom || '',
       email: data.email || '',
       telephone: data.telephone || '',
-      role: 'client',
+      role: 'client' as UserRole,
       dateCreation: new Date(data.date_creation),
       adresse: data.adresse || '',
       ville: data.ville || '',
@@ -101,7 +101,6 @@ export const createClient = async (clientData: Omit<Client, 'id' | 'dateCreation
     const { data, error } = await supabase
       .from('profiles')
       .insert({
-        id: undefined, // Let Supabase generate the ID
         nom: clientData.nom,
         prenom: clientData.prenom,
         email: clientData.email,
@@ -137,7 +136,7 @@ export const createClient = async (clientData: Omit<Client, 'id' | 'dateCreation
       prenom: data.prenom || '',
       email: data.email || '',
       telephone: data.telephone || '',
-      role: 'client',
+      role: 'client' as UserRole,
       dateCreation: new Date(data.date_creation),
       adresse: data.adresse || '',
       ville: data.ville || '',
@@ -227,11 +226,110 @@ export const deleteClient = async (id: string): Promise<boolean> => {
   }
 };
 
+/**
+ * Importe des clients à partir d'un fichier CSV
+ */
+export const importClientsFromCSV = async (file: File): Promise<{ 
+  success: boolean; 
+  imported?: number; 
+  error?: string;
+}> => {
+  try {
+    const text = await file.text();
+    const rows = text.split('\n');
+    
+    // Parse CSV header
+    const headers = rows[0].split(',').map(h => h.trim().toLowerCase());
+    
+    // Verify required fields
+    const requiredHeaders = ['nom', 'prenom', 'email'];
+    const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+    
+    if (missingHeaders.length > 0) {
+      return {
+        success: false,
+        error: `Champs obligatoires manquants: ${missingHeaders.join(', ')}`
+      };
+    }
+    
+    // Parse data rows
+    const clients = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i].trim();
+      if (!row) continue;
+      
+      const values = row.split(',');
+      if (values.length !== headers.length) {
+        console.warn(`La ligne ${i + 1} ne correspond pas aux en-têtes et sera ignorée.`);
+        continue;
+      }
+      
+      const client: Record<string, any> = {};
+      headers.forEach((header, index) => {
+        client[header] = values[index].trim();
+      });
+      
+      // Skip empty required fields
+      if (!client.nom || !client.prenom || !client.email) {
+        console.warn(`La ligne ${i + 1} a des champs obligatoires manquants et sera ignorée.`);
+        continue;
+      }
+      
+      clients.push({
+        nom: client.nom,
+        prenom: client.prenom,
+        email: client.email,
+        telephone: client.telephone || '',
+        role: 'client',
+        date_creation: new Date().toISOString(),
+        adresse: client.adresse || '',
+        ville: client.ville || '',
+        code_postal: client.code_postal || '',
+        secteur_activite: client.secteur_activite || '',
+        type_entreprise: client.type_entreprise || '',
+        besoins: client.besoins || ''
+      });
+    }
+    
+    if (clients.length === 0) {
+      return {
+        success: false,
+        error: 'Aucun client valide trouvé dans le fichier.'
+      };
+    }
+    
+    // Insert clients in batch
+    const { error } = await supabase
+      .from('profiles')
+      .insert(clients);
+    
+    if (error) {
+      console.error("Erreur lors de l'import des clients:", error);
+      return {
+        success: false,
+        error: `Erreur lors de l'import: ${error.message}`
+      };
+    }
+    
+    return {
+      success: true,
+      imported: clients.length
+    };
+  } catch (error) {
+    console.error("Erreur inattendue lors de l'import des clients:", error);
+    return {
+      success: false,
+      error: "Une erreur inattendue est survenue lors de l'import."
+    };
+  }
+};
+
 // Export du service client pour l'utiliser dans d'autres fichiers
 export const clientService = {
   fetchClients,
   fetchClientById,
   createClient,
   updateClient,
-  deleteClient
+  deleteClient,
+  importClientsFromCSV
 };
