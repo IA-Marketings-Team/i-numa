@@ -8,13 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Filters, UserListItem, DossierListItem } from "../hooks/useDossierConsultations";
+import { Filters, UserListItem, DossierListItem } from "../models/FilterTypes";
 
 interface ConsultationsFilterProps {
   filters: Filters;
   setFilters: React.Dispatch<React.SetStateAction<Filters>>;
   users: UserListItem[];
   dossiers: DossierListItem[];
+  isLoading?: boolean;
 }
 
 const ConsultationsFilter: React.FC<ConsultationsFilterProps> = ({
@@ -22,6 +23,7 @@ const ConsultationsFilter: React.FC<ConsultationsFilterProps> = ({
   setFilters,
   users,
   dossiers,
+  isLoading = false,
 }) => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilters((prev) => ({ ...prev, search: e.target.value }));

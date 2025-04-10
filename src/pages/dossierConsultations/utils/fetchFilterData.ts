@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { UserListItem, DossierListItem } from "../hooks/useDossierConsultations";
+import { UserListItem, DossierListItem } from "../models/FilterTypes";
 
 export const fetchFilterData = async (
   setUsers: (users: UserListItem[]) => void,

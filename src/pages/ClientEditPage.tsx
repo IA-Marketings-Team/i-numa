@@ -54,7 +54,8 @@ const ClientEditPage: React.FC = () => {
     
     setIsSubmitting(true);
     try {
-      const updated = await updateClient({ id, ...data });
+      // Pass both id and data to updateClient
+      const updated = await updateClient(id, data);
       if (updated) {
         toast({
           title: "Client mis à jour",

@@ -4,7 +4,7 @@ import { useDossierConsultations } from "./hooks/useDossierConsultations";
 import ConsultationsTable from "./components/ConsultationsTable";
 import ConsultationsFilter from "./components/ConsultationsFilter";
 import ConsultationsPagination from "./components/ConsultationsPagination";
-import ExportButton from "./components/ExportButton";
+import { ExportButton } from "./components/ExportButton";
 import AccessDeniedCard from "./components/AccessDeniedCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,7 +24,8 @@ const DossierConsultationsPage = () => {
     handleExportCSV
   } = useDossierConsultations();
 
-  const hasAccess = hasPermission(['superviseur', 'responsable', 'admin']);
+  // Use 'superviseur' and 'responsable' instead of roles array
+  const hasAccess = hasPermission(['superviseur', 'responsable']);
 
   if (!hasAccess) {
     return <AccessDeniedCard />;
@@ -65,9 +66,9 @@ const DossierConsultationsPage = () => {
           {totalPages > 1 && (
             <div className="mt-4 flex justify-center">
               <ConsultationsPagination
-                currentPage={page}
+                page={page}
                 totalPages={totalPages}
-                onPageChange={setPage}
+                setPage={setPage}
               />
             </div>
           )}

@@ -11,8 +11,8 @@ import {
 
 interface ConsultationsPaginationProps {
   page: number;
-  setPage: (page: number) => void;
   totalPages: number;
+  setPage: (page: number) => void;
 }
 
 const ConsultationsPagination: React.FC<ConsultationsPaginationProps> = ({ 
