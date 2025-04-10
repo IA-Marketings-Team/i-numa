@@ -106,15 +106,19 @@ export const MeetingForm: React.FC<MeetingFormProps> = ({ meetingId, onSuccess }
     setLoading(true);
 
     try {
+      const dateObj = new Date(formData.date);
+      const heure = format(dateObj, 'HH:mm'); // Extract the time from the datetime
+      
       const meetingData = {
         titre: formData.titre,
         description: formData.description,
-        date: new Date(formData.date),
+        date: dateObj,
         duree: formData.duree,
         lien: formData.lien,
         type: formData.type,
         statut: formData.statut,
-        participants: formData.participants
+        participants: formData.participants,
+        heure: heure // Add the heure property
       };
       
       if (meetingId) {
