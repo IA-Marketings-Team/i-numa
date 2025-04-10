@@ -11,6 +11,7 @@ import { Plus, Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { canAccessDossierType } from "@/utils/accessControl";
 
 const DossierListPage = () => {
   const { filteredDossiers, setStatusFilter, statusFilter, isLoading } = useDossier();
@@ -41,17 +42,51 @@ const DossierListPage = () => {
 
   const handleStatusChange = (status: string) => {
     console.log("[DossierListPage] Status filter changed:", status);
+    
+    // Vérifier si l'utilisateur peut accéder à ce type de dossier
+    if (!canAccessDossierType(user?.role, status) && status !== 'all') {
+      toast({
+        variant: "destructive",
+        title: "Accès limité",
+        description: "Vous n'avez pas accès à ce type de dossier."
+      });
+      return;
+    }
+    
     setStatusFilter(status as DossierStatus | 'all');
   };
 
   const handleNewDossierClick = () => {
     console.log("[DossierListPage] New dossier button clicked, navigating to /dossiers/nouveau");
-    // Ajouter une pause pour debug
-    setTimeout(() => {
-      console.log("[DossierListPage] Executing navigation to /dossiers/nouveau");
-      navigate("/dossiers/nouveau");
-      console.log("[DossierListPage] Navigation executed");
-    }, 100);
+    navigate("/dossiers/nouveau");
+  };
+
+  // Déterminer quels onglets de statut sont visibles en fonction du rôle
+  const renderStatusTabs = () => {
+    // Tous les statuts disponibles
+    const allStatuses = [
+      { value: 'all', label: 'Tous' },
+      { value: 'prospect_chaud', label: 'Prospects chauds' },
+      { value: 'prospect_froid', label: 'Prospects froids' },
+      { value: 'rdv_honore', label: 'RDV honorés' },
+      { value: 'rdv_non_honore', label: 'RDV non honorés' },
+      { value: 'valide', label: 'Validés' },
+      { value: 'signe', label: 'Signés' },
+      { value: 'archive', label: 'Archivés' }
+    ];
+    
+    // Filtrer en fonction du rôle
+    const visibleStatuses = allStatuses.filter(status => 
+      status.value === 'all' || canAccessDossierType(user?.role, status.value)
+    );
+    
+    return (
+      <TabsList className={`grid grid-cols-${Math.min(visibleStatuses.length, 4)} sm:grid-cols-${visibleStatuses.length}`}>
+        {visibleStatuses.map(status => (
+          <TabsTrigger key={status.value} value={status.value}>{status.label}</TabsTrigger>
+        ))}
+      </TabsList>
+    );
   };
 
   return (
@@ -80,15 +115,7 @@ const DossierListPage = () => {
             onValueChange={handleStatusChange}
             className="w-full md:w-auto"
           >
-            <TabsList className="grid grid-cols-3 sm:grid-cols-7">
-              <TabsTrigger value="all">Tous</TabsTrigger>
-              <TabsTrigger value="prospect_chaud">Prospects chauds</TabsTrigger>
-              <TabsTrigger value="prospect_froid">Prospects froids</TabsTrigger>
-              <TabsTrigger value="rdv_en_cours">RDV</TabsTrigger>
-              <TabsTrigger value="valide">Validés</TabsTrigger>
-              <TabsTrigger value="signe">Signés</TabsTrigger>
-              <TabsTrigger value="archive">Archivés</TabsTrigger>
-            </TabsList>
+            {renderStatusTabs()}
           </Tabs>
           
           <div className="relative w-full md:w-64 self-end">

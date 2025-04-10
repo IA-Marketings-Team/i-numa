@@ -47,6 +47,33 @@ export const filterMenuItemsByPermission = (items: any[], userRole: UserRole | u
   
   return items.filter(item => {
     if (!item.permissions) return true;
+    
+    // Restriction spéciale pour les agents: seulement les dossiers prospects
+    if (item.id === 'dossiers' && (userRole === 'agent_phoner' || userRole === 'agent_visio')) {
+      item.restrictToDossierTypes = ['prospect_chaud', 'prospect_froid'];
+    }
+    
     return hasPermission(userRole, item.permissions);
   });
+};
+
+/**
+ * Vérifie si un utilisateur peut accéder à un type spécifique de dossier
+ * @param userRole - Le rôle de l'utilisateur
+ * @param dossierType - Le type de dossier
+ * @returns true si l'utilisateur a accès, false sinon
+ */
+export const canAccessDossierType = (userRole: UserRole | undefined, dossierType: string): boolean => {
+  if (!userRole) return false;
+  
+  // Le responsable et le superviseur ont accès à tous les types de dossiers
+  if (userRole === 'responsable' || userRole === 'superviseur') return true;
+  
+  // Les agents phoner et visio ont seulement accès aux prospects
+  if (userRole === 'agent_phoner' || userRole === 'agent_visio') {
+    return dossierType.startsWith('prospect_');
+  }
+  
+  // Par défaut, accorder l'accès
+  return true;
 };

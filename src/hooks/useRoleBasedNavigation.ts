@@ -23,7 +23,7 @@ export const useRoleBasedNavigation = () => {
     // Filtrer les éléments du menu principal
     const filteredMainItems = filterMenuItemsByPermission(
       navigationConfig.filter(item => 
-        ['tableau-de-bord', 'dossiers', 'clients', 'mes-offres', 'agenda-global', 'agenda', 'taches', 'appels', 'communications', 'statistiques'].includes(item.id)
+        ['tableau-de-bord', 'dossiers', 'clients', 'mes-offres', 'agenda-global', 'agenda', 'taches', 'appels', 'communications', 'statistiques', 'consultations'].includes(item.id)
       ),
       user.role
     );

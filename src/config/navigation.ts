@@ -13,7 +13,8 @@ import {
   Calendar,
   ShoppingCart,
   BookUser,
-  UserPlus
+  UserPlus,
+  Eye
 } from "lucide-react";
 import { UserRole } from "@/types";
 
@@ -95,6 +96,13 @@ export const navigationConfig: NavigationItem[] = [
     path: '/communications',
     icon: MessageSquare,
     permissions: ['agent_phoner', 'agent_visio', 'superviseur', 'responsable']
+  },
+  {
+    id: 'consultations',
+    title: 'Consultations',
+    path: '/consultations',
+    icon: Eye,
+    permissions: ['superviseur', 'responsable']
   },
   {
     id: 'statistiques',

@@ -29,7 +29,8 @@ const StatusSelector: React.FC<StatusSelectorProps> = ({
         <SelectContent>
           <SelectItem value="prospect_chaud">Prospect à chaud</SelectItem>
           <SelectItem value="prospect_froid">Prospect à froid</SelectItem>
-          <SelectItem value="rdv_en_cours">RDV en cours</SelectItem>
+          <SelectItem value="rdv_honore">RDV honoré</SelectItem>
+          <SelectItem value="rdv_non_honore">RDV non honoré</SelectItem>
           <SelectItem value="valide">Validé</SelectItem>
           <SelectItem value="signe">Signé</SelectItem>
           <SelectItem value="archive">Archivé</SelectItem>

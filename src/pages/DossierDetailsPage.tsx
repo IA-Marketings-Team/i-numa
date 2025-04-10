@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
@@ -9,9 +8,9 @@ import DossierDetail from "@/components/dossier/DossierDetail";
 import { useToast } from "@/hooks/use-toast";
 import { Dossier, DossierStatus } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DossierProvider } from "@/contexts/DossierContext";
+import { recordDossierConsultation } from "@/services/consultationService";
 
-const DossierDetailsContent: React.FC = () => {
+const DossierDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { getDossierById, updateDossierStatus, deleteDossier, addComment, addCallNote } = useDossier();
   const { user } = useAuth();
@@ -22,13 +21,21 @@ const DossierDetailsContent: React.FC = () => {
 
   useEffect(() => {
     const fetchDossier = async () => {
-      if (!id) return;
+      if (!id || !user) return;
       
       setIsLoading(true);
       try {
         const dossierData = await getDossierById(id);
         if (dossierData) {
           setDossier(dossierData);
+          
+          // Record the consultation
+          await recordDossierConsultation(
+            id,
+            user.id,
+            `${user.prenom} ${user.nom}`,
+            user.role
+          );
         } else {
           toast({
             variant: "destructive",
@@ -50,7 +57,7 @@ const DossierDetailsContent: React.FC = () => {
     };
 
     fetchDossier();
-  }, [id, getDossierById, navigate, toast]);
+  }, [id, getDossierById, navigate, toast, user]);
 
   const handleStatusChange = async (status: DossierStatus) => {
     if (!dossier) return;
@@ -172,23 +179,9 @@ const DossierDetailsContent: React.FC = () => {
       <div className="container mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center justify-between">
           <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-10 w-32" />
         </div>
-        <Skeleton className="h-96 w-full" />
-      </div>
-    );
-  }
-
-  if (!dossier) {
-    return (
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col items-center justify-center h-64">
-          <p className="text-gray-600 mb-4">Dossier introuvable</p>
-          <Button variant="outline" onClick={() => navigate("/dossiers")} className="flex items-center gap-2">
-            <ChevronLeft className="w-4 h-4" />
-            Retour à la liste
-          </Button>
-        </div>
+        <Skeleton className="h-[200px] w-full" />
+        <Skeleton className="h-[400px] w-full" />
       </div>
     );
   }
@@ -196,7 +189,6 @@ const DossierDetailsContent: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Détail du dossier</h1>
         <Button 
           variant="outline" 
           onClick={() => navigate("/dossiers")}
@@ -207,25 +199,18 @@ const DossierDetailsContent: React.FC = () => {
         </Button>
       </div>
       
-      <DossierDetail 
-        dossier={dossier} 
-        onStatusChange={handleStatusChange}
-        onDelete={handleDeleteDossier}
-        onAddComment={handleAddComment}
-        onAddCallNote={handleAddCallNote}
-        loading={isLoading}
-        userRole={user?.role}
-      />
+      {dossier && (
+        <DossierDetail 
+          dossier={dossier} 
+          onStatusChange={handleStatusChange}
+          onDelete={handleDeleteDossier}
+          loading={isLoading}
+          userRole={user?.role}
+          onAddComment={handleAddComment}
+          onAddCallNote={handleAddCallNote}
+        />
+      )}
     </div>
-  );
-};
-
-// Wrapper component that provides the DossierProvider context
-const DossierDetailsPage: React.FC = () => {
-  return (
-    <DossierProvider>
-      <DossierDetailsContent />
-    </DossierProvider>
   );
 };
 
