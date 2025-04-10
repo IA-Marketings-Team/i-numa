@@ -4,6 +4,7 @@ import { Client } from "@/types";
 import { mapProfileToClient } from "./utils/mapProfileToClient";
 
 interface DbClientInput {
+  id: string; // Added ID field which is required by the profiles table
   nom: string;
   prenom: string;
   email: string;
@@ -33,6 +34,7 @@ export const importClientsFromCSV = async (clientsData: Omit<Client, 'id' | 'dat
   try {
     // Format each client data for database
     const dbClients: DbClientInput[] = clientsData.map(client => ({
+      id: crypto.randomUUID(), // Generate a unique ID for each client
       nom: client.nom,
       prenom: client.prenom,
       email: client.email,
@@ -56,7 +58,6 @@ export const importClientsFromCSV = async (clientsData: Omit<Client, 'id' | 'dat
     }));
 
     // Insert clients into the database
-    // Wrap dbClients in an array to match the expected signature
     const { data, error } = await supabase
       .from('profiles')
       .insert(dbClients)
