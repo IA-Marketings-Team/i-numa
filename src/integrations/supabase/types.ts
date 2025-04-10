@@ -95,6 +95,7 @@ export type Database = {
           dossier_id: string | null
           id: string
           is_call_note: boolean | null
+          is_public: boolean | null
           user_id: string
           user_name: string
           user_role: string
@@ -106,6 +107,7 @@ export type Database = {
           dossier_id?: string | null
           id?: string
           is_call_note?: boolean | null
+          is_public?: boolean | null
           user_id: string
           user_name: string
           user_role: string
@@ -117,6 +119,7 @@ export type Database = {
           dossier_id?: string | null
           id?: string
           is_call_note?: boolean | null
+          is_public?: boolean | null
           user_id?: string
           user_name?: string
           user_role?: string
@@ -311,6 +314,65 @@ export type Database = {
           lu?: boolean | null
           piece_jointes?: string[] | null
           sujet?: string
+        }
+        Relationships: []
+      }
+      featured_products: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          priority: number | null
+          product_id: string | null
+          start_date: string | null
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          priority?: number | null
+          product_id?: string | null
+          start_date?: string | null
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          priority?: number | null
+          product_id?: string | null
+          start_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "featured_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "offres"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inscription_progress: {
+        Row: {
+          current_step: string
+          form_data: Json | null
+          id: string
+          last_activity: string
+          user_id: string | null
+        }
+        Insert: {
+          current_step: string
+          form_data?: Json | null
+          id?: string
+          last_activity?: string
+          user_id?: string | null
+        }
+        Update: {
+          current_step?: string
+          form_data?: Json | null
+          id?: string
+          last_activity?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -591,6 +653,7 @@ export type Database = {
           notes: string | null
           solution_proposee: string | null
           statut: string | null
+          type_rdv: string | null
         }
         Insert: {
           date?: string | null
@@ -603,6 +666,7 @@ export type Database = {
           notes?: string | null
           solution_proposee?: string | null
           statut?: string | null
+          type_rdv?: string | null
         }
         Update: {
           date?: string | null
@@ -615,6 +679,7 @@ export type Database = {
           notes?: string | null
           solution_proposee?: string | null
           statut?: string | null
+          type_rdv?: string | null
         }
         Relationships: [
           {
@@ -757,11 +822,93 @@ export type Database = {
         }
         Relationships: []
       }
+      user_source: {
+        Row: {
+          created_at: string
+          id: string
+          referrer: string | null
+          source: string
+          user_id: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referrer?: string | null
+          source: string
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referrer?: string | null
+          source?: string
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      agent_visio_upcoming_rdv: {
+        Row: {
+          date: string | null
+          dossier_id: string | null
+          heure: string | null
+          honore: boolean | null
+          id: string | null
+          location: string | null
+          meeting_link: string | null
+          notes: string | null
+          solution_proposee: string | null
+          statut: string | null
+          type_rdv: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rendez_vous_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      add_dossier_comment: {
+        Args: {
+          p_dossier_id: string
+          p_content: string
+          p_is_call_note?: boolean
+          p_call_duration?: number
+          p_is_public?: boolean
+        }
+        Returns: string
+      }
+      create_client: {
+        Args: {
+          p_email: string
+          p_password: string
+          p_nom: string
+          p_prenom: string
+          p_telephone: string
+          p_adresse?: string
+          p_ville?: string
+          p_code_postal?: string
+          p_secteur_activite?: string
+          p_type_entreprise?: string
+          p_besoins?: string
+        }
+        Returns: string
+      }
       get_recent_auth_logs: {
         Args: { p_limit?: number }
         Returns: {
@@ -801,9 +948,30 @@ export type Database = {
           user_id: string
         }
       }
+      record_call_note: {
+        Args: { p_dossier_id: string; p_content: string; p_duration: number }
+        Returns: string
+      }
+      record_dossier_consultation: {
+        Args: {
+          p_dossier_id: string
+          p_user_id: string
+          p_user_name: string
+          p_user_role: string
+          p_action?: string
+        }
+        Returns: string
+      }
     }
     Enums: {
-      [_ in never]: never
+      dossier_status:
+        | "prospect_chaud"
+        | "prospect_froid"
+        | "rdv_honore"
+        | "rdv_non_honore"
+        | "valide"
+        | "signe"
+        | "archive"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -918,6 +1086,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      dossier_status: [
+        "prospect_chaud",
+        "prospect_froid",
+        "rdv_honore",
+        "rdv_non_honore",
+        "valide",
+        "signe",
+        "archive",
+      ],
+    },
   },
 } as const

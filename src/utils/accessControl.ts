@@ -1,79 +1,68 @@
 
-import { UserRole } from "@/types";
+import { UserRole, DossierStatus } from "@/types";
 
 /**
- * Vérifie si un utilisateur a les permissions nécessaires en fonction de son rôle
- * @param userRole - Le rôle de l'utilisateur actuel
- * @param requiredRoles - Les rôles autorisés pour accéder à la ressource
- * @returns true si l'utilisateur a accès, false sinon
+ * Check if a user can access a specific dossier status based on their role
  */
-export const hasPermission = (userRole: UserRole | undefined, requiredRoles: UserRole[]): boolean => {
-  if (!userRole) return false;
+export const canAccessDossierType = (userRole?: UserRole, status?: string): boolean => {
+  if (!userRole || !status || status === 'all') return true;
   
-  // Le responsable a accès à tout
-  if (userRole === 'responsable') return true;
+  // Admin roles can access everything
+  if (userRole === 'superviseur' || userRole === 'responsable') {
+    return true;
+  }
   
-  // Vérifier si le rôle de l'utilisateur est dans la liste des rôles requis
-  return requiredRoles.includes(userRole);
-};
-
-/**
- * Obtient la route de redirection par défaut pour un rôle spécifique
- * @param role - Le rôle de l'utilisateur
- * @returns Le chemin de redirection par défaut
- */
-export const getDefaultRouteForRole = (role: UserRole): string => {
-  switch (role) {
-    case 'client':
-      return '/mes-offres';
+  switch (userRole) {
     case 'agent_phoner':
+      // Phoners can only manage prospects and appointments
+      return ['prospect_chaud', 'prospect_froid', 'rdv_honore', 'rdv_non_honore'].includes(status as DossierStatus);
+      
     case 'agent_visio':
-    case 'superviseur':
-    case 'responsable':
-      return '/tableau-de-bord';
+      // Visio agents can only manage appointments and validated dossiers
+      return ['rdv_honore', 'rdv_non_honore', 'valide'].includes(status as DossierStatus);
+      
+    case 'client':
+      // Clients can only view their own dossiers
+      return ['valide', 'signe'].includes(status as DossierStatus);
+      
     default:
-      return '/connexion';
+      return false;
   }
 };
 
 /**
- * Filtre les options de menu en fonction du rôle utilisateur
- * @param items - Les éléments de menu à filtrer
- * @param userRole - Le rôle de l'utilisateur
- * @returns Les éléments de menu filtrés selon les permissions
+ * Check if a user can perform an action on a dossier based on their role
  */
-export const filterMenuItemsByPermission = (items: any[], userRole: UserRole | undefined): any[] => {
-  if (!userRole) return [];
+export const canPerformDossierAction = (
+  userRole?: UserRole, 
+  action?: 'view' | 'edit' | 'delete' | 'add' | 'validate' | 'sign'
+): boolean => {
+  if (!userRole || !action) return false;
   
-  return items.filter(item => {
-    if (!item.permissions) return true;
-    
-    // Restriction spéciale pour les agents: seulement les dossiers prospects
-    if (item.id === 'dossiers' && (userRole === 'agent_phoner' || userRole === 'agent_visio')) {
-      item.restrictToDossierTypes = ['prospect_chaud', 'prospect_froid'];
-    }
-    
-    return hasPermission(userRole, item.permissions);
-  });
-};
-
-/**
- * Vérifie si un utilisateur peut accéder à un type spécifique de dossier
- * @param userRole - Le rôle de l'utilisateur
- * @param dossierType - Le type de dossier
- * @returns true si l'utilisateur a accès, false sinon
- */
-export const canAccessDossierType = (userRole: UserRole | undefined, dossierType: string): boolean => {
-  if (!userRole) return false;
-  
-  // Le responsable et le superviseur ont accès à tous les types de dossiers
-  if (userRole === 'responsable' || userRole === 'superviseur') return true;
-  
-  // Les agents phoner et visio ont seulement accès aux prospects
-  if (userRole === 'agent_phoner' || userRole === 'agent_visio') {
-    return dossierType.startsWith('prospect_');
+  // Admin roles can do everything
+  if (userRole === 'superviseur' || userRole === 'responsable') {
+    return true;
   }
   
-  // Par défaut, accorder l'accès
-  return true;
+  switch (userRole) {
+    case 'agent_phoner':
+      // Phoners can view, edit their assigned dossiers, and create new ones
+      return ['view', 'edit', 'add'].includes(action);
+      
+    case 'agent_visio':
+      // Visio agents can view, edit, and validate dossiers
+      return ['view', 'edit', 'validate'].includes(action);
+      
+    case 'client':
+      // Clients can only view and sign their dossiers
+      return ['view', 'sign'].includes(action);
+      
+    default:
+      return false;
+  }
+};
+
+export default {
+  canAccessDossierType,
+  canPerformDossierAction
 };
