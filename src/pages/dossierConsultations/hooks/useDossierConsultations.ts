@@ -28,7 +28,12 @@ export const useDossierConsultations = () => {
 
   useEffect(() => {
     fetchConsultations();
-    fetchFilterData(setUsers, setDossiers);
+    const fetchData = async () => {
+      const { users, dossiers } = await fetchFilterData();
+      setUsers(users);
+      setDossiers(dossiers);
+    };
+    fetchData();
   }, [page, filters]);
 
   const fetchConsultations = async () => {

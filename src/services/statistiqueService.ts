@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 // Helper function to convert Supabase table data to Statistique objects
 const mapToStatistique = (data: any): Statistique => ({
-  id: data.id,
+  id: data.id || crypto.randomUUID(),
   periode: data.periode,
   dateDebut: new Date(data.date_debut),
   dateFin: new Date(data.date_fin),
@@ -18,11 +18,11 @@ const mapToStatistique = (data: any): Statistique => ({
   chiffreAffaires: data.chiffre_affaires
 });
 
-// Fetch all statistiques
+// Fetch all statistiques from backup table
 export const fetchStatistiques = async (): Promise<Statistique[]> => {
   try {
     const { data, error } = await supabase
-      .from('statistiques')
+      .from('statistiques_backup')
       .select('*')
       .order('date_debut', { ascending: false });
 
@@ -42,7 +42,7 @@ export const fetchStatistiques = async (): Promise<Statistique[]> => {
 export const fetchStatistiquesByPeriode = async (periode: "jour" | "semaine" | "mois"): Promise<Statistique[]> => {
   try {
     const { data, error } = await supabase
-      .from('statistiques')
+      .from('statistiques_backup')
       .select('*')
       .eq('periode', periode)
       .order('date_debut', { ascending: false });
@@ -63,7 +63,7 @@ export const fetchStatistiquesByPeriode = async (periode: "jour" | "semaine" | "
 export const fetchStatistiquesBetweenDates = async (debut: Date, fin: Date): Promise<Statistique[]> => {
   try {
     const { data, error } = await supabase
-      .from('statistiques')
+      .from('statistiques_backup')
       .select('*')
       .gte('date_debut', debut.toISOString())
       .lte('date_fin', fin.toISOString())
@@ -85,7 +85,7 @@ export const fetchStatistiquesBetweenDates = async (debut: Date, fin: Date): Pro
 export const createStatistique = async (statistique: Omit<Statistique, "id">): Promise<Statistique | null> => {
   try {
     const { data, error } = await supabase
-      .from('statistiques')
+      .from('statistiques_backup')
       .insert({
         periode: statistique.periode,
         date_debut: statistique.dateDebut.toISOString(),
@@ -132,7 +132,7 @@ export const updateStatistique = async (id: string, updates: Partial<Statistique
     if (updates.chiffreAffaires !== undefined) updateData.chiffre_affaires = updates.chiffreAffaires;
     
     const { error } = await supabase
-      .from('statistiques')
+      .from('statistiques_backup')
       .update(updateData)
       .eq('id', id);
     
@@ -152,7 +152,7 @@ export const updateStatistique = async (id: string, updates: Partial<Statistique
 export const deleteStatistique = async (id: string): Promise<boolean> => {
   try {
     const { error } = await supabase
-      .from('statistiques')
+      .from('statistiques_backup')
       .delete()
       .eq('id', id);
     

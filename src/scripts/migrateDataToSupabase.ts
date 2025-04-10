@@ -367,7 +367,7 @@ export const migrateData = async () => {
     console.log("Migration des statistiques...");
     for (const stat of statistiques) {
       const { error } = await supabase
-        .from('statistiques')
+        .from('statistiques_backup')
         .insert({
           periode: stat.periode,
           date_debut: stat.dateDebut.toISOString(),

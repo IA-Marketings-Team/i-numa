@@ -2,12 +2,15 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Client } from "@/types";
 import Papa from "papaparse";
+import { mapProfileToClient } from "./utils/mapProfileToClient";
+import { mapClientToDbFormat } from "./utils/mapClientToDbFormat";
 
 // Fetch all clients
 export const fetchClients = async (): Promise<Client[]> => {
   const { data, error } = await supabase
-    .from("clients")
+    .from("profiles")
     .select("*")
+    .eq("role", "client")
     .order("nom", { ascending: true });
 
   if (error) {
@@ -15,18 +18,18 @@ export const fetchClients = async (): Promise<Client[]> => {
     throw new Error("Failed to fetch clients");
   }
 
-  return data || [];
+  return (data || []).map(mapProfileToClient);
 };
 
 // Create a new client
 export const createClient = async (clientData: Omit<Client, "id" | "dateCreation">): Promise<Client> => {
-  const newClient = {
+  const newClient = mapClientToDbFormat({
     ...clientData,
     date_creation: new Date().toISOString(),
-  };
+  });
 
   const { data, error } = await supabase
-    .from("clients")
+    .from("profiles")
     .insert(newClient)
     .select()
     .single();
@@ -36,13 +39,13 @@ export const createClient = async (clientData: Omit<Client, "id" | "dateCreation
     throw new Error("Failed to create client");
   }
 
-  return data;
+  return mapProfileToClient(data);
 };
 
 // Fetch a client by ID
 export const fetchClientById = async (id: string): Promise<Client> => {
   const { data, error } = await supabase
-    .from("clients")
+    .from("profiles")
     .select("*")
     .eq("id", id)
     .maybeSingle();
@@ -56,14 +59,16 @@ export const fetchClientById = async (id: string): Promise<Client> => {
     throw new Error(`Client with ID ${id} not found`);
   }
 
-  return data;
+  return mapProfileToClient(data);
 };
 
 // Update a client
 export const updateClient = async (id: string, clientData: Partial<Client>): Promise<Client> => {
+  const updatedData = mapClientToDbFormat(clientData);
+  
   const { data, error } = await supabase
-    .from("clients")
-    .update(clientData)
+    .from("profiles")
+    .update(updatedData)
     .eq("id", id)
     .select()
     .maybeSingle();
@@ -77,15 +82,16 @@ export const updateClient = async (id: string, clientData: Partial<Client>): Pro
     throw new Error(`Client with ID ${id} not found`);
   }
 
-  return data;
+  return mapProfileToClient(data);
 };
 
 // Delete a client
 export const deleteClient = async (id: string): Promise<boolean> => {
   const { error } = await supabase
-    .from("clients")
+    .from("profiles")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("role", "client");
 
   if (error) {
     console.error(`Error deleting client with ID ${id}:`, error);
@@ -100,15 +106,15 @@ export const importClientsFromCSV = async (
   clientsData: Omit<Client, "id" | "dateCreation" | "role">[]
 ): Promise<Client[]> => {
   // Prepare data for insertion
-  const clientsToInsert = clientsData.map(client => ({
+  const clientsToInsert = clientsData.map(client => mapClientToDbFormat({
     ...client,
+    role: "client",
     date_creation: new Date().toISOString(),
-    role: "client"
   }));
 
   // Insert clients into the database
   const { data, error } = await supabase
-    .from("clients")
+    .from("profiles")
     .insert(clientsToInsert)
     .select();
 
@@ -117,7 +123,7 @@ export const importClientsFromCSV = async (
     throw new Error("Failed to import clients");
   }
 
-  return data || [];
+  return (data || []).map(mapProfileToClient);
 };
 
 // Parse CSV file and validate data
@@ -139,9 +145,9 @@ export const parseCSVFile = async (file: File): Promise<Omit<Client, "id" | "dat
               telephone: row.telephone || row.Telephone || row.tel || "",
               adresse: row.adresse || row.Adresse || "",
               ville: row.ville || row.Ville || "",
-              code_postal: row.code_postal || row.Code_Postal || row.codePostal || "",
-              secteur_activite: row.secteur_activite || row.Secteur_Activite || row.secteurActivite || "",
-              type_entreprise: row.type_entreprise || row.Type_Entreprise || row.typeEntreprise || "",
+              codePostal: row.code_postal || row.Code_Postal || row.codePostal || "",
+              secteurActivite: row.secteur_activite || row.Secteur_Activite || row.secteurActivite || "",
+              typeEntreprise: row.type_entreprise || row.Type_Entreprise || row.typeEntreprise || "",
               commentaires: row.commentaires || row.Commentaires || ""
             };
             

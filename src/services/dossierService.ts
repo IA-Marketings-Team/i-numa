@@ -1,318 +1,281 @@
-import { supabase } from "@/integrations/supabase/client";
-import { Dossier, DossierStatus, Offre } from "@/types";
-import { fetchClientById } from "@/services/client/clientService";
 
-export const fetchDossiers = async (): Promise<Dossier[]> => {
+import { supabase } from "@/integrations/supabase/client";
+import { Dossier, Offre } from "@/types";
+import { fetchClientById } from "./client/clientService";
+import { offreService } from "./offreService";
+
+/**
+ * Get all dossiers with related data
+ */
+export const getDossiers = async (): Promise<Dossier[]> => {
   const { data, error } = await supabase
-    .from('dossiers')
-    .select('*');
-  
+    .from("dossiers")
+    .select("*")
+    .order("date_creation", { ascending: false });
+
   if (error) {
     console.error("Error fetching dossiers:", error);
-    throw new Error(error.message);
+    throw new Error("Failed to fetch dossiers");
   }
-  
-  // Fetch dossiers with offres and clients
-  const dossiers: Dossier[] = await Promise.all(
-    data.map(async (item) => {
-      // Get related offres
-      const { data: offresData, error: offresError } = await supabase
-        .from('dossier_offres')
-        .select('offre_id')
-        .eq('dossier_id', item.id);
-      
+
+  // Enhance with clients and offres data
+  const enhancedDossiers = await Promise.all(
+    data.map(async (dossier) => {
+      // Get client
+      let client = null;
+      try {
+        if (dossier.client_id) {
+          client = await fetchClientById(dossier.client_id);
+        }
+      } catch (err) {
+        console.error(`Error fetching client for dossier ${dossier.id}:`, err);
+      }
+
+      // Get offres
       let offres: Offre[] = [];
-      
-      if (!offresError && offresData) {
-        // Fetch full offre details for each offre_id
-        const offresPromises = offresData.map(async (relation) => {
-          const offre = await fetchOffreById(relation.offre_id);
-          return offre;
-        });
-        
-        // Filter out null values and ensure type compatibility
-        const fetchedOffres = await Promise.all(offresPromises);
-        offres = fetchedOffres.filter(Boolean).map(offre => ({
-          id: offre?.id || "",
-          nom: offre?.nom || "",
-          description: offre?.description || "",
-          type: (offre?.type as "SEO" | "Google Ads" | "Email X" | "Foner" | "Devis") || "SEO",
-          prix: offre?.prix
-        }));
-      } else {
-        console.error("Error fetching dossier offres:", offresError);
+      try {
+        const { data: dossierOffres, error: offreError } = await supabase
+          .from("dossier_offres")
+          .select("offre_id")
+          .eq("dossier_id", dossier.id);
+
+        if (!offreError && dossierOffres.length > 0) {
+          offres = await Promise.all(
+            dossierOffres.map(async (item) => await offreService.fetchOffreById(item.offre_id))
+          );
+        }
+      } catch (err) {
+        console.error(`Error fetching offres for dossier ${dossier.id}:`, err);
       }
-      
-      // Fetch client details
-      let client: Client | null = null;
-      if (item.client_id) {
-        client = await fetchClientById(item.client_id);
-      }
-      
-      if (!client && item.client_id) {
-        console.error(`Client not found for ID: ${item.client_id}`);
-        // Create a placeholder client to prevent error
-        client = {
-          id: item.client_id,
-          nom: "Client inconnu",
-          prenom: "",
-          email: "",
-          telephone: "",
-          adresse: "",
-          role: "client",
-          dateCreation: new Date(),
-          secteurActivite: "",
-          typeEntreprise: "",
-          besoins: ""
-        };
-      }
-      
-      // Transform Supabase data to match our Dossier type
+
       return {
-        id: item.id,
-        clientId: item.client_id || "",
-        client: client as Client,
-        agentPhonerId: item.agent_phoner_id || undefined,
-        agentVisioId: item.agent_visio_id || undefined,
-        status: (item.status || 'prospect') as DossierStatus,
-        dateCreation: new Date(item.date_creation || new Date()),
-        dateMiseAJour: new Date(item.date_mise_a_jour || new Date()),
-        dateRdv: item.date_rdv ? new Date(item.date_rdv) : undefined,
-        dateValidation: item.date_validation ? new Date(item.date_validation) : undefined,
-        dateSignature: item.date_signature ? new Date(item.date_signature) : undefined,
-        dateArchivage: item.date_archivage ? new Date(item.date_archivage) : undefined,
-        montant: item.montant || undefined,
-        notes: item.notes || '',
-        offres
+        id: dossier.id,
+        client: client || { id: "", nom: "Inconnu", prenom: "Client", email: "" },
+        agentPhonerId: dossier.agent_phoner_id,
+        agentVisioId: dossier.agent_visio_id,
+        status: dossier.status,
+        notes: dossier.notes,
+        montant: dossier.montant,
+        dateCreation: dossier.date_creation ? new Date(dossier.date_creation) : new Date(),
+        dateMiseAJour: dossier.date_mise_a_jour ? new Date(dossier.date_mise_a_jour) : new Date(),
+        dateRdv: dossier.date_rdv ? new Date(dossier.date_rdv) : undefined,
+        dateValidation: dossier.date_validation ? new Date(dossier.date_validation) : undefined,
+        dateSignature: dossier.date_signature ? new Date(dossier.date_signature) : undefined,
+        dateArchivage: dossier.date_archivage ? new Date(dossier.date_archivage) : undefined,
+        offres,
       };
     })
   );
-  
-  return dossiers;
+
+  return enhancedDossiers;
 };
 
-export const fetchDossierById = async (id: string): Promise<Dossier | null> => {
-  const { data: item, error } = await supabase
-    .from('dossiers')
-    .select('*')
-    .eq('id', id)
-    .single();
-  
+/**
+ * Get a dossier by ID with related data
+ */
+export const getDossierById = async (id: string): Promise<Dossier> => {
+  const { data, error } = await supabase
+    .from("dossiers")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
   if (error) {
-    console.error(`Error fetching dossier with ID ${id}:`, error);
-    throw new Error(error.message);
+    console.error("Error fetching dossier:", error);
+    throw new Error("Failed to fetch dossier");
   }
-  
-  if (!item) return null;
-  
-  // Get related offres
-  const { data: offresData, error: offresError } = await supabase
-    .from('dossier_offres')
-    .select('offre_id')
-    .eq('dossier_id', id);
-  
+
+  if (!data) {
+    throw new Error("Dossier not found");
+  }
+
+  // Get client
+  let client = null;
+  try {
+    if (data.client_id) {
+      client = await fetchClientById(data.client_id);
+    }
+  } catch (err) {
+    console.error(`Error fetching client for dossier ${id}:`, err);
+  }
+
+  // Get offres
   let offres: Offre[] = [];
-  
-  if (!offresError && offresData) {
-    // Fetch full offre details for each offre_id
-    const offresPromises = offresData.map(async (relation) => {
-      const offre = await fetchOffreById(relation.offre_id);
-      return offre;
-    });
-    
-    // Filter out null values and ensure type compatibility
-    const fetchedOffres = await Promise.all(offresPromises);
-    offres = fetchedOffres.filter(Boolean).map(offre => ({
-      id: offre?.id || "",
-      nom: offre?.nom || "",
-      description: offre?.description || "",
-      type: (offre?.type as "SEO" | "Google Ads" | "Email X" | "Foner" | "Devis") || "SEO",
-      prix: offre?.prix
-    }));
-  } else {
-    console.error("Error fetching dossier offres:", offresError);
+  try {
+    const { data: dossierOffres, error: offreError } = await supabase
+      .from("dossier_offres")
+      .select("offre_id")
+      .eq("dossier_id", id);
+
+    if (!offreError && dossierOffres.length > 0) {
+      offres = await Promise.all(
+        dossierOffres.map(async (item) => await offreService.fetchOffreById(item.offre_id))
+      );
+    }
+  } catch (err) {
+    console.error(`Error fetching offres for dossier ${id}:`, err);
   }
-  
-  // Fetch client details
-  let client: Client | null = null;
-  if (item.client_id) {
-    client = await fetchClientById(item.client_id);
-  }
-  
-  if (!client && item.client_id) {
-    console.error(`Client not found for ID: ${item.client_id}`);
-    // Create a placeholder client to prevent error
-    client = {
-      id: item.client_id,
-      nom: "Client inconnu",
-      prenom: "",
-      email: "",
-      telephone: "",
-      adresse: "",
-      role: "client",
-      dateCreation: new Date(),
-      secteurActivite: "",
-      typeEntreprise: "",
-      besoins: ""
-    };
-  }
-  
-  // Transform Supabase data to match our Dossier type
-  const dossier: Dossier = {
-    id: item.id,
-    clientId: item.client_id || "",
-    client: client as Client,
-    agentPhonerId: item.agent_phoner_id || undefined,
-    agentVisioId: item.agent_visio_id || undefined,
-    status: (item.status || 'prospect') as DossierStatus,
-    dateCreation: new Date(item.date_creation || new Date()),
-    dateMiseAJour: new Date(item.date_mise_a_jour || new Date()),
-    dateRdv: item.date_rdv ? new Date(item.date_rdv) : undefined,
-    dateValidation: item.date_validation ? new Date(item.date_validation) : undefined,
-    dateSignature: item.date_signature ? new Date(item.date_signature) : undefined,
-    dateArchivage: item.date_archivage ? new Date(item.date_archivage) : undefined,
-    montant: item.montant || undefined,
-    notes: item.notes || '',
-    offres
+
+  return {
+    id: data.id,
+    client: client || { id: "", nom: "Inconnu", prenom: "Client", email: "" },
+    agentPhonerId: data.agent_phoner_id,
+    agentVisioId: data.agent_visio_id,
+    status: data.status,
+    notes: data.notes,
+    montant: data.montant,
+    dateCreation: data.date_creation ? new Date(data.date_creation) : new Date(),
+    dateMiseAJour: data.date_mise_a_jour ? new Date(data.date_mise_a_jour) : new Date(),
+    dateRdv: data.date_rdv ? new Date(data.date_rdv) : undefined,
+    dateValidation: data.date_validation ? new Date(data.date_validation) : undefined,
+    dateSignature: data.date_signature ? new Date(data.date_signature) : undefined,
+    dateArchivage: data.date_archivage ? new Date(data.date_archivage) : undefined,
+    offres,
   };
-  
-  return dossier;
 };
 
-export const createDossier = async (
-  dossierData: Omit<Dossier, "id" | "dateCreation" | "dateMiseAJour">
-): Promise<Dossier | null> => {
-  // Convert to Supabase table structure
-  const dossierForSupabase = {
-    client_id: dossierData.clientId,
+export const createDossier = async (dossierData: Partial<Dossier>): Promise<Dossier> => {
+  const now = new Date().toISOString();
+  
+  const dossierToCreate = {
+    client_id: dossierData.client?.id,
     agent_phoner_id: dossierData.agentPhonerId,
     agent_visio_id: dossierData.agentVisioId,
-    status: dossierData.status,
-    date_rdv: dossierData.dateRdv ? new Date(dossierData.dateRdv).toISOString() : null,
-    date_validation: dossierData.dateValidation ? new Date(dossierData.dateValidation).toISOString() : null,
-    date_signature: dossierData.dateSignature ? new Date(dossierData.dateSignature).toISOString() : null,
-    date_archivage: dossierData.dateArchivage ? new Date(dossierData.dateArchivage).toISOString() : null,
+    status: dossierData.status || "nouveau",
+    notes: dossierData.notes,
     montant: dossierData.montant,
-    notes: dossierData.notes
+    date_creation: now,
+    date_mise_a_jour: now,
+    date_rdv: dossierData.dateRdv?.toISOString(),
+    date_validation: dossierData.dateValidation?.toISOString(),
+    date_signature: dossierData.dateSignature?.toISOString(),
+    date_archivage: dossierData.dateArchivage?.toISOString()
   };
-  
-  // Insert dossier
-  const { data: newDossier, error } = await supabase
-    .from('dossiers')
-    .insert([dossierForSupabase])
+
+  const { data, error } = await supabase
+    .from("dossiers")
+    .insert(dossierToCreate)
     .select()
     .single();
-  
+
   if (error) {
     console.error("Error creating dossier:", error);
-    throw new Error(error.message);
+    throw new Error("Failed to create dossier");
   }
-  
-  // Add offre relationships if any
+
+  // Add offres if provided
   if (dossierData.offres && dossierData.offres.length > 0) {
-    const offreRelations = dossierData.offres.map(offre => ({
-      dossier_id: newDossier.id,
+    const dossierOffres = dossierData.offres.map(offre => ({
+      dossier_id: data.id,
       offre_id: offre.id
     }));
-    
-    const { error: relError } = await supabase
-      .from('dossier_offres')
-      .insert(offreRelations);
-    
-    if (relError) {
-      console.error("Error adding offres to dossier:", relError);
+
+    const { error: offreError } = await supabase
+      .from("dossier_offres")
+      .insert(dossierOffres);
+
+    if (offreError) {
+      console.error("Error adding offres to dossier:", offreError);
     }
   }
-  
-  // Return created dossier
-  return await fetchDossierById(newDossier.id);
+
+  // Fetch the complete dossier with client and offres
+  return await getDossierById(data.id);
 };
 
-export const updateDossier = async (id: string, updates: Partial<Dossier>): Promise<boolean> => {
-  // Convert to Supabase table structure
-  const updateData: any = {};
-  
-  if (updates.clientId !== undefined) updateData.client_id = updates.clientId;
-  if (updates.agentPhonerId !== undefined) updateData.agent_phoner_id = updates.agentPhonerId;
-  if (updates.agentVisioId !== undefined) updateData.agent_visio_id = updates.agentVisioId;
-  if (updates.status !== undefined) updateData.status = updates.status;
-  if (updates.dateRdv !== undefined) updateData.date_rdv = updates.dateRdv ? new Date(updates.dateRdv).toISOString() : null;
-  if (updates.dateValidation !== undefined) updateData.date_validation = updates.dateValidation ? new Date(updates.dateValidation).toISOString() : null;
-  if (updates.dateSignature !== undefined) updateData.date_signature = updates.dateSignature ? new Date(updates.dateSignature).toISOString() : null;
-  if (updates.dateArchivage !== undefined) updateData.date_archivage = updates.dateArchivage ? new Date(updates.dateArchivage).toISOString() : null;
-  if (updates.montant !== undefined) updateData.montant = updates.montant;
-  if (updates.notes !== undefined) updateData.notes = updates.notes;
-  
-  // Always update the date_mise_a_jour field
-  updateData.date_mise_a_jour = new Date().toISOString();
-  
-  // Update dossier
-  const { error } = await supabase
-    .from('dossiers')
-    .update(updateData)
-    .eq('id', id);
-  
-  if (error) {
-    console.error(`Error updating dossier with ID ${id}:`, error);
-    throw new Error(error.message);
+export const updateDossier = async (id: string, updates: Partial<Dossier>): Promise<Dossier> => {
+  const dossierUpdates: any = {
+    date_mise_a_jour: new Date().toISOString()
+  };
+
+  if (updates.client?.id) dossierUpdates.client_id = updates.client.id;
+  if (updates.agentPhonerId !== undefined) dossierUpdates.agent_phoner_id = updates.agentPhonerId;
+  if (updates.agentVisioId !== undefined) dossierUpdates.agent_visio_id = updates.agentVisioId;
+  if (updates.status !== undefined) dossierUpdates.status = updates.status;
+  if (updates.notes !== undefined) dossierUpdates.notes = updates.notes;
+  if (updates.montant !== undefined) dossierUpdates.montant = updates.montant;
+  if (updates.dateRdv !== undefined) dossierUpdates.date_rdv = updates.dateRdv?.toISOString();
+  if (updates.dateValidation !== undefined) dossierUpdates.date_validation = updates.dateValidation?.toISOString();
+  if (updates.dateSignature !== undefined) dossierUpdates.date_signature = updates.dateSignature?.toISOString();
+  if (updates.dateArchivage !== undefined) dossierUpdates.date_archivage = updates.dateArchivage?.toISOString();
+
+  // Special handling for status transitions
+  if (updates.status === "archive" && !updates.dateArchivage) {
+    dossierUpdates.date_archivage = new Date().toISOString();
   }
-  
-  // Update offres if provided
-  if (updates.offres && updates.offres.length >= 0) {
-    // First, delete all existing relationships
+
+  const { error } = await supabase
+    .from("dossiers")
+    .update(dossierUpdates)
+    .eq("id", id);
+
+  if (error) {
+    console.error(`Error updating dossier ${id}:`, error);
+    throw new Error("Failed to update dossier");
+  }
+
+  // Handle offres updates if provided
+  if (updates.offres) {
+    // First, remove all existing offres
     const { error: deleteError } = await supabase
-      .from('dossier_offres')
+      .from("dossier_offres")
       .delete()
-      .eq('dossier_id', id);
-    
+      .eq("dossier_id", id);
+
     if (deleteError) {
       console.error(`Error removing offres from dossier ${id}:`, deleteError);
-      throw new Error(deleteError.message);
     }
-    
-    // Then, add new relationships if there are any
+
+    // Then add the new offres
     if (updates.offres.length > 0) {
-      const offreRelations = updates.offres.map(offre => ({
+      const dossierOffres = updates.offres.map(offre => ({
         dossier_id: id,
         offre_id: offre.id
       }));
-      
+
       const { error: insertError } = await supabase
-        .from('dossier_offres')
-        .insert(offreRelations);
-      
+        .from("dossier_offres")
+        .insert(dossierOffres);
+
       if (insertError) {
         console.error(`Error adding offres to dossier ${id}:`, insertError);
-        throw new Error(insertError.message);
       }
     }
   }
-  
-  return true;
+
+  // Fetch the updated dossier
+  return await getDossierById(id);
 };
 
 export const deleteDossier = async (id: string): Promise<boolean> => {
-  // First delete all offre relationships
-  const { error: relError } = await supabase
-    .from('dossier_offres')
+  // First, delete related dossier_offres
+  const { error: offreError } = await supabase
+    .from("dossier_offres")
     .delete()
-    .eq('dossier_id', id);
-  
-  if (relError) {
-    console.error(`Error deleting dossier offres for dossier ${id}:`, relError);
-    throw new Error(relError.message);
+    .eq("dossier_id", id);
+
+  if (offreError) {
+    console.error(`Error deleting related offres for dossier ${id}:`, offreError);
   }
-  
+
   // Then delete the dossier
   const { error } = await supabase
-    .from('dossiers')
+    .from("dossiers")
     .delete()
-    .eq('id', id);
-  
+    .eq("id", id);
+
   if (error) {
-    console.error(`Error deleting dossier with ID ${id}:`, error);
-    throw new Error(error.message);
+    console.error(`Error deleting dossier ${id}:`, error);
+    throw new Error("Failed to delete dossier");
   }
-  
+
   return true;
+};
+
+export const dossierService = {
+  getDossiers,
+  getDossierById,
+  createDossier,
+  updateDossier,
+  deleteDossier
 };
