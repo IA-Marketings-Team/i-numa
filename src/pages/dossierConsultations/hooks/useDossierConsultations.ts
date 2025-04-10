@@ -4,8 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { DossierConsultation } from "@/types";
 import { fetchFilterData } from "../utils/fetchFilterData";
-import { useToast } from "@/hooks/use-toast";
-import { Toast } from "@/hooks/use-toast";
+import { toast as showToast } from "@/hooks/use-toast";
 
 // Define interfaces for the filter items
 export interface UserListItem {
@@ -26,7 +25,7 @@ export interface Filters {
   dossierFilter: string;
 }
 
-export const useDossierConsultations = (toast: ReturnType<typeof useToast>) => {
+export const useDossierConsultations = () => {
   const [consultations, setConsultations] = useState<DossierConsultation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -103,7 +102,7 @@ export const useDossierConsultations = (toast: ReturnType<typeof useToast>) => {
       }
     } catch (error) {
       console.error("Erreur lors du chargement des consultations:", error);
-      toast({
+      showToast({
         variant: "destructive",
         title: "Erreur",
         description: "Impossible de charger l'historique des consultations"

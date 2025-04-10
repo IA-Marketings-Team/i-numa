@@ -1,28 +1,25 @@
-
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState, useEffect } from "react";
 import { Client } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { createClient, updateClient } from "@/services/client/clientService";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 
-interface ClientFormProps {
-  initialData?: Client;
-  isEditing?: boolean;
+export interface ClientFormProps {
+  client?: Client;
+  onSubmit: (data: any) => Promise<void>;
+  onCancel: () => void;
+  isLoading?: boolean;
 }
 
-const ClientForm: React.FC<ClientFormProps> = ({ 
-  initialData,
-  isEditing = false 
+const ClientForm: React.FC<ClientFormProps> = ({
+  client,
+  onSubmit,
+  onCancel,
+  isLoading = false
 }) => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<Partial<Client>>(initialData || {
+  const [formData, setFormData] = useState({
     nom: "",
     prenom: "",
     email: "",
@@ -30,77 +27,52 @@ const ClientForm: React.FC<ClientFormProps> = ({
     adresse: "",
     ville: "",
     codePostal: "",
-    iban: "",
-    bic: "",
-    nomBanque: "",
     secteurActivite: "",
     typeEntreprise: "",
-    besoins: "",
     statutJuridique: "",
     activiteDetail: "",
     siteWeb: "",
+    besoins: "",
+    iban: "",
+    bic: "",
+    nomBanque: "",
     moyensCommunication: [],
     commentaires: ""
   });
 
+  useEffect(() => {
+    if (client) {
+      setFormData({
+        nom: client.nom || "",
+        prenom: client.prenom || "",
+        email: client.email || "",
+        telephone: client.telephone || "",
+        adresse: client.adresse || "",
+        ville: client.ville || "",
+        codePostal: client.codePostal || "",
+        secteurActivite: client.secteurActivite || "",
+        typeEntreprise: client.typeEntreprise || "",
+        statutJuridique: client.statutJuridique || "",
+        activiteDetail: client.activiteDetail || "",
+        siteWeb: client.siteWeb || "",
+        besoins: client.besoins || "",
+        iban: client.iban || "",
+        bic: client.bic || "",
+        nomBanque: client.nomBanque || "",
+        moyensCommunication: client.moyensCommunication || [],
+        commentaires: client.commentaires || ""
+      });
+    }
+  }, [client]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      // Validate required fields
-      if (!formData.nom || !formData.prenom || !formData.email) {
-        toast({
-          variant: "destructive",
-          title: "Champs obligatoires",
-          description: "Veuillez remplir tous les champs obligatoires.",
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (isEditing && initialData) {
-        // Update existing client
-        const success = await updateClient(initialData.id, formData);
-        if (success) {
-          toast({
-            title: "Client mis à jour",
-            description: "Les informations du client ont été mises à jour avec succès.",
-          });
-          navigate(`/clients/${initialData.id}`);
-        } else {
-          throw new Error("La mise à jour a échoué");
-        }
-      } else {
-        // Create new client
-        const newClient = await createClient(formData as Omit<Client, 'id' | 'dateCreation' | 'role'>);
-        if (newClient) {
-          toast({
-            title: "Client créé",
-            description: "Le client a été créé avec succès.",
-          });
-          navigate(`/clients/${newClient.id}`);
-        } else {
-          throw new Error("La création a échoué");
-        }
-      }
-    } catch (error) {
-      console.error("Form submission error:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: isEditing 
-          ? "Impossible de mettre à jour le client." 
-          : "Impossible de créer le client.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    await onSubmit(formData);
   };
 
   return (
@@ -333,15 +305,15 @@ const ClientForm: React.FC<ClientFormProps> = ({
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate(isEditing && initialData ? `/clients/${initialData.id}` : "/clients")}
-            disabled={isSubmitting}
+            onClick={() => onCancel()}
+            disabled={isLoading}
           >
             Annuler
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting 
-              ? (isEditing ? "Mise à jour..." : "Création...") 
-              : (isEditing ? "Mettre à jour" : "Créer")}
+          <Button type="submit" disabled={isLoading}>
+            {isLoading 
+              ? "En cours..." 
+              : "Créer"}
           </Button>
         </div>
       </div>

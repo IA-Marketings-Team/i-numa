@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
@@ -153,7 +152,7 @@ const DossierDetailsPage: React.FC = () => {
       setIsLoading(true);
       const success = await addCallNote(
         dossier.id, 
-        `${callData.notes}\n\nRésultat: ${callData.outcome}${callData.followUpDate ? `\nRappel prévu le: ${callData.followUpDate.toLocaleDateString()}` : ''}`,
+        callData.content,
         callData.duration
       );
       

@@ -21,15 +21,14 @@ export const createClient = async (clientData: Omit<Client, 'id' | 'dateCreation
     const { data, error } = await supabase
       .from('profiles')
       .insert([dbData])
-      .select()
-      .single();
+      .select();
 
-    if (error || !data) {
+    if (error || !data || data.length === 0) {
       console.error("Erreur lors de la création du client:", error);
       return null;
     }
 
-    return mapProfileToClient(data);
+    return mapProfileToClient(data[0]);
   } catch (error) {
     console.error("Erreur inattendue lors de la création du client:", error);
     return null;

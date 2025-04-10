@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -41,9 +40,8 @@ const DossierComments: React.FC<DossierCommentsProps> = ({
     if (!newComment.trim()) return;
     
     const callData: CallData = {
+      content: newComment,
       duration: callDuration,
-      notes: newComment,
-      outcome: 'discussed'
     };
     
     await onAddCallNote(callData);
@@ -81,7 +79,6 @@ const DossierComments: React.FC<DossierCommentsProps> = ({
       .toUpperCase();
   };
 
-  // Vérifie si l'utilisateur peut créer des commentaires publics
   const canMakePublicComments = user?.role === 'superviseur' || user?.role === 'responsable';
 
   return (

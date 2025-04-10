@@ -32,7 +32,6 @@ const DossierPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [dossier, setDossier] = useState<Dossier | null>(null);
   
-  // States for modals
   const [isAddRdvOpen, setIsAddRdvOpen] = useState(false);
   const [isCallNoteOpen, setIsCallNoteOpen] = useState(false);
   const [rdvForm, setRdvForm] = useState({
@@ -106,12 +105,11 @@ const DossierPage = () => {
     if (!dossier) return;
     
     const callData: CallData = {
-      notes: callNote,
+      content: callNote,
       duration: callDuration,
-      outcome: 'discussed'
     };
     
-    await addCallNote(dossier.id, callData.notes, callData.duration);
+    await addCallNote(dossier.id, callData.content, callData.duration);
     
     setIsCallNoteOpen(false);
     setCallNote("");
@@ -218,7 +216,7 @@ const DossierPage = () => {
     
     try {
       setIsLoading(true);
-      await addCallNote(dossier.id, callData.notes, callData.duration);
+      await addCallNote(dossier.id, callData.content, callData.duration);
       
       const refreshedDossier = await getDossierById(dossier.id);
       if (refreshedDossier) {

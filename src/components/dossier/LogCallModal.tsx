@@ -16,6 +16,9 @@ import { Phone } from "lucide-react";
 export interface CallData {
   content: string;
   duration: number;
+  notes?: string;
+  outcome?: string;
+  followUpDate?: Date;
 }
 
 interface LogCallModalProps {
@@ -46,7 +49,9 @@ const LogCallModal: React.FC<LogCallModalProps> = ({
     try {
       await onSubmit({
         content: notes,
+        notes: notes,
         duration: durationInMinutes,
+        outcome: "discussed"
       });
       // Modal will be closed by parent after successful submission
     } catch (error) {
