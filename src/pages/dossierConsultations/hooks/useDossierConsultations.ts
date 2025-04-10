@@ -34,43 +34,49 @@ export const useDossierConsultations = () => {
   const fetchConsultations = async () => {
     setIsLoading(true);
     try {
-      // Initialize query builder - separated to avoid deep nesting
-      let query = supabase.from("dossier_consultations").select("*", { count: "exact" });
+      // Build query parts separately to avoid deep type nesting
+      const baseQuery = supabase.from("dossier_consultations").select("*", { count: "exact" });
       
-      // Apply search filter if present
-      if (filters.search) {
-        query = query.or(`user_name.ilike.%${filters.search}%,action.ilike.%${filters.search}%`);
-      }
+      // Create a function that applies filters to avoid chaining directly
+      const applyFilters = () => {
+        let query = baseQuery;
+        
+        if (filters.search) {
+          query = query.or(`user_name.ilike.%${filters.search}%,action.ilike.%${filters.search}%`);
+        }
+        
+        if (filters.userFilter) {
+          query = query.eq("user_id", filters.userFilter);
+        }
+        
+        if (filters.actionFilter) {
+          query = query.eq("action", filters.actionFilter);
+        }
+        
+        if (filters.dateFilter) {
+          const dateString = format(filters.dateFilter, "yyyy-MM-dd");
+          query = query.gte("timestamp", `${dateString}T00:00:00Z`);
+          query = query.lte("timestamp", `${dateString}T23:59:59Z`);
+        }
+        
+        if (filters.dossierFilter) {
+          query = query.eq("dossier_id", filters.dossierFilter);
+        }
+        
+        return query;
+      };
       
-      // Apply other filters separately
-      if (filters.userFilter) {
-        query = query.eq("user_id", filters.userFilter);
-      }
+      // Apply all filters
+      const filteredQuery = applyFilters();
       
-      if (filters.actionFilter) {
-        query = query.eq("action", filters.actionFilter);
-      }
-      
-      if (filters.dateFilter) {
-        const dateString = format(filters.dateFilter, "yyyy-MM-dd");
-        query = query.gte("timestamp", `${dateString}T00:00:00Z`);
-        query = query.lte("timestamp", `${dateString}T23:59:59Z`);
-      }
-      
-      if (filters.dossierFilter) {
-        query = query.eq("dossier_id", filters.dossierFilter);
-      }
-
       // Calculate pagination
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
       
-      // Add sorting and pagination at the end
-      query = query.order("timestamp", { ascending: false });
-      query = query.range(from, to);
-      
-      // Execute the final query
-      const { data, error, count } = await query;
+      // Execute the final query with sorting and pagination
+      const { data, error, count } = await filteredQuery
+        .order("timestamp", { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
       
