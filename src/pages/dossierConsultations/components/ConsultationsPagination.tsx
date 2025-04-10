@@ -1,77 +1,63 @@
 
 import React from "react";
-import { 
-  Pagination, 
-  PaginationContent, 
-  PaginationItem, 
-  PaginationLink, 
-  PaginationNext, 
-  PaginationPrevious 
-} from "@/components/ui/pagination";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
-interface ConsultationsPaginationProps {
+export interface ConsultationsPaginationProps {
   page: number;
   totalPages: number;
-  setPage: (page: number) => void;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const ConsultationsPagination: React.FC<ConsultationsPaginationProps> = ({ 
-  page, 
-  setPage, 
-  totalPages 
+const ConsultationsPagination: React.FC<ConsultationsPaginationProps> = ({
+  page,
+  totalPages,
+  setPage
 }) => {
+  const goToFirstPage = () => setPage(1);
+  const goToPreviousPage = () => setPage(prev => Math.max(prev - 1, 1));
+  const goToNextPage = () => setPage(prev => Math.min(prev + 1, totalPages));
+  const goToLastPage = () => setPage(totalPages);
+
   return (
-    <div className="mt-4 flex justify-center">
-      <Pagination>
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
-              onClick={() => setPage(Math.max(1, page - 1))}
-              className={page === 1 ? "pointer-events-none opacity-50" : ""}
-            />
-          </PaginationItem>
-          
-          {Array.from({ length: totalPages }, (_, i) => i + 1)
-            .filter(p => p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1))
-            .map((p, i, arr) => {
-              if (i > 0 && p > arr[i - 1] + 1) {
-                return (
-                  <React.Fragment key={`ellipsis-${p}`}>
-                    <PaginationItem>
-                      <span className="px-4">...</span>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationLink
-                        onClick={() => setPage(p)}
-                        isActive={page === p}
-                      >
-                        {p}
-                      </PaginationLink>
-                    </PaginationItem>
-                  </React.Fragment>
-                );
-              }
-              
-              return (
-                <PaginationItem key={p}>
-                  <PaginationLink
-                    onClick={() => setPage(p)}
-                    isActive={page === p}
-                  >
-                    {p}
-                  </PaginationLink>
-                </PaginationItem>
-              );
-            })}
-          
-          <PaginationItem>
-            <PaginationNext
-              onClick={() => setPage(Math.min(totalPages, page + 1))}
-              className={page === totalPages ? "pointer-events-none opacity-50" : ""}
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
+    <div className="flex items-center space-x-2">
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={goToFirstPage}
+        disabled={page === 1}
+      >
+        <ChevronsLeft className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={goToPreviousPage}
+        disabled={page === 1}
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+      
+      <span className="text-sm">
+        Page {page} sur {totalPages}
+      </span>
+      
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={goToNextPage}
+        disabled={page === totalPages}
+      >
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={goToLastPage}
+        disabled={page === totalPages}
+      >
+        <ChevronsRight className="h-4 w-4" />
+      </Button>
     </div>
   );
 };
