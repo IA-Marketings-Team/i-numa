@@ -11,38 +11,38 @@ import DashboardPage from "@/pages/DashboardPage";
 import DossierListPage from "@/pages/DossierList";
 import DossierDetailsPage from "@/pages/DossierDetailsPage";
 import DossierPage from "@/pages/DossierPage";
-import NewDossierPage from "@/pages/NewDossierPage";
-import EditDossierPage from "@/pages/EditDossierPage";
+import DossierNewPage from "@/pages/DossierNewPage";
+import DossierEdit from "@/pages/DossierEdit";
 import ProfilePage from "@/pages/ProfilePage";
-import StatsPage from "@/pages/StatsPage";
+import StatistiquesPage from "@/pages/StatistiquesPage";
 import ClientsPage from "@/pages/ClientsPage";
 import OffresPage from "@/pages/OffresPage";
 import ConsultationsPage from "@/pages/ConsultationsPage";
-import DossierRdvPage from "@/pages/DossierRdvPage";
+import DossierMeetingPage from "@/pages/DossierMeetingPage";
 import { Toaster } from "@/components/ui/toaster";
-import AuthGuard from "@/components/auth/AuthGuard";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 function App() {
   return (
     <Router>
-      <ThemeProvider defaultTheme="light">
+      <ThemeProvider>
         <AuthProvider>
           <DossierProvider>
             <TooltipProvider>
               <Routes>
                 <Route path="/connexion" element={<LoginPage />} />
                 <Route path="/inscription" element={<RegisterPage />} />
-                <Route element={<AuthGuard><Layout /></AuthGuard>}>
+                <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
                   <Route path="/" element={<Navigate to="/tableau-de-bord" replace />} />
                   <Route path="/tableau-de-bord" element={<DashboardPage />} />
                   <Route path="/dossiers" element={<DossierListPage />} />
                   <Route path="/dossiers/:id" element={<DossierPage />} />
                   <Route path="/dossiers/detail/:id" element={<DossierDetailsPage />} />
-                  <Route path="/dossiers/nouveau" element={<NewDossierPage />} />
-                  <Route path="/dossiers/:id/modifier" element={<EditDossierPage />} />
-                  <Route path="/dossiers/:id/rdv" element={<DossierRdvPage />} />
+                  <Route path="/dossiers/nouveau" element={<DossierNewPage />} />
+                  <Route path="/dossiers/:id/modifier" element={<DossierEdit />} />
+                  <Route path="/dossiers/:id/rdv" element={<DossierMeetingPage />} />
                   <Route path="/profil" element={<ProfilePage />} />
-                  <Route path="/statistiques" element={<StatsPage />} />
+                  <Route path="/statistiques" element={<StatistiquesPage />} />
                   <Route path="/clients" element={<ClientsPage />} />
                   <Route path="/mes-offres" element={<OffresPage />} />
                   <Route path="/consultations" element={<ConsultationsPage />} />

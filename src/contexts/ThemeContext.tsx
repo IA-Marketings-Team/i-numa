@@ -8,16 +8,22 @@ interface ThemeContextType {
   toggleTheme: () => void;
 }
 
+// Add defaultTheme prop to ThemeProvider props
+interface ThemeProviderProps {
+  children: React.ReactNode;
+  defaultTheme?: Theme;
+}
+
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 // Function to safely get the initial theme
-const getInitialTheme = (): Theme => {
-  // Default to light mode for i-numa
-  return "light";
+const getInitialTheme = (defaultTheme?: Theme): Theme => {
+  // Default to light mode for i-numa if no defaultTheme is provided
+  return defaultTheme || "light";
 };
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(getInitialTheme());
+export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
+  const [theme, setTheme] = useState<Theme>(getInitialTheme(defaultTheme));
 
   // Effect to apply the theme to the document
   useEffect(() => {

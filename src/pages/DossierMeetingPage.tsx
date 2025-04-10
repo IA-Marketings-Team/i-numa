@@ -1,108 +1,57 @@
-
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDossier } from "@/contexts/DossierContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Calendar, Save } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { format } from "date-fns";
+import { ChevronLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { DossierProvider } from "@/contexts/DossierContext";
 
-const DossierMeetingContent: React.FC = () => {
+const DossierMeetingPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { getDossierById, addRendezVous, currentDossier } = useDossier();
+  const { getDossierById, currentDossier } = useDossier();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
-  
-  const [meetingForm, setMeetingForm] = useState({
-    date: format(new Date(), "yyyy-MM-dd"),
-    time: format(new Date(), "HH:mm"),
-    notes: "",
-    location: "",
-    meetingLink: ""
-  });
+  const [isLoading, setIsLoading] = React.useState(true);
 
-  // Charger les données du dossier
-  useEffect(() => {
+  React.useEffect(() => {
     const loadDossier = async () => {
-      if (!id) return;
       setIsLoading(true);
-      try {
-        await getDossierById(id);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("[DossierMeetingPage] Error fetching dossier:", error);
-        toast({
-          variant: "destructive",
-          title: "Erreur",
-          description: "Impossible de charger les informations du dossier."
-        });
-        navigate("/dossiers");
+      if (id) {
+        try {
+          await getDossierById(id);
+        } catch (error) {
+          console.error("Error fetching dossier:", error);
+          toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Erreur lors du chargement du dossier."
+          });
+          navigate("/dossiers");
+        }
       }
+      setIsLoading(false);
     };
     
     loadDossier();
   }, [id, getDossierById, navigate, toast]);
 
-  const handleAddMeeting = async () => {
-    if (!currentDossier || !id) return;
-    
-    try {
-      // Créer une date à partir des champs
-      const dateTime = new Date(`${meetingForm.date}T${meetingForm.time}`);
-      
-      // Vérifier que la date est valide
-      if (isNaN(dateTime.getTime())) {
-        throw new Error("Date ou heure invalide");
-      }
-      
-      // Créer le rendez-vous
-      const newRendezVous = {
-        dossierId: id,
-        date: dateTime,
-        honore: false,
-        location: meetingForm.location,
-        meetingLink: meetingForm.meetingLink,
-        notes: meetingForm.notes,
-        dossier: currentDossier
-      };
-      
-      await addRendezVous(newRendezVous);
-      
-      toast({
-        title: "Rendez-vous créé",
-        description: "Le rendez-vous a été créé avec succès."
-      });
-      
-      navigate(`/dossiers/${id}`);
-    } catch (error) {
-      console.error("[DossierMeetingPage] Error creating meeting:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de créer le rendez-vous."
-      });
-    }
-  };
-
-  if (isLoading) {
+  if (isLoading || !currentDossier) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
-        <p className="text-gray-600 mb-4">Chargement des informations...</p>
+        <p className="text-gray-600 mb-4">Chargement du dossier...</p>
+        <Button variant="outline" onClick={() => navigate("/dossiers")} className="flex items-center gap-2">
+          <ChevronLeft className="w-4 h-4" />
+          Retour à la liste
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Planifier un rendez-vous</h1>
+    <div className="container mx-auto px-4 py-6">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Rendez-vous pour le dossier {currentDossier.id}</h1>
         <Button 
           variant="outline" 
           onClick={() => navigate(`/dossiers/${id}`)}
@@ -112,89 +61,21 @@ const DossierMeetingContent: React.FC = () => {
           Retour au dossier
         </Button>
       </div>
-
-      {currentDossier && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Rendez-vous avec {currentDossier.client.prenom} {currentDossier.client.nom}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="date" className="text-sm font-medium">Date</label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={meetingForm.date}
-                    onChange={(e) => setMeetingForm({...meetingForm, date: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="time" className="text-sm font-medium">Heure</label>
-                  <Input
-                    id="time"
-                    type="time"
-                    value={meetingForm.time}
-                    onChange={(e) => setMeetingForm({...meetingForm, time: e.target.value})}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <label htmlFor="location" className="text-sm font-medium">Lieu (optionnel)</label>
-                <Input
-                  id="location"
-                  value={meetingForm.location}
-                  onChange={(e) => setMeetingForm({...meetingForm, location: e.target.value})}
-                  placeholder="Adresse, bureau, etc."
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label htmlFor="meetingLink" className="text-sm font-medium">Lien de visioconférence (optionnel)</label>
-                <Input
-                  id="meetingLink"
-                  value={meetingForm.meetingLink}
-                  onChange={(e) => setMeetingForm({...meetingForm, meetingLink: e.target.value})}
-                  placeholder="https://meet.google.com/..."
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label htmlFor="notes" className="text-sm font-medium">Notes (optionnel)</label>
-                <Textarea
-                  id="notes"
-                  value={meetingForm.notes}
-                  onChange={(e) => setMeetingForm({...meetingForm, notes: e.target.value})}
-                  placeholder="Informations complémentaires..."
-                />
-              </div>
-
-              <Button 
-                onClick={handleAddMeeting} 
-                className="w-full mt-4"
-              >
-                <Save className="mr-2 h-4 w-4" />
-                Créer le rendez-vous
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <p className="text-muted-foreground mb-4">
+          Interface de gestion des rendez-vous pour le dossier {currentDossier.client.nom}.
+        </p>
+        
+        {/* Ici, vous pouvez ajouter le contenu spécifique à la gestion des rendez-vous */}
+        
+        <div className="flex justify-end mt-4">
+          <Button onClick={() => navigate(`/dossiers/${id}`)}>
+            Terminer
+          </Button>
+        </div>
+      </div>
     </div>
-  );
-};
-
-// Wrapper component that provides the DossierProvider context
-const DossierMeetingPage: React.FC = () => {
-  return (
-    <DossierProvider>
-      <DossierMeetingContent />
-    </DossierProvider>
   );
 };
 
