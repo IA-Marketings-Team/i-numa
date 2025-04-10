@@ -84,7 +84,7 @@ export const getRecentAuthLogs = async (limit: number = 50): Promise<AuthLog[]> 
   }
 };
 
-// Added this function to fix the error in AuthLogsTable component
+// Function to fetch auth logs for a user
 export const fetchAuthLogsByUser = async (userId: string): Promise<AuthLog[]> => {
   return getUserAuthLogs(userId);
 };

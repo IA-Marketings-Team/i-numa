@@ -23,24 +23,7 @@ const AuthLogsTable: React.FC<AuthLogsTableProps> = ({ userId }) => {
       setLoading(true);
       try {
         const response = await fetchAuthLogsByUser(userId);
-        if (response.success && response.data) {
-          // Cast the response data to AuthLog[]
-          const typedLogs = response.data.map((log: any) => ({
-            id: log.id,
-            user_id: log.user_id,
-            userId: log.user_id,
-            action: log.action,
-            timestamp: log.timestamp,
-            userAgent: log.user_agent,
-            user_agent: log.user_agent,
-            ipAddress: log.ip_address,
-            ip_address: log.ip_address
-          })) as AuthLog[];
-          
-          setLogs(typedLogs);
-        } else {
-          console.error(`Erreur lors du chargement des journaux:`, response.error);
-        }
+        setLogs(response); // fetchAuthLogsByUser now returns AuthLog[] directly
       } catch (error) {
         console.error(`Erreur lors du chargement des journaux pour l'utilisateur ${userId}:`, error);
       } finally {

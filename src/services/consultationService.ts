@@ -15,14 +15,14 @@ export const recordDossierConsultation = async (
   try {
     const { data, error } = await supabase
       .from('dossier_consultations')
-      .insert([{
+      .insert({
         dossier_id: dossierId,
         user_id: userId,
         user_name: userName,
         user_role: userRole,
         action: action,
-        timestamp: new Date()
-      }])
+        timestamp: new Date().toISOString() // Convert Date to ISO string
+      })
       .select('id')
       .single();
       
