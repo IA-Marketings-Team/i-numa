@@ -6,7 +6,7 @@ interface MeetingData {
   titre: string;
   description?: string;
   date: Date;
-  heure?: string;
+  heure: string;
   duree?: number;
   type: 'visio' | 'presentiel' | 'telephonique';
   participants: string[];
@@ -49,7 +49,7 @@ export const createMeeting = async (meetingData: MeetingData): Promise<Meeting |
       type: data.type as 'visio' | 'presentiel' | 'telephonique',
       statut: data.statut as 'planifie' | 'en_cours' | 'termine' | 'annule' | 'effectue' | 'manque',
       participants: data.participants || [],
-      heure: meetingData.heure || new Date(data.date).toTimeString().substr(0, 5)
+      heure: meetingData.heure
     };
   } catch (error) {
     console.error("Erreur inattendue lors de la création du meeting:", error);
