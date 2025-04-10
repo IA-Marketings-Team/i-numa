@@ -55,7 +55,8 @@ export const importClientsFromCSV = async (clientsData: Omit<Client, 'id' | 'dat
       commentaires: client.commentaires
     }));
 
-    // Insert clients into the database as an array of objects
+    // Insert clients into the database
+    // Note: We're inserting as individual objects in an array, not as a bulk object
     const { data, error } = await supabase
       .from('profiles')
       .insert(dbClients)
