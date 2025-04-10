@@ -712,7 +712,7 @@ export type Database = {
         }
         Relationships: []
       }
-      statistiques: {
+      statistiques_backup: {
         Row: {
           appels_decroches: number | null
           appels_emis: number | null
@@ -722,7 +722,7 @@ export type Database = {
           date_fin: string | null
           dossiers_signe: number | null
           dossiers_valides: number | null
-          id: string
+          id: string | null
           periode: string | null
           rendez_vous_honores: number | null
           rendez_vous_non_honores: number | null
@@ -736,7 +736,7 @@ export type Database = {
           date_fin?: string | null
           dossiers_signe?: number | null
           dossiers_valides?: number | null
-          id?: string
+          id?: string | null
           periode?: string | null
           rendez_vous_honores?: number | null
           rendez_vous_non_honores?: number | null
@@ -750,7 +750,7 @@ export type Database = {
           date_fin?: string | null
           dossiers_signe?: number | null
           dossiers_valides?: number | null
-          id?: string
+          id?: string | null
           periode?: string | null
           rendez_vous_honores?: number | null
           rendez_vous_non_honores?: number | null
@@ -881,6 +881,14 @@ export type Database = {
           },
         ]
       }
+      dossiers_stats_daily: {
+        Row: {
+          count: number | null
+          jour: string | null
+          status: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_dossier_comment: {
@@ -892,6 +900,42 @@ export type Database = {
           p_is_public?: boolean
         }
         Returns: string
+      }
+      calculate_agent_performance: {
+        Args: { start_date?: string; end_date?: string }
+        Returns: {
+          agent_id: string
+          agent_name: string
+          appels_emis: number
+          appels_transformes: number
+          rdv_honores: number
+          dossiers_valides: number
+          taux_transformation: number
+        }[]
+      }
+      calculate_conversion_metrics: {
+        Args: { start_date?: string; end_date?: string }
+        Returns: {
+          etape: string
+          total: number
+          taux_conversion: number
+        }[]
+      }
+      calculate_dossiers_by_status: {
+        Args: { start_date?: string; end_date?: string }
+        Returns: {
+          status: string
+          count: number
+        }[]
+      }
+      calculate_rdv_completion_rate: {
+        Args: { start_date?: string; end_date?: string }
+        Returns: {
+          total_rdv: number
+          honores: number
+          non_honores: number
+          taux_completion: number
+        }[]
       }
       create_client: {
         Args: {
