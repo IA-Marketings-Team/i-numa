@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { fetchClientById } from "@/services/client/clientService";
+import { fetchClientById, updateClient } from "@/services/client/clientService";
 import { Client } from "@/types";
 import ClientForm from "@/components/client/ClientForm";
 
@@ -14,6 +14,7 @@ const ClientEditPage: React.FC = () => {
   const { toast } = useToast();
   const [client, setClient] = useState<Client | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const loadClient = async () => {
@@ -48,6 +49,41 @@ const ClientEditPage: React.FC = () => {
     loadClient();
   }, [id, navigate, toast]);
 
+  const handleSubmit = async (data: any) => {
+    if (!id) return;
+    
+    setIsSubmitting(true);
+    try {
+      const updated = await updateClient({ id, ...data });
+      if (updated) {
+        toast({
+          title: "Client mis à jour",
+          description: "Les informations du client ont été mises à jour avec succès.",
+        });
+        navigate(`/clients/${id}`);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Impossible de mettre à jour le client.",
+        });
+      }
+    } catch (error) {
+      console.error("Error updating client:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la mise à jour du client.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCancel = () => {
+    navigate(`/clients/${id}`);
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto p-6 text-center">
@@ -70,7 +106,14 @@ const ClientEditPage: React.FC = () => {
         </Button>
       </div>
       
-      {client && <ClientForm initialData={client} isEditing={true} />}
+      {client && (
+        <ClientForm
+          client={client}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          isLoading={isSubmitting}
+        />
+      )}
     </div>
   );
 };

@@ -4,7 +4,6 @@ import { Client } from "@/types";
 import { mapProfileToClient } from "./utils/mapProfileToClient";
 
 interface DbClientInput {
-  id?: string;  // Make id optional but include it in the type
   nom: string;
   prenom: string;
   email: string;

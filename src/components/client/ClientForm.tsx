@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from "react";
 import { Client } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export interface ClientFormProps {
   client?: Client;
@@ -313,7 +314,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
           <Button type="submit" disabled={isLoading}>
             {isLoading 
               ? "En cours..." 
-              : "Créer"}
+              : client ? "Enregistrer" : "Créer"}
           </Button>
         </div>
       </div>
