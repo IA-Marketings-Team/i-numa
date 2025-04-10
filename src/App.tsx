@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DossierProvider } from "@/contexts/DossierContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -21,6 +21,7 @@ import ConsultationsPage from "@/pages/ConsultationsPage";
 import DossierMeetingPage from "@/pages/DossierMeetingPage";
 import { Toaster } from "@/components/ui/toaster";
 import AuthGuard from "@/components/auth/AuthGuard";
+import Index from "@/pages/Index";
 
 function App() {
   return (
@@ -30,10 +31,17 @@ function App() {
           <DossierProvider>
             <TooltipProvider>
               <Routes>
+                <Route path="/" element={<Index />} />
                 <Route path="/connexion" element={<LoginPage />} />
                 <Route path="/inscription" element={<RegisterPage />} />
-                <Route element={<AuthGuard><Layout /></AuthGuard>}>
-                  <Route path="/" element={<Navigate to="/tableau-de-bord" replace />} />
+                
+                <Route 
+                  element={
+                    <AuthGuard>
+                      <Layout />
+                    </AuthGuard>
+                  }
+                >
                   <Route path="/tableau-de-bord" element={<DashboardPage />} />
                   <Route path="/dossiers" element={<DossierListPage />} />
                   <Route path="/dossiers/:id" element={<DossierPage />} />
@@ -47,7 +55,10 @@ function App() {
                   <Route path="/mes-offres" element={<OffresPage />} />
                   <Route path="/consultations" element={<ConsultationsPage />} />
                 </Route>
+
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
+              
               <Toaster />
             </TooltipProvider>
           </DossierProvider>
