@@ -1,4 +1,3 @@
-
 // Reuse existing types for offers and secteurs
 export interface OffreSectionItem {
   id: string;
@@ -45,6 +44,7 @@ export * from './offre';
 export * from './statistique';
 export * from './agent';
 export * from './team';
+export * from './documents';
 
 // Add any missing types that are used but not defined in separate files
 
