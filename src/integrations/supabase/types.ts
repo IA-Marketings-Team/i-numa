@@ -319,6 +319,7 @@ export type Database = {
           date: string
           description: string | null
           duree: number
+          heure: string | null
           id: string
           lien: string | null
           participants: string[] | null
@@ -330,6 +331,7 @@ export type Database = {
           date?: string
           description?: string | null
           duree?: number
+          heure?: string | null
           id?: string
           lien?: string | null
           participants?: string[] | null
@@ -341,6 +343,7 @@ export type Database = {
           date?: string
           description?: string | null
           duree?: number
+          heure?: string | null
           id?: string
           lien?: string | null
           participants?: string[] | null

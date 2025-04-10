@@ -113,12 +113,12 @@ export const MeetingForm: React.FC<MeetingFormProps> = ({ meetingId, onSuccess }
         titre: formData.titre,
         description: formData.description,
         date: dateObj,
+        heure: heure,
         duree: formData.duree,
         lien: formData.lien,
         type: formData.type,
         statut: formData.statut,
-        participants: formData.participants,
-        heure: heure // Add the heure property
+        participants: formData.participants
       };
       
       if (meetingId) {
