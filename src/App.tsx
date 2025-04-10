@@ -35,6 +35,7 @@ function App() {
 
 // Define routes
 const router = createBrowserRouter([
+  // Entrée du marketplace
   {
     path: "/marketplace-entry",
     element: <MarketplaceEntryPage />,

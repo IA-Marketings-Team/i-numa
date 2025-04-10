@@ -2,15 +2,7 @@
 import { Client, UserRole } from './user';
 import { Offre } from './offre';
 
-export type DossierStatus = 
-  | 'prospect_chaud' 
-  | 'prospect_froid' 
-  | 'rdv_en_cours'
-  | 'rdv_honore' 
-  | 'rdv_non_honore' 
-  | 'valide' 
-  | 'signe' 
-  | 'archive';
+export type DossierStatus = 'prospect_chaud' | 'prospect_froid' | 'rdv_honore' | 'rdv_non_honore' | 'valide' | 'signe' | 'archive';
 
 export interface Dossier {
   id: string;

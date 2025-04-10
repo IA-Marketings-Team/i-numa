@@ -89,8 +89,8 @@ const DossierForm: React.FC<DossierFormProps> = ({ dossier, isEditing = false, u
             onStatusChange={handleStatusChange}
           />
 
-          {/* Date de rendez-vous (si statut est rdv_en_cours ou supérieur) */}
-          {(status === "rdv_en_cours" || status === "rdv_honore" || status === "rdv_non_honore" || status === "valide" || status === "signe") && (
+          {/* Date de rendez-vous (si statut est RDV en cours ou supérieur) */}
+          {(status === "rdv_en_cours" || status === "valide" || status === "signe") && (
             <DateRdvInput 
               dateRdv={dateRdv} 
               onDateRdvChange={setDateRdv}

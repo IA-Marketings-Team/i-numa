@@ -23,25 +23,13 @@ const DossierStatusBadge: React.FC<DossierStatusBadgeProps> = ({ status }) => {
       );
     case "rdv_en_cours":
       return (
-        <Badge variant="outline" className="bg-cyan-50 text-cyan-700 border-cyan-200">
+        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
           RDV en cours
-        </Badge>
-      );
-    case "rdv_honore":
-      return (
-        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-          RDV honoré
-        </Badge>
-      );
-    case "rdv_non_honore":
-      return (
-        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-          RDV non honoré
         </Badge>
       );
     case "valide":
       return (
-        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
           Validé
         </Badge>
       );
@@ -55,6 +43,12 @@ const DossierStatusBadge: React.FC<DossierStatusBadgeProps> = ({ status }) => {
       return (
         <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
           Archivé
+        </Badge>
+      );
+    default:
+      return (
+        <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+          {status}
         </Badge>
       );
   }

@@ -12,7 +12,6 @@ export const recordDossierConsultation = async (
   userRole: UserRole
 ): Promise<boolean> => {
   try {
-    // Using raw query builder approach since dossier_consultations is not in the TypeScript types yet
     const { error } = await supabase
       .from('dossier_consultations')
       .insert({
@@ -40,7 +39,6 @@ export const recordDossierConsultation = async (
  */
 export const fetchDossierConsultations = async (): Promise<DossierConsultation[]> => {
   try {
-    // Using raw query builder approach
     const { data, error } = await supabase
       .from('dossier_consultations')
       .select('*')
@@ -51,7 +49,7 @@ export const fetchDossierConsultations = async (): Promise<DossierConsultation[]
       return [];
     }
 
-    return data.map((item: any) => ({
+    return data.map(item => ({
       id: item.id,
       dossierId: item.dossier_id,
       userId: item.user_id,
@@ -70,7 +68,6 @@ export const fetchDossierConsultations = async (): Promise<DossierConsultation[]
  */
 export const fetchConsultationsByDossierId = async (dossierId: string): Promise<DossierConsultation[]> => {
   try {
-    // Using raw query builder approach
     const { data, error } = await supabase
       .from('dossier_consultations')
       .select('*')
@@ -82,7 +79,7 @@ export const fetchConsultationsByDossierId = async (dossierId: string): Promise<
       return [];
     }
 
-    return data.map((item: any) => ({
+    return data.map(item => ({
       id: item.id,
       dossierId: item.dossier_id,
       userId: item.user_id,

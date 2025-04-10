@@ -131,41 +131,6 @@ export type Database = {
           },
         ]
       }
-      dossier_consultations: {
-        Row: {
-          dossier_id: string | null
-          id: string
-          timestamp: string
-          user_id: string
-          user_name: string
-          user_role: string
-        }
-        Insert: {
-          dossier_id?: string | null
-          id?: string
-          timestamp?: string
-          user_id: string
-          user_name: string
-          user_role: string
-        }
-        Update: {
-          dossier_id?: string | null
-          id?: string
-          timestamp?: string
-          user_id?: string
-          user_name?: string
-          user_role?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "dossier_consultations_dossier_id_fkey"
-            columns: ["dossier_id"]
-            isOneToOne: false
-            referencedRelation: "dossiers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       dossier_offres: {
         Row: {
           dossier_id: string
@@ -319,7 +284,6 @@ export type Database = {
           date: string
           description: string | null
           duree: number
-          heure: string | null
           id: string
           lien: string | null
           participants: string[] | null
@@ -331,7 +295,6 @@ export type Database = {
           date?: string
           description?: string | null
           duree?: number
-          heure?: string | null
           id?: string
           lien?: string | null
           participants?: string[] | null
@@ -343,7 +306,6 @@ export type Database = {
           date?: string
           description?: string | null
           duree?: number
-          heure?: string | null
           id?: string
           lien?: string | null
           participants?: string[] | null

@@ -1,3 +1,4 @@
+
 import { Dossier } from "@/types";
 import { clients } from "./clients";
 import { offres } from "./offres";
@@ -24,7 +25,7 @@ export const dossiers: Dossier[] = [
     clientId: "client2",
     client: clients[1],
     agentPhonerId: "phoner1",
-    status: "rdv_honore",
+    status: "rdv_en_cours",
     offres: [offres[1]],
     dateCreation: new Date("2023-02-25"),
     dateMiseAJour: new Date("2023-03-01"),
@@ -103,7 +104,7 @@ export const dossiers: Dossier[] = [
     clientId: "client4",
     client: clients[3],
     agentPhonerId: "phoner1",
-    status: "rdv_honore",
+    status: "rdv_en_cours",
     offres: [offres[1], offres[3]],
     dateCreation: new Date("2023-05-25"),
     dateMiseAJour: new Date("2023-06-01"),
@@ -115,7 +116,7 @@ export const dossiers: Dossier[] = [
     clientId: "client5",
     client: clients[4],
     agentPhonerId: "phoner1",
-    status: "rdv_honore",
+    status: "rdv_en_cours",
     offres: [offres[0], offres[2]],
     dateCreation: new Date("2023-05-28"),
     dateMiseAJour: new Date("2023-06-05"),
@@ -127,7 +128,7 @@ export const dossiers: Dossier[] = [
     clientId: "client1",
     client: clients[0],
     agentPhonerId: "phoner1",
-    status: "rdv_honore",
+    status: "rdv_en_cours",
     offres: [offres[0]],
     dateCreation: new Date("2023-06-01"),
     dateMiseAJour: new Date("2023-06-10"),

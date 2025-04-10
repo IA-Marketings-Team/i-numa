@@ -5,8 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DossierStatus } from "@/types";
 
 interface StatusSelectorProps {
-  status: DossierStatus;
-  onStatusChange: (status: DossierStatus) => void;
+  status: string;
+  onStatusChange: (status: string) => void;
   disabled?: boolean;
 }
 
@@ -30,8 +30,6 @@ const StatusSelector: React.FC<StatusSelectorProps> = ({
           <SelectItem value="prospect_chaud">Prospect à chaud</SelectItem>
           <SelectItem value="prospect_froid">Prospect à froid</SelectItem>
           <SelectItem value="rdv_en_cours">RDV en cours</SelectItem>
-          <SelectItem value="rdv_honore">RDV honoré</SelectItem>
-          <SelectItem value="rdv_non_honore">RDV non honoré</SelectItem>
           <SelectItem value="valide">Validé</SelectItem>
           <SelectItem value="signe">Signé</SelectItem>
           <SelectItem value="archive">Archivé</SelectItem>

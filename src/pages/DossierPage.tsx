@@ -40,7 +40,6 @@ const DossierPage = () => {
     notes: ""
   });
   const [callNote, setCallNote] = useState("");
-  const [callDuration, setCallDuration] = useState(0);
 
   useEffect(() => {
     const loadDossier = async () => {
@@ -101,28 +100,24 @@ const DossierPage = () => {
     });
   };
   
-  const handleCallNoteSubmit = async () => {
+  const handleAddCallNote = async () => {
     if (!dossier) return;
     
-    try {
-      await addCallNote(dossier.id, callNote, callDuration);
-      
-      setIsCallNoteOpen(false);
-      setCallNote("");
-      setCallDuration(0);
-      
-      toast({
-        title: "Note d'appel ajoutée",
-        description: "La note d'appel a été ajoutée avec succès.",
-      });
-    } catch (error) {
-      console.error("Erreur lors de l'ajout de la note d'appel:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Une erreur est survenue lors de l'ajout de la note d'appel."
-      });
-    }
+    // Simuler la mise à jour des notes du dossier
+    const updatedNotes = dossier.notes 
+      ? `${dossier.notes}\n\nAppel (${format(new Date(), "dd/MM/yyyy HH:mm")}):\n${callNote}`
+      : `Appel (${format(new Date(), "dd/MM/yyyy HH:mm")}):\n${callNote}`;
+    
+    // Mettre à jour le dossier
+    await updateDossierStatus(dossier.id, dossier.status);
+    
+    setIsCallNoteOpen(false);
+    setCallNote("");
+    
+    toast({
+      title: "Note d'appel ajoutée",
+      description: "La note d'appel a été ajoutée avec succès.",
+    });
   };
   
   const handleValidateDossier = async () => {
@@ -361,16 +356,6 @@ const DossierPage = () => {
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
-                    <label htmlFor="callDuration">Durée de l'appel (minutes)</label>
-                    <Input 
-                      id="callDuration" 
-                      type="number"
-                      min="0"
-                      value={callDuration} 
-                      onChange={(e) => setCallDuration(Number(e.target.value))}
-                    />
-                  </div>
-                  <div className="grid gap-2">
                     <label htmlFor="callNote">Détails de l'appel</label>
                     <Textarea 
                       id="callNote" 
@@ -383,7 +368,7 @@ const DossierPage = () => {
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setIsCallNoteOpen(false)}>Annuler</Button>
-                  <Button onClick={handleCallNoteSubmit}>Enregistrer</Button>
+                  <Button onClick={handleAddCallNote}>Enregistrer</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>

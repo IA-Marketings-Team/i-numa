@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { 
   createAppel, 
@@ -23,7 +24,6 @@ import {
 import { Appel, Meeting, Email } from '@/types';
 import { useAuth } from './AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
 
 interface CommunicationContextType {
   appels: Appel[];
@@ -62,6 +62,7 @@ export const CommunicationProvider: React.FC<{ children: ReactNode }> = ({ child
   const [fetchingEmails, setFetchingEmails] = useState(false);
   const [fetchingMeetings, setFetchingMeetings] = useState(false);
 
+  // Charger les données initiales
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -124,6 +125,7 @@ export const CommunicationProvider: React.FC<{ children: ReactNode }> = ({ child
     }
   };
 
+  // Méthodes pour les appels
   const getAppelById = async (id: string) => {
     return await fetchAppelById(id);
   };
@@ -152,36 +154,25 @@ export const CommunicationProvider: React.FC<{ children: ReactNode }> = ({ child
     return success;
   };
 
+  // Méthodes pour les réunions
   const getMeetingById = async (id: string) => {
     return await fetchMeetingById(id);
   };
 
   const addMeeting = async (meeting: Omit<Meeting, "id">) => {
-    const meetingData = {
-      ...meeting,
-      heure: meeting.heure || format(new Date(meeting.date), 'HH:mm')
-    };
-    
-    const newMeeting = await createMeeting(meetingData);
+    const newMeeting = await createMeeting(meeting);
     if (newMeeting) {
-      setMeetings(prevMeetings => [...prevMeetings, newMeeting]);
-      return newMeeting;
+      setMeetings([...meetings, newMeeting]);
     }
-    return null;
+    return newMeeting;
   };
 
   const editMeeting = async (id: string, updates: Partial<Meeting>) => {
-    const updatesData = {
-      ...updates,
-      type: updates.type as 'visio' | 'presentiel' | 'telephonique'
-    };
-    
-    const success = await updateMeeting(id, updatesData);
+    const success = await updateMeeting(id, updates);
     if (success) {
       setMeetings(meetings.map(m => m.id === id ? { ...m, ...updates } : m));
-      return true;
     }
-    return false;
+    return success;
   };
 
   const removeMeeting = async (id: string) => {
@@ -192,6 +183,7 @@ export const CommunicationProvider: React.FC<{ children: ReactNode }> = ({ child
     return success;
   };
 
+  // Méthodes pour les emails
   const getEmailById = async (id: string) => {
     return await fetchEmailById(id);
   };
@@ -228,6 +220,7 @@ export const CommunicationProvider: React.FC<{ children: ReactNode }> = ({ child
     return success;
   };
 
+  // Now we need to modify our context value to match the CommunicationContextType
   const value: CommunicationContextType = {
     appels,
     meetings,
