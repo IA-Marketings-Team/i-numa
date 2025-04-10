@@ -34,11 +34,12 @@ export const useDossierConsultations = () => {
   const fetchConsultations = async () => {
     setIsLoading(true);
     try {
-      // Use a temporary variable to build the query step by step to avoid deep nesting
+      // Build query step by step to avoid deep nesting
       let query = supabase
         .from("dossier_consultations")
         .select("*", { count: "exact" });
 
+      // Apply filters one by one
       if (filters.search) {
         query = query.or(`user_name.ilike.%${filters.search}%,action.ilike.%${filters.search}%`);
       }
@@ -60,9 +61,11 @@ export const useDossierConsultations = () => {
         query = query.eq("dossier_id", filters.dossierFilter);
       }
 
+      // Apply pagination
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
       
+      // Execute the query
       const { data, error, count } = await query
         .order("timestamp", { ascending: false })
         .range(from, to);
@@ -70,6 +73,7 @@ export const useDossierConsultations = () => {
       if (error) throw error;
       
       if (data) {
+        // Map the data to our model
         const formattedData: DossierConsultation[] = data.map((item: any) => ({
           id: item.id,
           userId: item.user_id,
