@@ -34,47 +34,50 @@ export const useDossierConsultations = () => {
   const fetchConsultations = async () => {
     setIsLoading(true);
     try {
-      // Build query parts separately to avoid deep type nesting
-      const baseQuery = supabase.from("dossier_consultations").select("*", { count: "exact" });
+      // Define query conditions based on filters
+      const conditions: Record<string, any> = {};
       
-      // Create a function that applies filters to avoid chaining directly
-      const applyFilters = () => {
-        let query = baseQuery;
-        
-        if (filters.search) {
-          query = query.or(`user_name.ilike.%${filters.search}%,action.ilike.%${filters.search}%`);
-        }
-        
-        if (filters.userFilter) {
-          query = query.eq("user_id", filters.userFilter);
-        }
-        
-        if (filters.actionFilter) {
-          query = query.eq("action", filters.actionFilter);
-        }
-        
-        if (filters.dateFilter) {
-          const dateString = format(filters.dateFilter, "yyyy-MM-dd");
-          query = query.gte("timestamp", `${dateString}T00:00:00Z`);
-          query = query.lte("timestamp", `${dateString}T23:59:59Z`);
-        }
-        
-        if (filters.dossierFilter) {
-          query = query.eq("dossier_id", filters.dossierFilter);
-        }
-        
-        return query;
-      };
+      // Apply explicit filters - use simple object to avoid deep chaining
+      if (filters.userFilter) {
+        conditions.user_id = filters.userFilter;
+      }
       
-      // Apply all filters
-      const filteredQuery = applyFilters();
+      if (filters.actionFilter) {
+        conditions.action = filters.actionFilter;
+      }
+      
+      if (filters.dossierFilter) {
+        conditions.dossier_id = filters.dossierFilter;
+      }
       
       // Calculate pagination
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
       
-      // Execute the final query with sorting and pagination
-      const { data, error, count } = await filteredQuery
+      // Build the base query
+      let query = supabase
+        .from("dossier_consultations")
+        .select("*", { count: "exact" });
+      
+      // Apply simple equality filters first
+      if (Object.keys(conditions).length > 0) {
+        query = query.match(conditions);
+      }
+      
+      // Apply complex filters separately
+      if (filters.search) {
+        query = query.or(`user_name.ilike.%${filters.search}%,action.ilike.%${filters.search}%`);
+      }
+      
+      if (filters.dateFilter) {
+        const dateString = format(filters.dateFilter, "yyyy-MM-dd");
+        query = query
+          .gte("timestamp", `${dateString}T00:00:00Z`)
+          .lte("timestamp", `${dateString}T23:59:59Z`);
+      }
+      
+      // Apply sorting and pagination
+      const { data, error, count } = await query
         .order("timestamp", { ascending: false })
         .range(from, to);
 
