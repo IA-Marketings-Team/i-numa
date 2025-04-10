@@ -34,39 +34,43 @@ export const useDossierConsultations = () => {
   const fetchConsultations = async () => {
     setIsLoading(true);
     try {
-      // Build query step by step to avoid deep nesting
-      let query = supabase
+      // Create a base query without filters first
+      const baseQuery = supabase
         .from("dossier_consultations")
         .select("*", { count: "exact" });
 
-      // Apply filters one by one
-      if (filters.search) {
-        query = query.or(`user_name.ilike.%${filters.search}%,action.ilike.%${filters.search}%`);
-      }
+      // Apply search filter if present
+      let filteredQuery = filters.search 
+        ? baseQuery.or(`user_name.ilike.%${filters.search}%,action.ilike.%${filters.search}%`) 
+        : baseQuery;
       
+      // Apply user filter if present
       if (filters.userFilter) {
-        query = query.eq("user_id", filters.userFilter);
+        filteredQuery = filteredQuery.eq("user_id", filters.userFilter);
       }
       
+      // Apply action filter if present
       if (filters.actionFilter) {
-        query = query.eq("action", filters.actionFilter);
+        filteredQuery = filteredQuery.eq("action", filters.actionFilter);
       }
       
+      // Apply date filter if present
       if (filters.dateFilter) {
         const dateString = format(filters.dateFilter, "yyyy-MM-dd");
-        query = query.gte("timestamp", `${dateString}T00:00:00Z`).lte("timestamp", `${dateString}T23:59:59Z`);
+        filteredQuery = filteredQuery.gte("timestamp", `${dateString}T00:00:00Z`).lte("timestamp", `${dateString}T23:59:59Z`);
       }
       
+      // Apply dossier filter if present
       if (filters.dossierFilter) {
-        query = query.eq("dossier_id", filters.dossierFilter);
+        filteredQuery = filteredQuery.eq("dossier_id", filters.dossierFilter);
       }
 
-      // Apply pagination
+      // Calculate pagination range
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
       
-      // Execute the query
-      const { data, error, count } = await query
+      // Execute the query with sorting and pagination
+      const { data, error, count } = await filteredQuery
         .order("timestamp", { ascending: false })
         .range(from, to);
 
