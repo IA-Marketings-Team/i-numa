@@ -2,7 +2,7 @@
 import { Client, UserRole } from './user';
 import { Offre } from './offre';
 
-export type DossierStatus = 'prospect_chaud' | 'prospect_froid' | 'rdv_honore' | 'rdv_non_honore' | 'valide' | 'signe' | 'archive';
+export type DossierStatus = 'prospect_chaud' | 'prospect_froid' | 'rdv_en_cours' | 'valide' | 'signe' | 'archive';
 
 export interface Dossier {
   id: string;
@@ -47,13 +47,4 @@ export interface RendezVous {
   location?: string;
   statut?: string;
   solutionProposee?: string;
-}
-
-export interface DossierConsultation {
-  id: string;
-  dossierId: string;
-  userId: string;
-  userName: string;
-  userRole: UserRole;
-  timestamp: Date;
 }
