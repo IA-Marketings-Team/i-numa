@@ -276,6 +276,7 @@ export const importClientsFromCSV = async (file: File): Promise<{
       }
       
       clients.push({
+        id: supabase.auth.getUser().then(res => res.data.user?.id) || undefined,
         nom: client.nom,
         prenom: client.prenom,
         email: client.email,

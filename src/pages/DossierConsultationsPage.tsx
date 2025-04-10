@@ -18,7 +18,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { DossierConsultation } from "@/types";
 
-// Defining a simple interface for raw database consultations to avoid type recursion
+// Define a simple interface for raw database consultations to avoid type recursion
 interface RawDBConsultation {
   id: string;
   dossier_id: string;
@@ -142,13 +142,14 @@ const DossierConsultationsPage: React.FC = () => {
             return { id: dossier.id, client_name: `Dossier ${dossier.id.substring(0, 8)}` };
           }
           
-          const { data: clientData, error: clientError } = await supabase
+          // Use a separate query to avoid join issues
+          const { data: clientData } = await supabase
             .from("profiles")
             .select("nom, prenom")
             .eq("id", dossier.client_id)
             .single();
           
-          if (clientError || !clientData) {
+          if (!clientData) {
             return { id: dossier.id, client_name: `Dossier ${dossier.id.substring(0, 8)}` };
           }
           
